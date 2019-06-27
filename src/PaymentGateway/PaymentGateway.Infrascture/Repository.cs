@@ -3,7 +3,7 @@ using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
 {
-    public class Repository<T> : IRepository<T> where T: AggregateRoot, new() //shortcut you can do as you see fit with new()
+    public class Repository<T> : IEventSourcedRepository<T> where T: AggregateRoot, new() //shortcut you can do as you see fit with new()
     {
         private readonly IEventStore _storage;
 

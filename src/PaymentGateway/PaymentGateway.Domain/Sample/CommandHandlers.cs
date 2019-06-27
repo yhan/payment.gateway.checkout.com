@@ -4,9 +4,9 @@ namespace SimpleCQRS
 {
     public class InventoryCommandHandlers
     {
-        private readonly IRepository<InventoryItem> _repository;
+        private readonly IEventSourcedRepository<InventoryItem> _repository;
 
-        public InventoryCommandHandlers(IRepository<InventoryItem> repository)
+        public InventoryCommandHandlers(IEventSourcedRepository<InventoryItem> repository)
         {
             _repository = repository;
         }
