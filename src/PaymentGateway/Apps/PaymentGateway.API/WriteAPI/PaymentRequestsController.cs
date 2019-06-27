@@ -20,11 +20,12 @@ namespace PaymentGateway.API.WriteAPI
         [HttpPost]
         public async Task<IActionResult> ProceedPaymentRequest([FromBody]PaymentRequest paymentRequest, 
             [FromServices]IGenerateGuid guidGenerator,
-            [FromServices]IProvidePaymentIdsMapping paymentIdsMapping)
+            [FromServices]IProvidePaymentIdsMapping paymentIdsMapping,
+            [FromServices]IProcessPayment acquiringBank)
         {
             var gatewayPaymentId = guidGenerator.Generate();
 
-            var handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping);
+            var handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank);
             var commandResult = await handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
             switch (commandResult)
             {

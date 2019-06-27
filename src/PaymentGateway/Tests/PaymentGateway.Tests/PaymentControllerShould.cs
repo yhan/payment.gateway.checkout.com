@@ -24,7 +24,7 @@ namespace PaymentGateway.Tests
             
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
-            IActionResult response = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping());
+            IActionResult response = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), new AcquiringBanksMediator(new AcquiringBankFacade(), eventSourcedRepository));
             CheckThatPaymentResourceIsCorrectlyCreated(response, gatewayPaymentId, requestId);
         }
 
@@ -44,9 +44,9 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
             var inMemoryPaymentIdsMapping = new InMemoryPaymentIdsMapping();
-            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping);
+            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping, new AcquiringBanksMediator(new AcquiringBankFacade(), eventSourcedRepository));
 
-            var actionResult = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping);
+            var actionResult = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping, new AcquiringBanksMediator(new AcquiringBankFacade(), eventSourcedRepository));
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult) actionResult;
             var failDetail = (ProblemDetails)badRequest.Value;
@@ -65,7 +65,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
             var inMemoryPaymentIdsMapping = new InMemoryPaymentIdsMapping();
-            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping);
+            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping, new AcquiringBanksMediator(new AcquiringBankFacade(), eventSourcedRepository));
 
             var payment = (await controller.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);

@@ -9,7 +9,8 @@
 
 1. Should be 3 processes in production, but as ...
 
-1. Command handling sync or async
+1. Command handling sync or async  
+To manage burst/back pressure
 
 # Design
 
@@ -26,5 +27,5 @@
 # Tradeoff
 1. Identical `PaymentRequest` submitted more than once. We have two options:  
    1. Idempotency: remind client of API that payment has already been created, and it is available at this location.
-   
+
    1. Reject duplicated  `PaymentRequest`.
