@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using PaymentGateway.Domain;
+using PaymentGateway.Infrastructure;
+using SimpleCQRS;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace PaymentGateway.API
@@ -26,7 +29,13 @@ namespace PaymentGateway.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+                    //options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                });
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
@@ -36,6 +45,9 @@ namespace PaymentGateway.API
 
 
             services.AddSingleton<IGenerateGuid, DefaultGuidGenerator>();
+            services.AddSingleton<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
+            services.AddSingleton<IEventStore, InMemoryEventStore>();
+            services.AddSingleton<IEventPublisher, FakeBus>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
