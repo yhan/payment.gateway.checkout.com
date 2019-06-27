@@ -21,10 +21,7 @@ namespace PaymentGateway.Tests
             var controller = new PaymentRequestsController(eventSourcedRepository);
             var requestId = Guid.NewGuid();
             var paymentRequest = new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66), "321");
-
-
-            //TestContext.WriteLine(JsonConvert.SerializeObject(paymentRequest, Formatting.Indented));
-
+            
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
             IActionResult response = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator);

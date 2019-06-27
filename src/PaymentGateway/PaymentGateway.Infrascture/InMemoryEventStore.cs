@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
 {
     public interface IEventStore
     {
-        void SaveEvents(Guid aggregateId, IEnumerable<Event> events, int expectedVersion);
-        List<Event> GetEventsForAggregate(Guid aggregateId);
+        Task SaveEvents(Guid aggregateId, IEnumerable<Event> events, int expectedVersion);
+
+        Task<List<Event>> GetEventsForAggregate(Guid aggregateId);
     }
 
     public class InMemoryEventStore : IEventStore
@@ -37,8 +39,11 @@ namespace PaymentGateway.Infrastructure
 
         private readonly Dictionary<Guid, List<EventDescriptor>> _current = new Dictionary<Guid, List<EventDescriptor>>();
 
-        public void SaveEvents(Guid aggregateId, IEnumerable<Event> events, int expectedVersion)
+        public async Task SaveEvents(Guid aggregateId, IEnumerable<Event> events, int expectedVersion)
         {
+            // Simulate I/O, avoid blocking thread pool thread
+            await Task.CompletedTask;
+
             List<EventDescriptor> eventDescriptors;
 
             // try to get event descriptors list for given aggregate id
@@ -72,8 +77,10 @@ namespace PaymentGateway.Infrastructure
 
         // collect all processed events for given aggregate and return them as a list
         // used to build up an aggregate from its history (Domain.LoadsFromHistory)
-        public  List<Event> GetEventsForAggregate(Guid aggregateId)
+        public async Task<List<Event>> GetEventsForAggregate(Guid aggregateId)
         {
+            await Task.CompletedTask;
+
             List<EventDescriptor> eventDescriptors;
 
             if (!_current.TryGetValue(aggregateId, out eventDescriptors))

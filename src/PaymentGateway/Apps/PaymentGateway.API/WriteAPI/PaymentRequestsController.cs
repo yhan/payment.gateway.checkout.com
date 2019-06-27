@@ -26,7 +26,7 @@ namespace PaymentGateway.API.WriteAPI
             await handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
 
             // Make sure that relevant events are stored to event store
-            var payment = _repository.GetById(gatewayPaymentId);
+            var payment = await _repository.GetById(gatewayPaymentId);
             
 
             return CreatedAtAction(actionName: "GetPaymentInfo", routeValues: new {gateWayPaymentId = Guid.NewGuid()}, value: payment.AsDto());

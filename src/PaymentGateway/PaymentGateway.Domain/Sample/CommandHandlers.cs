@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace SimpleCQRS
 {
@@ -17,32 +18,32 @@ namespace SimpleCQRS
             _repository.Save(item, -1);
         }
 
-        public void Handle(DeactivateInventoryItem message)
+        public async Task Handle(DeactivateInventoryItem message)
         {
-            var item = _repository.GetById(message.InventoryItemId);
+            var item = await _repository.GetById(message.InventoryItemId);
             item.Deactivate();
-            _repository.Save(item, message.OriginalVersion);
+            await _repository.Save(item, message.OriginalVersion);
         }
 
-        public void Handle(RemoveItemsFromInventory message)
+        public async Task Handle(RemoveItemsFromInventory message)
         {
-            var item = _repository.GetById(message.InventoryItemId);
+            var item = await _repository.GetById(message.InventoryItemId);
             item.Remove(message.Count);
-            _repository.Save(item, message.OriginalVersion);
+            await _repository.Save(item, message.OriginalVersion);
         }
 
-        public void Handle(CheckInItemsToInventory message)
+        public async Task Handle(CheckInItemsToInventory message)
         {
-            var item = _repository.GetById(message.InventoryItemId);
+            var item = await  _repository.GetById(message.InventoryItemId);
             item.CheckIn(message.Count);
-            _repository.Save(item, message.OriginalVersion);
+            await _repository.Save(item, message.OriginalVersion);
         }
 
-        public void Handle(RenameInventoryItem message)
+        public async Task Handle(RenameInventoryItem message)
         {
-            var item = _repository.GetById(message.InventoryItemId);
+            var item = await _repository.GetById(message.InventoryItemId);
             item.ChangeName(message.NewName);
-            _repository.Save(item, message.OriginalVersion);
+            await _repository.Save(item, message.OriginalVersion);
         }
     }
 }

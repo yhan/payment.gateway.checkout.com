@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SimpleCQRS
 {
@@ -97,7 +98,8 @@ namespace SimpleCQRS
 
     public interface IEventSourcedRepository<T> where T : AggregateRoot
     {
-        void Save(AggregateRoot aggregate, int expectedVersion);
-        T GetById(Guid id);
+        Task Save(AggregateRoot aggregate, int expectedVersion);
+
+        Task<T> GetById(Guid id);
     }
 }

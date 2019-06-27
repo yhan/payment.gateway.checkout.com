@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
@@ -12,15 +13,15 @@ namespace PaymentGateway.Infrastructure
             _storage = storage;
         }
 
-        public void Save(AggregateRoot aggregate, int expectedVersion)
+        public async Task Save(AggregateRoot aggregate, int expectedVersion)
         {
-            _storage.SaveEvents(aggregate.Id, aggregate.GetUncommittedChanges(), expectedVersion);
+            await _storage.SaveEvents(aggregate.Id, aggregate.GetUncommittedChanges(), expectedVersion);
         }
 
-        public T GetById(Guid id)
+        public async Task<T> GetById(Guid id)
         {
             var obj = new T();//lots of ways to do this
-            var e = _storage.GetEventsForAggregate(id);
+            var e = await  _storage.GetEventsForAggregate(id);
             obj.LoadsFromHistory(e);
             return obj;
         }

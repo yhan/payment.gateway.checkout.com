@@ -15,4 +15,6 @@
 
 1. Never put Http Dto into domain and Never expose domain type to Http
 
-1. Flat event structure (no embedded type)
+1. Flat event structure (no embedded type, for easing event versioning), except for entity never changes
+
+1. Simulate I/O, avoid blocking thread pool thread waiting for I/O
