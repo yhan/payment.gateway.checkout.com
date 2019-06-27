@@ -18,18 +18,23 @@ namespace PaymentGateway.API.WriteAPI
         }
 
         [HttpPost]
-        public async Task<IActionResult> ProceedPaymentRequest([FromBody]PaymentRequest paymentRequest, [FromServices]IGenerateGuid guidGenerator)
+        public async Task<IActionResult> ProceedPaymentRequest([FromBody]PaymentRequest paymentRequest, 
+            [FromServices]IGenerateGuid guidGenerator,
+            [FromServices]IProvidePaymentIdsMapping paymentIdsMapping)
         {
             var gatewayPaymentId = guidGenerator.Generate();
 
-            var handler = new PaymentRequestCommandHandler(_repository);
-            await handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
+            var handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping);
+            var commandResult = await handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
+            switch (commandResult)
+            {
+                case SuccessCommandResult<Payment> success:
+                    return CreatedAtAction(actionName: "GetPaymentInfo", routeValues: new {gateWayPaymentId = Guid.NewGuid()}, value: success.Entity.AsDto());
+                case InvalidCommandResult invalid:
+                    return ActionResultHelper.ToActionResult(invalid);
+            }
 
-            // Make sure that relevant events are stored to event store
-            var payment = await _repository.GetById(gatewayPaymentId);
-            
-
-            return CreatedAtAction(actionName: "GetPaymentInfo", routeValues: new {gateWayPaymentId = Guid.NewGuid()}, value: payment.AsDto());
+            throw new NotImplementedException();
         }
 
         [HttpGet("{gateWayPaymentId}", Name = nameof(GetPaymentInfo))]

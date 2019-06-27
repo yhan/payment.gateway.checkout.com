@@ -48,6 +48,7 @@ namespace PaymentGateway.API
             services.AddSingleton<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
             services.AddSingleton<IEventStore, InMemoryEventStore>();
             services.AddSingleton<IEventPublisher, FakeBus>();
+            services.AddSingleton<IProvidePaymentIdsMapping, InMemoryPaymentIdsMapping>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

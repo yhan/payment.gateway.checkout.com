@@ -24,13 +24,29 @@ namespace PaymentGateway.Tests
             
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
-            IActionResult response = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator);
+            IActionResult response = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping());
             CheckThatPaymentResourceIsCorrectlyCreated(response, gatewayPaymentId, requestId);
         }
 
         [Test]
         public async Task Not_handle_a_PaymentRequest_more_than_once()
         {
+            var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new FakeBus()));
+            var controller = new PaymentRequestsController(eventSourcedRepository);
+            var requestId = Guid.NewGuid();
+            var paymentRequest = new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66), "321");
+            
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+            var inMemoryPaymentIdsMapping = new InMemoryPaymentIdsMapping();
+            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping);
+
+            var actionResult = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping);
+            Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
+            var badRequest = (BadRequestObjectResult) actionResult;
+            var failDetail = (ProblemDetails)badRequest.Value;
+            Check.That(failDetail.Detail).IsEqualTo("Identical payment request will not be handled more than once");
+
         }
 
         private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId, Guid requestId)
