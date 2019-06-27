@@ -20,12 +20,17 @@ namespace PaymentGateway.Tests
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new FakeBus()));
             var controller = new PaymentRequestsController(eventSourcedRepository);
             var requestId = Guid.NewGuid();
-            var paymentRequest = new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66), "321");
+            var paymentRequest = BuildPaymentRequest(requestId);
             
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
             IActionResult response = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping());
             CheckThatPaymentResourceIsCorrectlyCreated(response, gatewayPaymentId, requestId);
+        }
+
+        private static PaymentRequest BuildPaymentRequest(Guid requestId)
+        {
+            return new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66), "321");
         }
 
         [Test]
@@ -34,7 +39,7 @@ namespace PaymentGateway.Tests
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new FakeBus()));
             var controller = new PaymentRequestsController(eventSourcedRepository);
             var requestId = Guid.NewGuid();
-            var paymentRequest = new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66), "321");
+            var paymentRequest = BuildPaymentRequest(requestId);;
             
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -47,6 +52,27 @@ namespace PaymentGateway.Tests
             var failDetail = (ProblemDetails)badRequest.Value;
             Check.That(failDetail.Detail).IsEqualTo("Identical payment request will not be handled more than once");
 
+        }
+
+        [Test]
+        public async Task Return_payment_success_When_AcquiringBank_accepts_payment()
+        {
+            var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new FakeBus()));
+            var controller = new PaymentRequestsController(eventSourcedRepository);
+            var requestId = Guid.NewGuid();
+            var paymentRequest = BuildPaymentRequest(requestId);;
+            
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+            var inMemoryPaymentIdsMapping = new InMemoryPaymentIdsMapping();
+            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping);
+
+            var payment = (await controller.GetPaymentInfo(gatewayPaymentId)).Value;
+            Check.That(payment.RequestId).IsEqualTo(requestId);
+            Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
+            Check.That(payment.Id).IsEqualTo(gatewayPaymentId);
+
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.Success);
         }
 
         private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId, Guid requestId)

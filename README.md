@@ -22,3 +22,9 @@
 # SLA
 
 1. A `PaymentRequestId` will be handled once and only once.
+
+# Tradeoff
+1. Identical `PaymentRequest` submitted more than once. We have two options:  
+   1. Idempotency: remind client of API that payment has already been created, and it is available at this location.
+   
+   1. Reject duplicated  `PaymentRequest`.

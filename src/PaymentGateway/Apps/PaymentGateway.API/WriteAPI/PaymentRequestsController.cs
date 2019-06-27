@@ -32,15 +32,17 @@ namespace PaymentGateway.API.WriteAPI
                     return CreatedAtAction(actionName: "GetPaymentInfo", routeValues: new {gateWayPaymentId = Guid.NewGuid()}, value: success.Entity.AsDto());
                 case InvalidCommandResult invalid:
                     return ActionResultHelper.ToActionResult(invalid);
+                default:
+                    throw new NotSupportedException();
             }
-
-            throw new NotImplementedException();
         }
 
         [HttpGet("{gateWayPaymentId}", Name = nameof(GetPaymentInfo))]
-        public ActionResult GetPaymentInfo([FromRoute]Guid gateWayPaymentId)
+        public async Task<ActionResult<Payment>> GetPaymentInfo([FromRoute]Guid gateWayPaymentId)
         {
-            return Ok();
+            var payment = await _repository.GetById(gateWayPaymentId);
+
+            return payment;
         }
         
     }
