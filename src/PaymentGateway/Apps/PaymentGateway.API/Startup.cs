@@ -44,11 +44,13 @@ namespace PaymentGateway.API
             });
 
 
-            services.AddSingleton<IGenerateGuid, DefaultGuidGenerator>();
-            services.AddSingleton<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
+            services.AddScoped<IGenerateGuid, DefaultGuidGenerator>();
+            services.AddScoped<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
             services.AddSingleton<IEventStore, InMemoryEventStore>();
             services.AddSingleton<IEventPublisher, FakeBus>();
             services.AddSingleton<IProvidePaymentIdsMapping, InMemoryPaymentIdsMapping>();
+            services.AddScoped<IProcessPayment, AcquiringBanksMediator>(); 
+            services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

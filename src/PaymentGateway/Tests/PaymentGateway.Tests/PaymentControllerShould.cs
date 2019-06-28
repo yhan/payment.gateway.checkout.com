@@ -55,6 +55,7 @@ namespace PaymentGateway.Tests
         }
 
         [Test]
+        [Repeat(20)]
         public async Task Return_payment_success_When_AcquiringBank_accepts_payment()
         {
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new FakeBus()));
@@ -65,7 +66,10 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
             var inMemoryPaymentIdsMapping = new InMemoryPaymentIdsMapping();
-            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping, new AcquiringBanksMediator(new AcquiringBankFacade(), eventSourcedRepository));
+            var acquiringBank = new AcquiringBankFacade();
+            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, inMemoryPaymentIdsMapping, new AcquiringBanksMediator(acquiringBank, eventSourcedRepository));
+
+            await acquiringBank.WaitForBankResponse();
 
             var payment = (await controller.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
@@ -73,6 +77,7 @@ namespace PaymentGateway.Tests
             Check.That(payment.Id).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(PaymentStatus.Success);
+            Check.That(payment.Version).IsEqualTo(1);
         }
 
         private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId, Guid requestId)
