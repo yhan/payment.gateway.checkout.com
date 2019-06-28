@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AcquiringBanks.API;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -51,6 +52,7 @@ namespace PaymentGateway.API
             services.AddSingleton<IProvidePaymentIdsMapping, InMemoryPaymentIdsMapping>();
             services.AddScoped<IProcessPayment, AcquiringBanksMediator>(); 
             services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();
+            services.AddScoped<IAmAcquiringBank, AcquiringBankSimulator>();
 
             services.AddSingleton<IRandomnizeAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
         }

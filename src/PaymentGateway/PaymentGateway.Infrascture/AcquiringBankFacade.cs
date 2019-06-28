@@ -1,28 +1,32 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AcquiringBanks.API;
+using Newtonsoft.Json;
 using PaymentGateway.Domain;
-using PaymentGateway.Domain.AcquiringBank;
 
 namespace PaymentGateway.Infrastructure
 {
     public class AcquiringBankFacade : ITalkToAcquiringBank
     {
-        private readonly IRandomnizeAcquiringBankPaymentStatus _random;
-        private readonly Task _delay = Task.Delay(1);
+        private readonly IAmAcquiringBank _bank;
+        private Task<string> _delay;
 
-        public AcquiringBankFacade(IRandomnizeAcquiringBankPaymentStatus random)
+        public AcquiringBankFacade(IAmAcquiringBank bank)
         {
-            _random = random;
+            _bank = bank;
         }
 
-        public async Task<BankResponse> Pay(PayingAttempt payment)
+        public async Task<PaymentGateway.Domain.BankResponse> Pay(PaymentGateway.Domain.AcquiringBank.PayingAttempt paymentAttempt)
         {
             //Send `PayingAttempt` to AcquiringBank, wait, get reply
-            await _delay;
 
-            BankPaymentStatus bankPaymentStatus = _random.GeneratePaymentStatus();
-
-            return new BankResponse(payment.GatewayPaymentId, Guid.NewGuid(), bankPaymentStatus);
+            _delay = _bank.RespondsTo(JsonConvert.SerializeObject(paymentAttempt));
+            string bankResponseJson = await _delay;
+            
+            var bankResponse = JsonConvert.DeserializeObject<PaymentGateway.Domain.BankResponse>(bankResponseJson);
+            
+            return bankResponse;
         }
 
         internal async Task WaitForBankResponse()

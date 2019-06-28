@@ -11,19 +11,19 @@ namespace PaymentGateway.Domain
 
     public interface ITalkToAcquiringBank
     {
-        Task<BankResponse> Pay(PayingAttempt payment);
+        Task<BankResponse> Pay(PayingAttempt paymentAttempt);
     }
 
     public class BankResponse
     {
-        public Guid GatewayPaymentId { get; }
         public Guid BankPaymentId { get; }
+        public Guid GatewayPaymentId { get; }
         public BankPaymentStatus PaymentStatus { get; }
 
-        public BankResponse(Guid gatewayPaymentId, Guid bankPaymentId, BankPaymentStatus paymentStatus)
+        public BankResponse(Guid bankPaymentId, Guid gatewayPaymentId, BankPaymentStatus paymentStatus)
         {
-            GatewayPaymentId = gatewayPaymentId;
             BankPaymentId = bankPaymentId;
+            GatewayPaymentId = gatewayPaymentId;
             PaymentStatus = paymentStatus;
         }
     }

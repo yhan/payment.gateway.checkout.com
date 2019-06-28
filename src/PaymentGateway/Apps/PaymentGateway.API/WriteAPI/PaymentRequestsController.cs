@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Domain;
 using SimpleCQRS;
@@ -41,6 +43,7 @@ namespace PaymentGateway.API.WriteAPI
         [HttpGet("{gateWayPaymentId}", Name = nameof(GetPaymentInfo))]
         public async Task<ActionResult<Payment>> GetPaymentInfo([FromRoute]Guid gateWayPaymentId)
         {
+            //var etag = Request.GetTypedHeaders().IfNoneMatch?.FirstOrDefault();
             var payment = await _repository.GetById(gateWayPaymentId);
 
             return payment;
