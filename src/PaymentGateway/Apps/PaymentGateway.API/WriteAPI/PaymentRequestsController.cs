@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
 using SimpleCQRS;
 
@@ -32,21 +33,18 @@ namespace PaymentGateway.API.WriteAPI
             switch (commandResult)
             {
                 case SuccessCommandResult<Payment> success:
-                    return CreatedAtAction(actionName: "GetPaymentInfo", routeValues: new {gateWayPaymentId = Guid.NewGuid()}, value: success.Entity.AsDto());
+                    var paymentDto = success.Entity.AsDto();
+
+                    return CreatedAtRoute( nameof(PaymentReadController.GetPaymentInfo), 
+                        routeValues: new {gateWayPaymentId = paymentDto.GateWayPaymentId}, 
+                        value: paymentDto);
+
                 case InvalidCommandResult invalid:
                     return ActionResultHelper.ToActionResult(invalid);
+
                 default:
                     throw new NotSupportedException();
             }
-        }
-
-        [HttpGet("{gateWayPaymentId}", Name = nameof(GetPaymentInfo))]
-        public async Task<ActionResult<Payment>> GetPaymentInfo([FromRoute]Guid gateWayPaymentId)
-        {
-            //var etag = Request.GetTypedHeaders().IfNoneMatch?.FirstOrDefault();
-            var payment = await _repository.GetById(gateWayPaymentId);
-
-            return payment;
         }
         
     }
