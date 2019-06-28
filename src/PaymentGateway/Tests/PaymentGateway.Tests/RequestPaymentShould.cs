@@ -46,9 +46,9 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var (requestController, _, _, paymentProcessor, _) = PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
+            var cqrs = PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
 
-            var response = await requestController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), paymentProcessor);
+            var response = await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), cqrs.PaymentProcessor);
 
             CheckThatPaymentResourceIsCorrectlyCreated(response, gatewayPaymentId, requestId);
         }
@@ -59,13 +59,13 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = BuildPaymentRequest(requestId);
 
-            var (requestController, _, paymentIdsMapping, paymentProcessor, _) = PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
+            var cqrs = PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
-            await requestController.ProceedPaymentRequest(paymentRequest, guidGenerator, paymentIdsMapping, paymentProcessor);
+            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            var actionResult = await requestController.ProceedPaymentRequest(paymentRequest, guidGenerator, paymentIdsMapping, paymentProcessor);
+            var actionResult = await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult) actionResult;
@@ -81,12 +81,12 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var (requestsController, readController, paymentIdsMapping, paymentProcessor, acquiringBank) = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted);
-            await requestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, paymentIdsMapping, paymentProcessor);
+            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted);
+            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            await acquiringBank.WaitForBankResponse();
+            await cqrs.AcquiringBank.WaitForBankResponse();
 
-            var payment = (await readController.GetPaymentInfo(gatewayPaymentId)).Value;
+            var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
             Check.That(payment.Id).IsEqualTo(gatewayPaymentId);
@@ -104,12 +104,12 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var (requestsController, readController, paymentIdsMapping, paymentProcessor, acquiringBank) = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
-            await requestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, paymentIdsMapping, paymentProcessor);
+            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
+            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            await acquiringBank.WaitForBankResponse();
+            await cqrs.AcquiringBank.WaitForBankResponse();
 
-            var payment = (await readController.GetPaymentInfo(gatewayPaymentId)).Value;
+            var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
             Check.That(payment.Id).IsEqualTo(gatewayPaymentId);

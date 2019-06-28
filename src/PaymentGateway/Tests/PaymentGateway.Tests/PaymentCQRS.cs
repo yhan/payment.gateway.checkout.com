@@ -9,7 +9,24 @@ namespace PaymentGateway.Tests
 {
     public class PaymentCQRS
     {
-        internal static (PaymentRequestsController, PaymentReadController, IProvidePaymentIdsMapping, IProcessPayment, AcquiringBankFacade ) Build(AcquiringBanks.API.BankPaymentStatus paymentStatus)
+        protected internal AcquiringBankFacade AcquiringBank;
+        protected internal EventSourcedRepository<Payment> EventSourcedRepository;
+        protected internal AcquiringBanksMediator PaymentProcessor;
+        protected internal InMemoryPaymentIdsMapping PaymentIdsMapping;
+        protected internal PaymentReadController ReadController;
+        protected internal PaymentRequestsController RequestController;
+
+        private PaymentCQRS(EventSourcedRepository<Payment> eventSourcedRepository, PaymentRequestsController requestController, PaymentReadController readController, InMemoryPaymentIdsMapping paymentIdsMapping, AcquiringBankFacade acquiringBank, AcquiringBanksMediator paymentProcessor)
+        {
+            EventSourcedRepository = eventSourcedRepository;
+            RequestController = requestController;
+            ReadController = readController;
+            PaymentIdsMapping = paymentIdsMapping;
+            AcquiringBank = acquiringBank;
+            PaymentProcessor = paymentProcessor;
+        }
+
+        internal static PaymentCQRS Build(BankPaymentStatus paymentStatus)
         {
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new InMemoryBus()));
             var requestController = new PaymentRequestsController(eventSourcedRepository);
@@ -24,7 +41,8 @@ namespace PaymentGateway.Tests
             var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random));
             var mediator = new AcquiringBanksMediator(acquiringBank, eventSourcedRepository);
 
-            return (requestController, readController, paymentIdsMapping, mediator, acquiringBank);
+            return new PaymentCQRS(eventSourcedRepository, requestController, readController, paymentIdsMapping,
+                acquiringBank, mediator);
         }
     }
 }

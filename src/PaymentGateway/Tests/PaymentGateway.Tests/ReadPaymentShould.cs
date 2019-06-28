@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AcquiringBanks.API;
 using NFluent;
 using NUnit.Framework;
 
@@ -11,7 +12,7 @@ namespace PaymentGateway.Tests
         [Ignore("todo")]
         public async Task Return_NotFound_When_Payment_does_not_exist()
         {
-            Check.That(false).IsTrue();
+            //var (requestsController, readController, paymentIdsMapping, paymentProcessor, acquiringBank) = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
         }
     }
 }
