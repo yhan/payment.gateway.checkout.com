@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
+using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
 
@@ -9,10 +11,14 @@ namespace PaymentGateway.Tests
     public class ReadPaymentShould
     {
         [Test]
-        [Ignore("todo")]
         public async Task Return_NotFound_When_Payment_does_not_exist()
         {
-            //var (requestsController, readController, paymentIdsMapping, paymentProcessor, acquiringBank) = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
+            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
+            var nonExistingPaymentId = Guid.NewGuid();
+            var actionResult = await cqrs.ReadController.GetPaymentInfo(nonExistingPaymentId);
+
+            Check.That(actionResult.Result).IsInstanceOf<NotFoundResult>();
+            Check.That(actionResult.Value).IsNull();
         }
     }
 }
