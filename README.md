@@ -20,6 +20,9 @@ To manage burst/back pressure
 
 1. Simulate I/O, avoid blocking thread pool thread waiting for I/O
 
+1. Anti Corruption  
+Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
+
 # SLA
 
 1. A `PaymentRequestId` will be handled once and only once.

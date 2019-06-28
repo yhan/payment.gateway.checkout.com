@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using PaymentGateway.Domain.AcquiringBank;
 using SimpleCQRS;
 
 namespace PaymentGateway.Domain
@@ -31,13 +32,19 @@ namespace PaymentGateway.Domain
             await _repository.Save(payment, Stream.NotCreatedYet);
             await _paymentIdsMapping.Remember(command.RequestId);
 
-            //BankResponse bankResponse = await acquringBank.Pay(payment);
-
-            await Task.Run(() => { _acquiringBank.AttemptPaying(payment); }); //TODO: Add cancellation with a timeout
-            //await  _acquiringBank.AttemptPaying(payment); 
-
+            await Task.Run(() => { _acquiringBank.AttemptPaying(payment.MapToAcquiringBank()); }); //TODO: Add cancellation with a timeout
 
             return this.Success(payment);
+        }
+    }
+
+    public static class PaymentExtensions
+    {
+        public static PayingAttempt MapToAcquiringBank(this Payment payment)
+        {
+            return new PayingAttempt(payment.GatewayPaymentId, payment.CreditCard.Number, payment.CreditCard.Cvv,
+                payment.CreditCard.Expiry, payment.CreditCard.HolderName, payment.Amount.Amount,
+                payment.Amount.Currency);
         }
     }
 }

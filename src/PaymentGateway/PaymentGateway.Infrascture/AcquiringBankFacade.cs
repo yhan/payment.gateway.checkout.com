@@ -1,19 +1,28 @@
 ﻿using System;
 using System.Threading.Tasks;
 using PaymentGateway.Domain;
+using PaymentGateway.Domain.AcquiringBank;
 
 namespace PaymentGateway.Infrastructure
 {
-
-
     public class AcquiringBankFacade : ITalkToAcquiringBank
     {
+        private readonly IRandomnizeAcquiringBankPaymentStatus _random;
         private readonly Task _delay = Task.Delay(1);
 
-        public async Task<BankResponse> Pay(Payment payment)
+        public AcquiringBankFacade(IRandomnizeAcquiringBankPaymentStatus random)
         {
+            _random = random;
+        }
+
+        public async Task<BankResponse> Pay(PayingAttempt payment)
+        {
+            //Send `PayingAttempt` to AcquiringBank, wait, get reply
             await _delay;
-            return new BankResponse(payment.GatewayPaymentId, Guid.NewGuid(), PaymentStatus.Success);
+
+            BankPaymentStatus bankPaymentStatus = _random.GeneratePaymentStatus();
+
+            return new BankResponse(payment.GatewayPaymentId, Guid.NewGuid(), bankPaymentStatus);
         }
 
         internal async Task WaitForBankResponse()

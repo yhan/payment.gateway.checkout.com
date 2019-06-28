@@ -1,25 +1,26 @@
 ﻿using System;
 using System.Threading.Tasks;
+using PaymentGateway.Domain.AcquiringBank;
 
 namespace PaymentGateway.Domain
 {
     public interface IProcessPayment
     {
-        Task AttemptPaying(Payment payment);
+        Task AttemptPaying(PayingAttempt payingAttempt);
     }
 
     public interface ITalkToAcquiringBank
     {
-        Task<BankResponse> Pay(Payment payment);
+        Task<BankResponse> Pay(PayingAttempt payment);
     }
 
     public class BankResponse
     {
         public Guid GatewayPaymentId { get; }
         public Guid BankPaymentId { get; }
-        public PaymentStatus PaymentStatus { get; }
+        public BankPaymentStatus PaymentStatus { get; }
 
-        public BankResponse(Guid gatewayPaymentId, Guid bankPaymentId, PaymentStatus paymentStatus)
+        public BankResponse(Guid gatewayPaymentId, Guid bankPaymentId, BankPaymentStatus paymentStatus)
         {
             GatewayPaymentId = gatewayPaymentId;
             BankPaymentId = bankPaymentId;

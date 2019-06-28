@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using PaymentGateway.Domain;
+using PaymentGateway.Domain.AcquiringBank;
 using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
@@ -15,17 +17,39 @@ namespace PaymentGateway.Infrastructure
             _paymentsRepository = paymentsRepository;
         }
 
-        public async Task AttemptPaying(Payment payment /*TODO maybe introduce PayingAttempt*/)
+        public async Task AttemptPaying(PayingAttempt payingAttempt)
         {
-            var bankResponse = await _acquiringBank.Pay(payment);
+            var bankResponse = await _acquiringBank.Pay(payingAttempt);
+            var knownPayment = await _paymentsRepository.GetById(payingAttempt.GatewayPaymentId);
 
-            var knownPayment = await _paymentsRepository.GetById(payment.GatewayPaymentId);
 
-            knownPayment.AcceptPayment(bankResponse);
+            switch (bankResponse.PaymentStatus)
+            {
+                case BankPaymentStatus.Accepted:
+                    knownPayment.AcceptPayment(bankResponse.BankPaymentId);
+                    break;
+                case BankPaymentStatus.Rejected:
+                    knownPayment.RejectPayment(bankResponse.BankPaymentId);
+                    break;
+            }
 
             await _paymentsRepository.Save(knownPayment, knownPayment.Version);
         }
     }
 
-   
+    public interface IRandomnizeAcquiringBankPaymentStatus
+    {
+        BankPaymentStatus GeneratePaymentStatus();
+    }
+
+    public class AcquiringBankPaymentStatusRandomnizer : IRandomnizeAcquiringBankPaymentStatus
+    {
+        private static readonly Random Random = new Random(42);
+
+        public BankPaymentStatus GeneratePaymentStatus()
+        {
+            var next = Random.Next(0, 2);
+            return (BankPaymentStatus) next;
+        }
+    }
 }

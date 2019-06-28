@@ -2,10 +2,12 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
+using NSubstitute;
 using NUnit.Framework;
 using PaymentGateway.API;
 using PaymentGateway.API.WriteAPI;
 using PaymentGateway.Domain;
+using PaymentGateway.Domain.AcquiringBank;
 using PaymentGateway.Infrastructure;
 using SimpleCQRS;
 
@@ -13,15 +15,17 @@ namespace PaymentGateway.Tests
 {
     public class PaymentCQRS
     {
-        internal static (PaymentRequestsController, IProvidePaymentIdsMapping, IProcessPayment, AcquiringBankFacade ) Build()
+        internal static (PaymentRequestsController, IProvidePaymentIdsMapping, IProcessPayment, AcquiringBankFacade ) Build(BankPaymentStatus paymentStatus)
         {
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new FakeBus()));
             var controller = new PaymentRequestsController(eventSourcedRepository);
 
             var paymentIdsMapping = new InMemoryPaymentIdsMapping();
 
+            var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
+            random.GeneratePaymentStatus().Returns(paymentStatus);
 
-            var acquiringBank = new AcquiringBankFacade();
+            var acquiringBank = new AcquiringBankFacade(random);
             var mediator = new AcquiringBanksMediator(acquiringBank, eventSourcedRepository);
 
             return (controller, paymentIdsMapping, mediator, acquiringBank);
@@ -60,7 +64,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var (controller, _, paymentProcessor, _) = PaymentCQRS.Build();
+            var (controller, _, paymentProcessor, _) = PaymentCQRS.Build( BankPaymentStatus.Accepted );
 
             var response = await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), paymentProcessor);
 
@@ -73,7 +77,7 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = BuildPaymentRequest(requestId);
 
-            var (controller, paymentIdsMapping, paymentProcessor, _) = PaymentCQRS.Build();
+            var (controller, paymentIdsMapping, paymentProcessor, _) = PaymentCQRS.Build(BankPaymentStatus.Accepted);
             
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -96,7 +100,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var (controller, paymentIdsMapping, paymentProcessor, acquiringBank) = PaymentCQRS.Build();
+            var (controller, paymentIdsMapping, paymentProcessor, acquiringBank) = PaymentCQRS.Build(BankPaymentStatus.Accepted);
             await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, paymentIdsMapping, paymentProcessor);
 
             await acquiringBank.WaitForBankResponse();
@@ -107,6 +111,28 @@ namespace PaymentGateway.Tests
             Check.That(payment.Id).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(PaymentStatus.Success);
+            Check.That(payment.Version).IsEqualTo(1);
+        }
+
+        [Test]
+        public async Task Returns_payment_rejected_When_AcquiringBank_rejects_payment()
+        {
+            var requestId = Guid.NewGuid();
+            var paymentRequest = BuildPaymentRequest(requestId);
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+
+            var (controller, paymentIdsMapping, paymentProcessor, acquiringBank) = PaymentCQRS.Build(BankPaymentStatus.Rejected);
+            await controller.ProceedPaymentRequest(paymentRequest, guidGenerator, paymentIdsMapping, paymentProcessor);
+
+            await acquiringBank.WaitForBankResponse();
+
+            var payment = (await controller.GetPaymentInfo(gatewayPaymentId)).Value;
+            Check.That(payment.RequestId).IsEqualTo(requestId);
+            Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
+            Check.That(payment.Id).IsEqualTo(gatewayPaymentId);
+
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.Failure);
             Check.That(payment.Version).IsEqualTo(1);
         }
     }

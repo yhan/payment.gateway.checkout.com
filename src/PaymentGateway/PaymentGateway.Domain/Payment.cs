@@ -11,7 +11,6 @@ namespace PaymentGateway.Domain
 
         public Payment(Guid gatewayPaymentId, Guid requestId, CreditCard creditCard, Money amount)
         {
-            GatewayPaymentId = gatewayPaymentId;
             ApplyChange(new PaymentRequested(gatewayPaymentId, requestId, creditCard, amount));
         }
 
@@ -22,15 +21,24 @@ namespace PaymentGateway.Domain
 
         public Guid GatewayPaymentId { get; private set; }
 
+        public CreditCard CreditCard { get; private set; }
+
+        public Money Amount { get; private set; }
+
         public PaymentStatus Status { get; private set; }
 
         public Guid AcquiringBankId { get; private set; }
 
         #region decision functions
 
-        public void AcceptPayment(BankResponse bankResponse)
+        public void AcceptPayment(Guid bankPaymentId)
         {
-            ApplyChange(new PaymentSucceeded(GatewayPaymentId, bankResponse.BankPaymentId));
+            ApplyChange(new PaymentSucceeded(GatewayPaymentId, bankPaymentId));
+        }
+
+        public void RejectPayment(Guid bankPaymentId)
+        {
+            ApplyChange(new PaymentFailed(GatewayPaymentId, bankPaymentId));
         }
 
         #endregion
@@ -42,9 +50,10 @@ namespace PaymentGateway.Domain
             GatewayPaymentId = evt.GatewayPaymentId;
             RequestId = evt.RequestId;
             Status = PaymentStatus.Pending;
-            Version = evt.Version;
+            CreditCard = evt.CreditCard;
+            Amount = evt.Amount;
 
-            //this.CreditCard = evt.CreditCard;
+            Version = evt.Version;
         }
 
         private void Apply(PaymentSucceeded evt)
@@ -54,6 +63,14 @@ namespace PaymentGateway.Domain
             Version = evt.Version;
         }
 
+        private void Apply(PaymentFailed evt)
+        {
+            AcquiringBankId = evt.BankPaymentId;
+            Status = evt.Status;
+            Version = evt.Version;
+        }
+
         #endregion
     }
+
 }
