@@ -5,9 +5,23 @@ using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
 {
-    public class FakeBus : ICommandSender, IEventPublisher
+    public class InMemoryBus : ICommandSender, IEventPublisher
     {
+
+        public InMemoryBus(bool synchronousPublication = true)
+        {
+            if (synchronousPublication)
+            {
+                _publicationStrategy = new SynchronousPublicationStrategy();
+            }
+            else
+            {
+                _publicationStrategy = new AsynchronousThreadPoolPublicationStrategy();
+            }
+        }
+
         private readonly Dictionary<Type, List<Action<Message>>> _routes = new Dictionary<Type, List<Action<Message>>>();
+        private readonly IPublishToHandlers _publicationStrategy;
 
         public void RegisterHandler<T>(Action<T> handler) where T : Message
         {
@@ -28,8 +42,12 @@ namespace PaymentGateway.Infrastructure
 
             if (_routes.TryGetValue(typeof(T), out handlers))
             {
-                if (handlers.Count != 1) throw new InvalidOperationException("cannot send to more than one handler");
-                handlers[0](command);
+                if (handlers.Count != 1)
+                {
+                    throw new InvalidOperationException("cannot send to more than one handler");
+                }
+
+                _publicationStrategy.PublishTo(handlers[0], command);
             }
             else
             {
@@ -47,8 +65,34 @@ namespace PaymentGateway.Infrastructure
             {
                 //dispatch on thread pool for added awesomeness
                 var handler1 = handler;
-                ThreadPool.QueueUserWorkItem(x => handler1(@event));
+
+                _publicationStrategy.PublishTo(handler1, @event);
             }
+        }
+    }
+
+    internal interface IPublishToHandlers 
+    {
+        void PublishTo<T>(Action<Message> handler, T @event)
+            where T : Message;
+    }
+
+    public class AsynchronousThreadPoolPublicationStrategy : IPublishToHandlers
+    {
+        public void PublishTo<T>(Action<Message> handler, T @event)
+            where T : Message
+        {
+            // dispatch on thread pool for added awesomeness
+            ThreadPool.QueueUserWorkItem(x => handler(@event));
+        }
+    }
+
+    public class SynchronousPublicationStrategy: IPublishToHandlers
+    {
+        public void PublishTo<T>(Action<Message> handler, T @event)
+            where T : Message
+        {
+            handler(@event); // synchronous publication to simplify the test of this first step
         }
     }
 

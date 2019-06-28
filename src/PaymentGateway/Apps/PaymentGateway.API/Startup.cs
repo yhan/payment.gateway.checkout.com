@@ -48,7 +48,7 @@ namespace PaymentGateway.API
             services.AddScoped<IGenerateGuid, DefaultGuidGenerator>();
             services.AddScoped<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
             services.AddSingleton<IEventStore, InMemoryEventStore>();
-            services.AddSingleton<IEventPublisher, FakeBus>();
+            services.AddSingleton<IEventPublisher, InMemoryBus>();
             services.AddSingleton<IProvidePaymentIdsMapping, InMemoryPaymentIdsMapping>();
             services.AddScoped<IProcessPayment, AcquiringBanksMediator>(); 
             services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();

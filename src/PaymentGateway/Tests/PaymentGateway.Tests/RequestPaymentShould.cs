@@ -1,42 +1,15 @@
 using System;
 using System.Threading.Tasks;
-using AcquiringBanks.API;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
-using NSubstitute;
 using NUnit.Framework;
 using PaymentGateway.API;
-using PaymentGateway.API.ReadAPI;
-using PaymentGateway.API.WriteAPI;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
-using SimpleCQRS;
-using BankPaymentStatus = PaymentGateway.Domain.AcquiringBank.BankPaymentStatus;
-using Event = NUnit.Framework.Internal.Execution.Event;
+
 
 namespace PaymentGateway.Tests
 {
-    public class PaymentCQRS
-    {
-        internal static (PaymentRequestsController, PaymentReadController, IProvidePaymentIdsMapping, IProcessPayment, AcquiringBankFacade ) Build(AcquiringBanks.API.BankPaymentStatus paymentStatus)
-        {
-            var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new FakeBus()));
-            var requestController = new PaymentRequestsController(eventSourcedRepository);
-
-            var readController = new PaymentReadController(eventSourcedRepository);
-
-            var paymentIdsMapping = new InMemoryPaymentIdsMapping();
-
-            var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
-            random.GeneratePaymentStatus().Returns(paymentStatus);
-
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random));
-            var mediator = new AcquiringBanksMediator(acquiringBank, eventSourcedRepository);
-
-            return (requestController, readController, paymentIdsMapping, mediator, acquiringBank);
-        }
-    }
-
     [TestFixture]
     public class RequestPaymentShould
     {
