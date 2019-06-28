@@ -5,12 +5,12 @@ using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
 {
-    public class AcquiringBanksMediator : IProcessPayment
+    public class PaymentProcessor : IProcessPayment
     {
         private readonly ITalkToAcquiringBank _acquiringBank;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
 
-        public AcquiringBanksMediator(ITalkToAcquiringBank acquiringBank, IEventSourcedRepository<Payment> paymentsRepository)
+        public PaymentProcessor(ITalkToAcquiringBank acquiringBank, IEventSourcedRepository<Payment> paymentsRepository)
         {
             _acquiringBank = acquiringBank;
             _paymentsRepository = paymentsRepository;

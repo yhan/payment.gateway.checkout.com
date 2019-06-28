@@ -27,7 +27,7 @@ namespace PaymentGateway.Domain
 
         public PaymentStatus Status { get; private set; }
 
-        public Guid AcquiringBankId { get; private set; }
+        public Guid AcquiringBankPaymentId { get; private set; }
 
         #region decision functions
 
@@ -58,14 +58,14 @@ namespace PaymentGateway.Domain
 
         private void Apply(PaymentSucceeded evt)
         {
-            AcquiringBankId = evt.BankPaymentId;
+            AcquiringBankPaymentId = evt.BankPaymentId;
             Status = evt.Status;
             Version = evt.Version;
         }
 
         private void Apply(PaymentFailed evt)
         {
-            AcquiringBankId = evt.BankPaymentId;
+            AcquiringBankPaymentId = evt.BankPaymentId;
             Status = evt.Status;
             Version = evt.Version;
         }

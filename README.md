@@ -21,7 +21,7 @@ To manage burst/back pressure
 1. Simulate I/O, avoid blocking thread pool thread waiting for I/O
 
 1. Anti Corruption  
-Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
+Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate, do mapping instead
 
 # SLA
 
@@ -32,3 +32,7 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
    1. Idempotency: remind client of API that payment has already been created, and it is available at this location.
 
    1. Reject duplicated  `PaymentRequest`.
+
+# TODO
+
+1. Check `BankPaymentId` in tests when bank replies

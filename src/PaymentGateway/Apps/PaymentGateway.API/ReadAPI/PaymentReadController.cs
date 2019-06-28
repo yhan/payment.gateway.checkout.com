@@ -19,19 +19,18 @@ namespace PaymentGateway.API.ReadAPI
         }
 
         [HttpGet("{gateWayPaymentId}", Name = nameof(GetPaymentInfo))]
-        public async Task<ActionResult<Payment>> GetPaymentInfo([FromRoute]Guid gateWayPaymentId)
+        public async Task<ActionResult<PaymentDto>> GetPaymentInfo([FromRoute]Guid gateWayPaymentId)
         {
             //var etag = Request.GetTypedHeaders().IfNoneMatch?.FirstOrDefault();
             try
             {
                 var payment = await _repository.GetById(gateWayPaymentId);
-                return payment;
+                return payment.AsDto();
             }
             catch (AggregateNotFoundException)
             {
                 return NotFound();
             }
         }
-
     }
 }

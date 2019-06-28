@@ -1,7 +1,9 @@
 ﻿using System;
+using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
+using PaymentDetails = PaymentGateway.Domain.PaymentDetails;
 
-namespace PaymentGateway.API.WriteAPI
+namespace PaymentGateway.API
 {
     public static class HttpDtoAdapters
     {
@@ -13,7 +15,12 @@ namespace PaymentGateway.API.WriteAPI
 
         public static PaymentDto AsDto(this Payment payment)
         {
-            return new PaymentDto(payment.RequestId, payment.GatewayPaymentId, payment.Status);
+            return new PaymentDto(payment.RequestId, payment.GatewayPaymentId, payment.AcquiringBankPaymentId, payment.Status);
+        }
+
+        public static PaymentDetailsDto AsDto(this PaymentDetails paymentDetails)
+        {
+            return new PaymentDetailsDto();
         }
     }
 }

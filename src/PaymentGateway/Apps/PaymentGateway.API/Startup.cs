@@ -50,7 +50,7 @@ namespace PaymentGateway.API
             services.AddSingleton<IEventStore, InMemoryEventStore>();
             services.AddSingleton<IEventPublisher, InMemoryBus>();
             services.AddSingleton<IProvidePaymentIdsMapping, InMemoryPaymentIdsMapping>();
-            services.AddScoped<IProcessPayment, AcquiringBanksMediator>(); 
+            services.AddScoped<IProcessPayment, PaymentProcessor>(); 
             services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();
             services.AddScoped<IAmAcquiringBank, AcquiringBankSimulator>();
 

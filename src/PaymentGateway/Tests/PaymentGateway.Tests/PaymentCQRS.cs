@@ -7,17 +7,22 @@ using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Tests
 {
-    public class PaymentCQRS
+    internal class PaymentCQRS
     {
-        protected internal AcquiringBankFacade AcquiringBank;
-        protected internal EventSourcedRepository<Payment> EventSourcedRepository;
-        protected internal AcquiringBanksMediator PaymentProcessor;
-        protected internal InMemoryPaymentIdsMapping PaymentIdsMapping;
-        protected internal PaymentReadController ReadController;
-        protected internal PaymentRequestsController RequestController;
+        internal PaymentsDetailsController PaymentDetailsReadController { get; }
+        internal AcquiringBankFacade AcquiringBank{ get; }
+        internal EventSourcedRepository<Payment> EventSourcedRepository{ get; }
+        internal PaymentProcessor PaymentProcessor{ get; }
+        internal InMemoryPaymentIdsMapping PaymentIdsMapping{ get; }
+        internal PaymentReadController ReadController{ get; }
+        internal PaymentRequestsController RequestController{ get; }
 
-        private PaymentCQRS(EventSourcedRepository<Payment> eventSourcedRepository, PaymentRequestsController requestController, PaymentReadController readController, InMemoryPaymentIdsMapping paymentIdsMapping, AcquiringBankFacade acquiringBank, AcquiringBanksMediator paymentProcessor)
+        private PaymentCQRS(EventSourcedRepository<Payment> eventSourcedRepository,
+            PaymentRequestsController requestController, PaymentReadController readController,
+            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentIdsMapping paymentIdsMapping,
+            AcquiringBankFacade acquiringBank, PaymentProcessor paymentProcessor)
         {
+            PaymentDetailsReadController = paymentDetailsReadController;
             EventSourcedRepository = eventSourcedRepository;
             RequestController = requestController;
             ReadController = readController;
@@ -38,10 +43,14 @@ namespace PaymentGateway.Tests
             var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random));
-            var mediator = new AcquiringBanksMediator(acquiringBank, eventSourcedRepository);
+            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random), TODO);
+            var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository);
 
-            return new PaymentCQRS(eventSourcedRepository, requestController, readController, paymentIdsMapping,
+            
+
+            var paymentDetailsReadController = new PaymentsDetailsController(new BankToGatewayMapper(), new PaymentDetailsRepository());
+
+            return new PaymentCQRS(eventSourcedRepository, requestController, readController, paymentDetailsReadController, paymentIdsMapping,
                 acquiringBank, mediator);
         }
     }

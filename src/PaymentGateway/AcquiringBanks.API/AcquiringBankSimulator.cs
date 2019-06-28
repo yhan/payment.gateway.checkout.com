@@ -17,7 +17,7 @@ namespace AcquiringBanks.API
         {
             var payingAttempt = JsonConvert.DeserializeObject<AcquiringBanks.API.PayingAttempt>(paymentAttemptJson);
 
-            await Task.Delay(20);
+            await Task.Delay(1);
 
             var paymentStatus = _random.GeneratePaymentStatus();
 
