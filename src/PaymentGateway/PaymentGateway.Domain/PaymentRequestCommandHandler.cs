@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using PaymentGateway.Domain.AcquiringBank;
@@ -27,7 +28,8 @@ namespace PaymentGateway.Domain
 
         public async Task<ICommandResult> Handle(RequestPaymentCommand command)
         {
-            if (await _paymentIdsMapping.AlreadyHandled(command.RequestId))
+            var paymentRequestId = new PaymentRequestId(command.RequestId);
+            if (await _paymentIdsMapping.AlreadyHandled(paymentRequestId))
             {
                 //payment request already handled
                 return this.Invalid("Identical payment request will not be handled more than once");
@@ -35,7 +37,7 @@ namespace PaymentGateway.Domain
 
             var payment = new Payment(command.GatewayPaymentId, command.RequestId, command.CreditCard, command.Amount);
             await _repository.Save(payment, Stream.NotCreatedYet);
-            await _paymentIdsMapping.Remember(command.RequestId);
+            await _paymentIdsMapping.Remember(paymentRequestId);
 
             //TODO: Add cancellation with a timeout
             if(_asynchronous)
@@ -52,6 +54,7 @@ namespace PaymentGateway.Domain
 
        
     }
+
 
     public static class PaymentExtensions
     {

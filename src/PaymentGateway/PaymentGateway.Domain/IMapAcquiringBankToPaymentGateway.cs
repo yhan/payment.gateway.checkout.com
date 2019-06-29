@@ -4,8 +4,9 @@ namespace PaymentGateway.Domain
 {
     public interface IMapAcquiringBankToPaymentGateway
     {
-        Guid GetPaymentGatewayId(Guid paymentAcquiringBankId);
-        void RememberMapping(PaymentIds paymentIds);
+        GatewayPaymentId GetPaymentGatewayId(AcquiringBankPaymentId paymentAcquiringBankId);
+
+        void RememberMapping(AcquiringBankPaymentId acquiringBankPaymentId, GatewayPaymentId gatewayPaymentId);
     }
 
 

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AcquiringBanks.API;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
@@ -49,7 +50,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
+            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
 
             var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), cqrs.PaymentProcessor);
 
@@ -62,7 +63,7 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = Utils.BuildPaymentRequest(requestId);
 
-            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
+            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -76,45 +77,27 @@ namespace PaymentGateway.Tests
             Check.That(failDetail.Detail).IsEqualTo("Identical payment request will not be handled more than once");
         }
 
-        [Test]
-        public async Task Return_payment_success_When_AcquiringBank_accepts_payment()
+        [TestCase(AcquiringBanks.API.BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
+        [TestCase(AcquiringBanks.API.BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
+        public async Task Return_proper_payment_status_When_AcquiringBank_accepts_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
             var paymentRequest = Utils.BuildPaymentRequest(requestId);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted);
+            var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId));
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            //await cqrs.AcquiringBank.WaitForBankResponse();
-
+          
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GateWayPaymentId).IsEqualTo(gatewayPaymentId);
 
-            Check.That(payment.Status).IsEqualTo(PaymentStatus.Success);
+            Check.That(payment.Status).IsEqualTo(expectedPaymentStatusReturnedByGateway);
+            Check.That(payment.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
         }
-
-        [Test]
-        public async Task Returns_PaymentRejected_When_AcquiringBank_rejects_payment()
-        {
-            var requestId = Guid.NewGuid();
-            var paymentRequest = Utils.BuildPaymentRequest(requestId);
-            var gatewayPaymentId = Guid.NewGuid();
-            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
-
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
-            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
-
-
-            var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
-            Check.That(payment.RequestId).IsEqualTo(requestId);
-            Check.That(payment.GateWayPaymentId).IsEqualTo(gatewayPaymentId);
-
-            Check.That(payment.Status).IsEqualTo(PaymentStatus.RejectedByBank);
-        }
-
 
         [Test]
         public async Task Returns_PaymentFaulted_When_AcquiringBank_rejects_payment()
@@ -124,7 +107,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new SimulateException());
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new SimulateException());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 

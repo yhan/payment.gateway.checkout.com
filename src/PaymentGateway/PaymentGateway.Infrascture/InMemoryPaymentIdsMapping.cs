@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
@@ -8,17 +7,17 @@ namespace PaymentGateway.Infrastructure
     // We will have I/O, here simulate an I/O
     public class InMemoryPaymentIdsMapping : IProvidePaymentIdsMapping
     {
-        private readonly ConcurrentHashSet<Guid> _paymentRequests = new ConcurrentHashSet<Guid>();
+        private readonly ConcurrentHashSet<PaymentRequestId> _paymentRequests = new ConcurrentHashSet<PaymentRequestId>();
 
-        public async Task<bool> AlreadyHandled(Guid paymentRequestId)
+        public async Task<bool> AlreadyHandled(PaymentRequestId paymentRequestId)
         {
-
+            // Simulate I/O
             await Task.CompletedTask;
 
             return _paymentRequests.Contains(paymentRequestId);
         }
 
-        public async Task Remember(Guid paymentRequestId)
+        public async Task Remember(PaymentRequestId paymentRequestId)
         {
             await Task.CompletedTask;
 

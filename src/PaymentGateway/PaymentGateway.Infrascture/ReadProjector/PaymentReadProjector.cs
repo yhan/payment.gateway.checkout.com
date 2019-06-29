@@ -32,22 +32,22 @@ namespace PaymentGateway.Infrastructure.ReadProjector
 
         private async Task Handle(PaymentFaulted faulted)
         {
-            await _paymentDetailsRepository.Update(faulted.GatewayPaymentId, faulted.BankPaymentId, PaymentStatus.FaultedOnGateway);
+            await _paymentDetailsRepository.Update(new GatewayPaymentId(faulted.GatewayPaymentId), new AcquiringBankPaymentId(faulted.BankPaymentId),  PaymentStatus.FaultedOnGateway);
         }
 
         private async Task Handle(PaymentRejectedByBank rejectedByBank)
         {
-            await _paymentDetailsRepository.Update(rejectedByBank.GatewayPaymentId, rejectedByBank.BankPaymentId, PaymentStatus.RejectedByBank);
+            await _paymentDetailsRepository.Update(new GatewayPaymentId(rejectedByBank.GatewayPaymentId), new AcquiringBankPaymentId(rejectedByBank.BankPaymentId), PaymentStatus.RejectedByBank);
         }
 
         private async Task Handle(PaymentSucceeded succeeded)
         {
-            await _paymentDetailsRepository.Update(succeeded.GatewayPaymentId, succeeded.BankPaymentId, PaymentStatus.Success);
+            await _paymentDetailsRepository.Update(new GatewayPaymentId(succeeded.GatewayPaymentId), new AcquiringBankPaymentId(succeeded.BankPaymentId), PaymentStatus.Success);
         }
 
         private async Task Handle(PaymentRequested requested)
         {
-            await _paymentDetailsRepository.Create(requested.GatewayPaymentId, requested.CreditCard);
+            await _paymentDetailsRepository.Create(new GatewayPaymentId(requested.GatewayPaymentId), requested.CreditCard);
         }
     }
 }

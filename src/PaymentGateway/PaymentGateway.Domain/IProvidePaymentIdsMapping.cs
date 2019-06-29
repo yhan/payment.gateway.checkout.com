@@ -6,7 +6,8 @@ namespace PaymentGateway.Domain
 
     public interface IProvidePaymentIdsMapping
     {
-        Task<bool> AlreadyHandled(Guid paymentRequestId);
-        Task Remember(Guid paymentRequestId);
+        Task<bool> AlreadyHandled(PaymentRequestId paymentRequestId);
+
+        Task Remember(PaymentRequestId paymentRequestId);
     }
 }

@@ -19,10 +19,10 @@ namespace PaymentGateway.API.ReadAPI
             _repository = repository;
         }
 
-        [HttpGet("{paymentAcquiringBankId}")]
-        public async Task<ActionResult<PaymentDetailsDto>> GetPaymentInfo(Guid paymentAcquiringBankId)
+        [HttpGet("{acquiringBankPaymentId}")]
+        public async Task<ActionResult<PaymentDetailsDto>> GetPaymentInfo(Guid acquiringBankPaymentId)
         {
-            var paymentGatewayId = _mapper.GetPaymentGatewayId(paymentAcquiringBankId);
+            var paymentGatewayId = _mapper.GetPaymentGatewayId(new AcquiringBankPaymentId(acquiringBankPaymentId));
 
             var details = await _repository.GetPaymentDetails(paymentGatewayId);
 
@@ -37,10 +37,14 @@ namespace PaymentGateway.API.ReadAPI
         public string CreditCardExpiry { get; }
         public string CreditCardCvv { get; }
         public PaymentGateway.Domain.PaymentStatus Status { get; }
+        public Guid AcquiringBankPaymentId { get; set; }
 
 
-        public PaymentDetailsDto(string creditCardNumber, string creditCardHolderName, string creditCardExpiry, string creditCardCvv, PaymentStatus status)
+        public PaymentDetailsDto(AcquiringBankPaymentId acquiringBankPaymentId, string creditCardNumber,
+            string creditCardHolderName, string creditCardExpiry, string creditCardCvv, PaymentStatus status)
         {
+            AcquiringBankPaymentId = acquiringBankPaymentId.Value;
+
             CreditCardNumber = creditCardNumber;
             CreditCardHolderName = creditCardHolderName;
             CreditCardExpiry = creditCardExpiry;

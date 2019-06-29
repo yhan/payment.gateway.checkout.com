@@ -26,7 +26,7 @@ namespace PaymentGateway.Infrastructure
             
             var bankResponse = JsonConvert.DeserializeObject<PaymentGateway.Domain.BankResponse>(bankResponseJson);
 
-            _paymentIdsMapper.RememberMapping(new PaymentIds(bankResponse.BankPaymentId, bankResponse.GatewayPaymentId));
+            _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(bankResponse.BankPaymentId), new GatewayPaymentId(bankResponse.GatewayPaymentId));
 
             return bankResponse;
         }

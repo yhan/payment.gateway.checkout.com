@@ -7,20 +7,19 @@ namespace PaymentGateway.Infrastructure
 {
     public class PaymentIdsMemory : IMapAcquiringBankToPaymentGateway
     {
-        private readonly ConcurrentDictionary<Guid, Guid> _map = new ConcurrentDictionary<Guid, Guid>();
+        private readonly ConcurrentDictionary<AcquiringBankPaymentId, GatewayPaymentId> _map = new ConcurrentDictionary<AcquiringBankPaymentId, GatewayPaymentId>();
         
-        public Guid GetPaymentGatewayId(Guid paymentAcquiringBankId)
+        public GatewayPaymentId GetPaymentGatewayId(AcquiringBankPaymentId paymentAcquiringBankId)
         {
             return _map[paymentAcquiringBankId];
         }
 
-        public void RememberMapping(PaymentIds paymentIds)
+        public void RememberMapping(AcquiringBankPaymentId acquiringBankPaymentId, GatewayPaymentId gatewayPaymentId)
         {
-            var paymentAcquiringBankId = paymentIds.BankPaymentId;
-            if (!_map.TryAdd(paymentAcquiringBankId, paymentIds.GatewayPaymentId))
+            if (!_map.TryAdd(acquiringBankPaymentId, gatewayPaymentId))
             {
                 throw new ConstraintException(
-                    $"Bank paymentId {paymentAcquiringBankId} already maps to Gateway Payment Id {_map[paymentAcquiringBankId]}");
+                    $"Bank paymentId {acquiringBankPaymentId} already maps to Gateway Payment Id {_map[acquiringBankPaymentId]}");
             }
         }
     }

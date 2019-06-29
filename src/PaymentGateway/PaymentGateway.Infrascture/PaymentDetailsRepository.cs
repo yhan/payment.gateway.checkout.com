@@ -9,10 +9,9 @@ namespace PaymentGateway.Infrastructure
 {
     public class PaymentDetailsRepository : IPaymentDetailsRepository
     {
-        //GatewayPaymentId => PaymentDetails
-        private readonly ConcurrentDictionary<Guid, PaymentDetails> _storage = new ConcurrentDictionary<Guid, PaymentDetails>();
+        private readonly ConcurrentDictionary<GatewayPaymentId, PaymentDetails> _storage = new ConcurrentDictionary<GatewayPaymentId, PaymentDetails>();
 
-        public async Task Create(Guid gatewayPaymentId, CreditCard creditCard)
+        public async Task Create(GatewayPaymentId gatewayPaymentId, CreditCard creditCard)
         {
             //Simulate IO
             await Task.Delay(1);
@@ -37,7 +36,7 @@ namespace PaymentGateway.Infrastructure
             return new string(mask);
         }
 
-        public async Task Update(Guid gatewayPaymentId, Guid bankPaymentId, PaymentStatus paymentStatus)
+        public async Task Update(GatewayPaymentId gatewayPaymentId, AcquiringBankPaymentId bankPaymentId, PaymentStatus paymentStatus)
         {
             //Simulate IO
             await Task.Delay(1);
@@ -47,7 +46,7 @@ namespace PaymentGateway.Infrastructure
 
         }
 
-        public async Task<PaymentDetails> GetPaymentDetails(Guid paymentGatewayId)
+        public async Task<PaymentDetails> GetPaymentDetails(GatewayPaymentId paymentGatewayId)
         {
             //Simulate IO
             await Task.Delay(1);

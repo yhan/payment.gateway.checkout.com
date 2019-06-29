@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AcquiringBanks.API;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
@@ -15,7 +14,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_Payment_does_not_exist()
         {
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
             var nonExistingPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.ReadController.GetPaymentInfo(nonExistingPaymentId);
 
@@ -36,7 +35,8 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(paymentBankStatus);
+            var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
+            var cqrs = await PaymentCQRS.Build(paymentBankStatus, new BankPaymentIdGeneratorForTests(bankPaymentId));
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
@@ -50,6 +50,7 @@ namespace PaymentGateway.Tests
             Check.That(paymentDetails.CreditCardExpiry).IsEqualTo("05/19");
             Check.That(paymentDetails.CreditCardCvv).IsEqualTo("321");
             Check.That(paymentDetails.Status).IsEqualTo(expectedStatusInPaymentDetails);
+            Check.That(paymentDetails.AcquiringBankPaymentId).IsEqualTo((bankPaymentId));
         }
     }
 }

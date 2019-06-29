@@ -4,17 +4,16 @@ namespace PaymentGateway.Domain
 {
     public class PaymentDetails
     {
-        public Guid GatewayPaymentId { get; }
+        public GatewayPaymentId GatewayPaymentId { get; }
+        public AcquiringBankPaymentId BankPaymentId { get; private set; }
         public string CreditCardHolderName { get; }
         public string CreditCardNumber { get; }
         public string CreditCardExpiry { get; }
         public string CreditCardCvv { get; }
         public PaymentStatus Status { get; set; }
-        public Guid BankPaymentId { get; private set; }
 
 
-
-        public PaymentDetails(Guid gatewayPaymentId, string creditCardHolderName, string creditCardNumber, string creditCardExpiry, string creditCardCvv)
+        public PaymentDetails(GatewayPaymentId gatewayPaymentId, string creditCardHolderName, string creditCardNumber, string creditCardExpiry, string creditCardCvv)
         {
             GatewayPaymentId = gatewayPaymentId;
             CreditCardHolderName = creditCardHolderName;
@@ -26,7 +25,7 @@ namespace PaymentGateway.Domain
         }
 
 
-        public void Update(Guid bankPaymentId, PaymentStatus paymentStatus)
+        public void Update(AcquiringBankPaymentId bankPaymentId, PaymentStatus paymentStatus)
         {
             BankPaymentId = bankPaymentId;
             Status = paymentStatus;

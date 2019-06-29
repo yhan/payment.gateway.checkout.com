@@ -5,10 +5,10 @@ namespace PaymentGateway.Domain
 {
     public interface IPaymentDetailsRepository
     {
-        Task<PaymentDetails> GetPaymentDetails(Guid paymentGatewayId);
+        Task<PaymentDetails> GetPaymentDetails(GatewayPaymentId paymentGatewayId);
 
-        Task Create(Guid gatewayPaymentId, CreditCard creditCard);
+        Task Create(GatewayPaymentId gatewayPaymentId, CreditCard creditCard);
 
-        Task Update(Guid gatewayPaymentId, Guid bankPaymentId, PaymentStatus paymentStatus);
+        Task Update(GatewayPaymentId gatewayPaymentId, AcquiringBankPaymentId bankPaymentId, PaymentStatus paymentStatus);
     }
 }
