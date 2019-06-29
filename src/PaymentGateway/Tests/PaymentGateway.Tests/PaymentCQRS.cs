@@ -1,9 +1,12 @@
 using AcquiringBanks.API;
+using Microsoft.Extensions.Options;
 using NSubstitute;
+using PaymentGateway.API;
 using PaymentGateway.API.ReadAPI;
 using PaymentGateway.API.WriteAPI;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
+using PaymentGateway.Infrastructure.ReadProjector;
 
 namespace PaymentGateway.Tests
 {
@@ -33,8 +36,13 @@ namespace PaymentGateway.Tests
 
         internal static PaymentCQRS Build(BankPaymentStatus paymentStatus, SimulateException exceptionSimulator =  null)
         {
-            var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new InMemoryBus()));
-            var requestController = new PaymentRequestsController(eventSourcedRepository);
+            var bus = new InMemoryBus();
+            var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(bus));
+            
+            var appSettingsAccessor = Substitute.For<IOptionsMonitor<AppSettings>>();
+            appSettingsAccessor.CurrentValue.Returns(new AppSettings() {Executor = ExecutorType.Tests});
+
+            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor);
 
             var readController = new PaymentReadController(eventSourcedRepository);
 
@@ -43,13 +51,20 @@ namespace PaymentGateway.Tests
             var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random), new BankToGatewayMapper());
+            var mapIdsFromAcquiringBankToPaymentGateway = new PaymentIdsMemory();
+            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random), mapIdsFromAcquiringBankToPaymentGateway);
             var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, exceptionSimulator);
 
-            var paymentDetailsReadController = new PaymentsDetailsController(new BankToGatewayMapper(), new PaymentDetailsRepository());
+            var paymentDetailsRepository = new PaymentDetailsRepository();
+            var paymentDetailsReadController = new PaymentsDetailsController(mapIdsFromAcquiringBankToPaymentGateway, paymentDetailsRepository);
+
+            var projector = new PaymentReadProjector(bus, paymentDetailsRepository);
+            projector.SubscribeToEventsForUpdatingReadModel();
 
             return new PaymentCQRS(eventSourcedRepository, requestController, readController, paymentDetailsReadController, paymentIdsMapping,
                 acquiringBank, mediator);
         }
+
+       
     }
 }

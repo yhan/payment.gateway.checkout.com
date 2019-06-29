@@ -1,4 +1,5 @@
 ﻿using System;
+using PaymentGateway.Domain.Events;
 using SimpleCQRS;
 
 namespace PaymentGateway.Domain
@@ -41,9 +42,9 @@ namespace PaymentGateway.Domain
             ApplyChange(new PaymentRejectedByBank(GatewayPaymentId, bankPaymentId));
         }
 
-        public void FailOnGateway()
+        public void FailOnGateway(Guid bankPaymentId)
         {
-            ApplyChange(new PaymentFaulted(GatewayPaymentId));
+            ApplyChange(new PaymentFaulted(GatewayPaymentId, bankPaymentId));
 
         }
 
@@ -55,7 +56,7 @@ namespace PaymentGateway.Domain
         {
             GatewayPaymentId = evt.GatewayPaymentId;
             RequestId = evt.RequestId;
-            Status = PaymentStatus.Pending;
+            Status = PaymentStatus.Requested;
             CreditCard = evt.CreditCard;
             Amount = evt.Amount;
 

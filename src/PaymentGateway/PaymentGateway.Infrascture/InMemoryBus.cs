@@ -59,7 +59,10 @@ namespace PaymentGateway.Infrastructure
         {
             List<Action<Message>> handlers;
 
-            if (!_routes.TryGetValue(@event.GetType(), out handlers)) return;
+            if (!_routes.TryGetValue(@event.GetType(), out handlers))
+            {
+                return;
+            }
 
             foreach(var handler in handlers)
             {

@@ -94,6 +94,11 @@ namespace SimpleCQRS
             this.AsDynamic().Apply(@event);
             if(isNew) _changes.Add(@event);
         }
+
+        public void UpdateVersion(int newVersion)
+        {
+            this.Version = Version;
+        }
     }
 
     public interface IEventSourcedRepository<T> where T : AggregateRoot

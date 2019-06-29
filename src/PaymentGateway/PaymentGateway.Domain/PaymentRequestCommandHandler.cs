@@ -12,17 +12,17 @@ namespace PaymentGateway.Domain
     {
         private readonly IProvidePaymentIdsMapping _paymentIdsMapping;
         private readonly IProcessPayment _acquiringBank;
+        private readonly bool _asynchronous;
         private readonly IEventSourcedRepository<Payment> _repository;
-
-        private ManualResetEventSlim _wait = new ManualResetEventSlim(false, 100);
-
+        
         public PaymentRequestCommandHandler(IEventSourcedRepository<Payment> repository,
             IProvidePaymentIdsMapping paymentIdsMapping,
-            IProcessPayment acquiringBank)
+            IProcessPayment acquiringBank, bool asynchronous)
         {
             _repository = repository;
             _paymentIdsMapping = paymentIdsMapping;
             _acquiringBank = acquiringBank;
+            _asynchronous = asynchronous;
         }
 
         public async Task<ICommandResult> Handle(RequestPaymentCommand command)
@@ -38,20 +38,19 @@ namespace PaymentGateway.Domain
             await _paymentIdsMapping.Remember(command.RequestId);
 
             //TODO: Add cancellation with a timeout
-            _acquiringBank.AttemptPaying(payment.MapToAcquiringBank())
-                .ContinueWith( t =>
-                    {
-                        _wait.Set();
-                    }
-                    );
+            if(_asynchronous)
+            {
+                _acquiringBank.AttemptPaying(payment.MapToAcquiringBank());
+            }
+            else
+            {
+                await _acquiringBank.AttemptPaying(payment.MapToAcquiringBank());
+            }
 
             return this.Success(payment);
         }
 
-        internal void Wait()
-        {
-            _wait.Wait();
-        }
+       
     }
 
     public static class PaymentExtensions

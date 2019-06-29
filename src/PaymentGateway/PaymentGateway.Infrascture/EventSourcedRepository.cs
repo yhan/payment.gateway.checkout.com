@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using SimpleCQRS;
 
@@ -15,7 +16,10 @@ namespace PaymentGateway.Infrastructure
 
         public async Task Save(AggregateRoot aggregate, int expectedVersion)
         {
-            await _storage.SaveEvents(aggregate.Id, aggregate.GetUncommittedChanges(), expectedVersion);
+            var uncommittedChanges = aggregate.GetUncommittedChanges();
+            await _storage.SaveEvents(aggregate.Id, uncommittedChanges, expectedVersion);
+
+            //aggregate.UpdateVersion(uncommittedChanges.Last().Version);
         }
 
         public async Task<T> GetById(Guid id)

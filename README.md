@@ -23,6 +23,9 @@ To manage burst/back pressure
 1. Anti Corruption  
 Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate, do mapping instead
 
+# API
+1. Ids  
+
 # SLA
 
 1. A `PaymentRequestId` will be handled once and only once.
@@ -36,3 +39,4 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
 # TODO
 
 1. Check `BankPaymentId` in tests when bank replies
+1. Alls async, I/O should add timeout cancellation

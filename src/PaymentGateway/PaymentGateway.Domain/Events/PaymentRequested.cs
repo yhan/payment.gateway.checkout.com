@@ -1,7 +1,7 @@
 ﻿using System;
 using SimpleCQRS;
 
-namespace PaymentGateway.Domain
+namespace PaymentGateway.Domain.Events
 {
     public class PaymentRequested : Event
     {

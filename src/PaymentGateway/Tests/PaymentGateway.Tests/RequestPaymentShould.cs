@@ -37,7 +37,7 @@ namespace PaymentGateway.Tests
 
             Check.That(payment.GateWayPaymentId).IsEqualTo(paymentId);
             Check.That(payment.RequestId).IsEqualTo(requestId);
-            Check.That(payment.Status).IsEqualTo(PaymentStatus.Pending);
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.Requested);
         }
 
         [Test]
@@ -88,7 +88,6 @@ namespace PaymentGateway.Tests
             await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
             //await cqrs.AcquiringBank.WaitForBankResponse();
-            cqrs.RequestController.Handler.Wait();
 
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
@@ -108,7 +107,6 @@ namespace PaymentGateway.Tests
             var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
             await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            cqrs.RequestController.Handler.Wait();
 
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
@@ -129,7 +127,6 @@ namespace PaymentGateway.Tests
             var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new SimulateException());
             await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            cqrs.RequestController.Handler.Wait();
 
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);

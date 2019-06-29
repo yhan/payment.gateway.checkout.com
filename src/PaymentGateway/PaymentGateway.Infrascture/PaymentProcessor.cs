@@ -23,10 +23,12 @@ namespace PaymentGateway.Infrastructure
         public async Task AttemptPaying(PayingAttempt payingAttempt)
         {
             Payment knownPayment = null;
+            Guid bankPaymentId = Guid.Empty;
 
             try
             {
                 var bankResponse = await _acquiringBank.Pay(payingAttempt);
+                bankPaymentId = bankResponse.BankPaymentId;
                 try
                 {
                     knownPayment = await _paymentsRepository.GetById(payingAttempt.GatewayPaymentId);
@@ -41,10 +43,10 @@ namespace PaymentGateway.Infrastructure
                 switch (bankResponse.PaymentStatus)
                 {
                     case BankPaymentStatus.Accepted:
-                        knownPayment.AcceptPayment(bankResponse.BankPaymentId);
+                        knownPayment.AcceptPayment(bankPaymentId);
                         break;
                     case BankPaymentStatus.Rejected:
-                        knownPayment.BankRejectPayment(bankResponse.BankPaymentId);
+                        knownPayment.BankRejectPayment(bankPaymentId);
                         break;
                 }
 
@@ -54,7 +56,7 @@ namespace PaymentGateway.Infrastructure
             catch (Exception)
             {
                 //TODO: log
-                knownPayment.FailOnGateway();
+                knownPayment.FailOnGateway(bankPaymentId);
                 await _paymentsRepository.Save(knownPayment, knownPayment.Version);
             }
         }

@@ -2,7 +2,7 @@
 {
     public enum PaymentStatus
     {
-        Pending,
+        Requested,
         Success,
         RejectedByBank,
         FaultedOnGateway

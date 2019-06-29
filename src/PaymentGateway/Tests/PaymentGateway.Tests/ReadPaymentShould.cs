@@ -23,8 +23,11 @@ namespace PaymentGateway.Tests
             Check.That(actionResult.Value).IsNull();
         }
 
-        [Test]
-        public async Task Can_retrieve_payment_details_using_BankPaymentId()
+        [Repeat(10)]
+        [TestCase(AcquiringBanks.API.BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
+        //[TestCase(AcquiringBanks.API.BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
+        public async Task Can_retrieve_payment_details_using_BankPaymentId(AcquiringBanks.API.BankPaymentStatus paymentBankStatus, PaymentGateway.Domain.PaymentStatus expectedStatusInPaymentDetails
+        )
         {
             var requestId = Guid.NewGuid();
             var paymentRequest =  new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66),
@@ -33,21 +36,20 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted);
+            var cqrs = PaymentCQRS.Build(paymentBankStatus);
             await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            cqrs.RequestController.Handler.Wait();
     
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             var paymentDetails = (await cqrs.PaymentDetailsReadController.GetPaymentInfo(payment.AcquiringBankPaymentId)).Value;
 
             // The response should include a masked card number and card details along with a
             // status code which indicates the result of the payment.
-            Check.That(paymentDetails.CardNumber).IsEqualTo("4524 XXXX XXXX XXXX");
-            Check.That(paymentDetails.CardHolderName).IsEqualTo("John Smith");
-            Check.That(paymentDetails.CardExpiry).IsEqualTo("05/19");
-            Check.That(paymentDetails.Cvv).IsEqualTo("321");
-            Check.That(paymentDetails.Status).IsEqualTo(PaymentGateway.Domain.PaymentStatus.Success);
+            Check.That(paymentDetails.CreditCardNumber).IsEqualTo("4524 XXXX XXXX XXXX");
+            Check.That(paymentDetails.CreditCardHolderName).IsEqualTo("John Smith");
+            Check.That(paymentDetails.CreditCardExpiry).IsEqualTo("05/19");
+            Check.That(paymentDetails.CreditCardCvv).IsEqualTo("321");
+            Check.That(paymentDetails.Status).IsEqualTo(expectedStatusInPaymentDetails);
         }
     }
 }

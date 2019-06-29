@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
 using SimpleCQRS;
@@ -18,10 +20,12 @@ namespace PaymentGateway.API.WriteAPI
     {
         private readonly IEventSourcedRepository<Payment> _repository;
         internal PaymentRequestCommandHandler Handler;
+        private ExecutorType _executorType;
 
-        public PaymentRequestsController(IEventSourcedRepository<Payment> repository)
+        public PaymentRequestsController(IEventSourcedRepository<Payment> repository, IOptionsMonitor<AppSettings> appSettingsAccessor)
         {
             _repository = repository;
+            _executorType = appSettingsAccessor.CurrentValue.Executor;
         }
 
         [HttpPost]
@@ -32,7 +36,7 @@ namespace PaymentGateway.API.WriteAPI
         {
             var gatewayPaymentId = guidGenerator.Generate();
 
-            Handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank);
+            Handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank, _executorType == ExecutorType.API ? true : false);
             var commandResult = await Handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
             switch (commandResult)
             {

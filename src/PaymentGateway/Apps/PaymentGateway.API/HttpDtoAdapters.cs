@@ -20,7 +20,7 @@ namespace PaymentGateway.API
 
         public static PaymentDetailsDto AsDto(this PaymentDetails paymentDetails)
         {
-            return new PaymentDetailsDto();
+            return new PaymentDetailsDto(paymentDetails.CreditCardNumber, paymentDetails.CreditCardHolderName, paymentDetails.CreditCardExpiry, paymentDetails.CreditCardCvv, paymentDetails.Status);
         }
     }
 }
