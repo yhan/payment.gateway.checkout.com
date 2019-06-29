@@ -17,11 +17,11 @@ namespace PaymentGateway.Domain
         public Guid BankPaymentId { get; }
     }
 
-    public class PaymentFailed : Event
+    public class PaymentRejectedByBank : Event
     {
-        public PaymentStatus Status = PaymentStatus.Failure;
+        public PaymentStatus Status = PaymentStatus.RejectedByBank;
 
-        public PaymentFailed(Guid gatewayPaymentId, Guid bankPaymentId)
+        public PaymentRejectedByBank(Guid gatewayPaymentId, Guid bankPaymentId)
         {
             GatewayPaymentId = gatewayPaymentId;
             BankPaymentId = bankPaymentId;

@@ -36,8 +36,8 @@ namespace PaymentGateway.Tests
             var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted);
             await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            await cqrs.AcquiringBank.WaitForBankResponse();
-
+            cqrs.RequestController.Handler.Wait();
+    
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             var paymentDetails = (await cqrs.PaymentDetailsReadController.GetPaymentInfo(payment.AcquiringBankPaymentId)).Value;
 

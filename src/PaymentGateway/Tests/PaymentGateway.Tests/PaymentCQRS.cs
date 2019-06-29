@@ -31,7 +31,7 @@ namespace PaymentGateway.Tests
             PaymentProcessor = paymentProcessor;
         }
 
-        internal static PaymentCQRS Build(BankPaymentStatus paymentStatus)
+        internal static PaymentCQRS Build(BankPaymentStatus paymentStatus, SimulateException exceptionSimulator =  null)
         {
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(new InMemoryBus()));
             var requestController = new PaymentRequestsController(eventSourcedRepository);
@@ -43,10 +43,8 @@ namespace PaymentGateway.Tests
             var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random), TODO);
-            var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository);
-
-            
+            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random), new BankToGatewayMapper());
+            var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, exceptionSimulator);
 
             var paymentDetailsReadController = new PaymentsDetailsController(new BankToGatewayMapper(), new PaymentDetailsRepository());
 

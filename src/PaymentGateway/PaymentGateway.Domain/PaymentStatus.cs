@@ -4,6 +4,7 @@
     {
         Pending,
         Success,
-        Failure
+        RejectedByBank,
+        FaultedOnGateway
     }
 }

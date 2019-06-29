@@ -36,9 +36,15 @@ namespace PaymentGateway.Domain
             ApplyChange(new PaymentSucceeded(GatewayPaymentId, bankPaymentId));
         }
 
-        public void RejectPayment(Guid bankPaymentId)
+        public void BankRejectPayment(Guid bankPaymentId)
         {
-            ApplyChange(new PaymentFailed(GatewayPaymentId, bankPaymentId));
+            ApplyChange(new PaymentRejectedByBank(GatewayPaymentId, bankPaymentId));
+        }
+
+        public void FailOnGateway()
+        {
+            ApplyChange(new PaymentFaulted(GatewayPaymentId));
+
         }
 
         #endregion
@@ -63,14 +69,19 @@ namespace PaymentGateway.Domain
             Version = evt.Version;
         }
 
-        private void Apply(PaymentFailed evt)
+        private void Apply(PaymentRejectedByBank evt)
         {
             AcquiringBankPaymentId = evt.BankPaymentId;
             Status = evt.Status;
             Version = evt.Version;
         }
 
+        private void Apply(PaymentFaulted evt)
+        {
+            Status = evt.Status;
+            Version = evt.Version;
+        }
+
         #endregion
     }
-
 }

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
 using SimpleCQRS;
+
+[assembly: InternalsVisibleTo("PaymentGateway.Tests")]
 
 namespace PaymentGateway.API.WriteAPI
 {
@@ -14,6 +17,7 @@ namespace PaymentGateway.API.WriteAPI
     public class PaymentRequestsController : ControllerBase
     {
         private readonly IEventSourcedRepository<Payment> _repository;
+        internal PaymentRequestCommandHandler Handler;
 
         public PaymentRequestsController(IEventSourcedRepository<Payment> repository)
         {
@@ -28,8 +32,8 @@ namespace PaymentGateway.API.WriteAPI
         {
             var gatewayPaymentId = guidGenerator.Generate();
 
-            var handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank);
-            var commandResult = await handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
+            Handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank);
+            var commandResult = await Handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
             switch (commandResult)
             {
                 case SuccessCommandResult<Payment> success:

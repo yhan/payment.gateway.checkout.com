@@ -11,7 +11,6 @@ namespace PaymentGateway.Infrastructure
     {
         private readonly IAmAcquiringBank _bank;
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
-        private Task<string> _delay;
 
         public AcquiringBankFacade(IAmAcquiringBank bank, IMapAcquiringBankToPaymentGateway paymentIdsMapper)
         {
@@ -23,19 +22,13 @@ namespace PaymentGateway.Infrastructure
         {
             //Send `PayingAttempt` to AcquiringBank, wait, get reply
 
-            _delay = _bank.RespondsTo(JsonConvert.SerializeObject(paymentAttempt));
-            string bankResponseJson = await _delay;
+            string bankResponseJson = await _bank.RespondsTo(JsonConvert.SerializeObject(paymentAttempt));
             
             var bankResponse = JsonConvert.DeserializeObject<PaymentGateway.Domain.BankResponse>(bankResponseJson);
 
             _paymentIdsMapper.RememberMapping(new PaymentIds(bankResponse.BankPaymentId, bankResponse.GatewayPaymentId));
 
             return bankResponse;
-        }
-
-        internal async Task WaitForBankResponse()
-        {
-            await _delay;
         }
     }
 

@@ -1,7 +1,10 @@
-﻿using System.Threading;
+﻿using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using PaymentGateway.Domain.AcquiringBank;
 using SimpleCQRS;
+
+[assembly:InternalsVisibleTo("PaymentGateway.Tests")]
 
 namespace PaymentGateway.Domain
 {
@@ -10,6 +13,8 @@ namespace PaymentGateway.Domain
         private readonly IProvidePaymentIdsMapping _paymentIdsMapping;
         private readonly IProcessPayment _acquiringBank;
         private readonly IEventSourcedRepository<Payment> _repository;
+
+        private ManualResetEventSlim _wait = new ManualResetEventSlim(false, 100);
 
         public PaymentRequestCommandHandler(IEventSourcedRepository<Payment> repository,
             IProvidePaymentIdsMapping paymentIdsMapping,
@@ -32,9 +37,20 @@ namespace PaymentGateway.Domain
             await _repository.Save(payment, Stream.NotCreatedYet);
             await _paymentIdsMapping.Remember(command.RequestId);
 
-            await Task.Run(() => { _acquiringBank.AttemptPaying(payment.MapToAcquiringBank()); }); //TODO: Add cancellation with a timeout
+            //TODO: Add cancellation with a timeout
+            _acquiringBank.AttemptPaying(payment.MapToAcquiringBank())
+                .ContinueWith( t =>
+                    {
+                        _wait.Set();
+                    }
+                    );
 
             return this.Success(payment);
+        }
+
+        internal void Wait()
+        {
+            _wait.Wait();
         }
     }
 
