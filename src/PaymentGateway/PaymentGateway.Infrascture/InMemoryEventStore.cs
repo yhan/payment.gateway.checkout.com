@@ -15,7 +15,7 @@ namespace PaymentGateway.Infrastructure
 
     public class InMemoryEventStore : IEventStore
     {
-        private readonly IEventPublisher _publisher;
+        private readonly IPublishEvents _publisher;
 
         private struct EventDescriptor
         {
@@ -32,7 +32,7 @@ namespace PaymentGateway.Infrastructure
             }
         }
 
-        public InMemoryEventStore(IEventPublisher publisher)
+        public InMemoryEventStore(IPublishEvents publisher)
         {
             _publisher = publisher;
         }

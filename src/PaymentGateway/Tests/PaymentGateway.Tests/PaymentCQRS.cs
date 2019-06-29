@@ -1,40 +1,36 @@
+using System.Threading;
+using System.Threading.Tasks;
 using AcquiringBanks.API;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using PaymentGateway.API;
 using PaymentGateway.API.ReadAPI;
+using PaymentGateway.API.ReadProjector;
 using PaymentGateway.API.WriteAPI;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
-using PaymentGateway.Infrastructure.ReadProjector;
 
 namespace PaymentGateway.Tests
 {
     internal class PaymentCQRS
     {
         internal PaymentsDetailsController PaymentDetailsReadController { get; }
-        internal AcquiringBankFacade AcquiringBank{ get; }
-        internal EventSourcedRepository<Payment> EventSourcedRepository{ get; }
         internal PaymentProcessor PaymentProcessor{ get; }
         internal InMemoryPaymentIdsMapping PaymentIdsMapping{ get; }
         internal PaymentReadController ReadController{ get; }
-        internal PaymentRequestsController RequestController{ get; }
+        internal PaymentRequestsController RequestsController{ get; }
 
-        private PaymentCQRS(EventSourcedRepository<Payment> eventSourcedRepository,
-            PaymentRequestsController requestController, PaymentReadController readController,
-            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentIdsMapping paymentIdsMapping,
-            AcquiringBankFacade acquiringBank, PaymentProcessor paymentProcessor)
+        private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController readController,
+            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentIdsMapping paymentIdsMapping, PaymentProcessor paymentProcessor)
         {
             PaymentDetailsReadController = paymentDetailsReadController;
-            EventSourcedRepository = eventSourcedRepository;
-            RequestController = requestController;
+            RequestsController = requestController;
             ReadController = readController;
             PaymentIdsMapping = paymentIdsMapping;
-            AcquiringBank = acquiringBank;
             PaymentProcessor = paymentProcessor;
         }
 
-        internal static PaymentCQRS Build(BankPaymentStatus paymentStatus, SimulateException exceptionSimulator =  null)
+        internal static async Task<PaymentCQRS> Build(BankPaymentStatus paymentStatus, SimulateException exceptionSimulator =  null)
         {
             var bus = new InMemoryBus();
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(bus));
@@ -58,13 +54,10 @@ namespace PaymentGateway.Tests
             var paymentDetailsRepository = new PaymentDetailsRepository();
             var paymentDetailsReadController = new PaymentsDetailsController(mapIdsFromAcquiringBankToPaymentGateway, paymentDetailsRepository);
 
-            var projector = new PaymentReadProjector(bus, paymentDetailsRepository);
-            projector.SubscribeToEventsForUpdatingReadModel();
+            var readProjections = new ReadProjections(bus, paymentDetailsRepository);
+            await readProjections.StartAsync(new CancellationToken(false));
 
-            return new PaymentCQRS(eventSourcedRepository, requestController, readController, paymentDetailsReadController, paymentIdsMapping,
-                acquiringBank, mediator);
+            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentIdsMapping, mediator);
         }
-
-       
     }
 }

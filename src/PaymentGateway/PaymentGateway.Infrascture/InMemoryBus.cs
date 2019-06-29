@@ -6,24 +6,29 @@ using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
 {
-    public class InMemoryBus : ICommandSender, IEventPublisher
+    public class InMemoryBus : ISendCommands, IPublishEvents
     {
-        private readonly Dictionary<Type, List<Func<Message, Task>>> _asyncRoutes = new Dictionary<Type, List<Func<Message, Task>>>();
+        private readonly Dictionary<Type, List<Func<Message, Task>>> _routes = new Dictionary<Type, List<Func<Message, Task>>>();
 
         public void RegisterHandler<T>(Func<T, Task> handler) where T : Message
         {
-            if(!_asyncRoutes.TryGetValue(typeof(T), out var handlers))
+            if(!_routes.TryGetValue(typeof(T), out var handlers))
             {
                 handlers = new List<Func<Message, Task>>();
-                _asyncRoutes.Add(typeof(T), handlers);
+                _routes.Add(typeof(T), handlers);
             }
 
             handlers.Add((x => handler((T)x)));
         }
 
+        public void UnRegisterHandlers()
+        {
+            _routes.Clear();
+        }
+
         public void Send<T>(T command) where T : Command
         {
-            if (_asyncRoutes.TryGetValue(typeof(T), out var handlers))
+            if (_routes.TryGetValue(typeof(T), out var handlers))
             {
                 if (handlers.Count != 1)
                 {
@@ -40,7 +45,7 @@ namespace PaymentGateway.Infrastructure
 
         public async Task Publish<T>(T @event) where T : Event
         {
-            if (!_asyncRoutes.TryGetValue(@event.GetType(), out var asyncHandlers))
+            if (!_routes.TryGetValue(@event.GetType(), out var asyncHandlers))
             {
                 return;
             }
@@ -56,18 +61,22 @@ namespace PaymentGateway.Infrastructure
 
    
 
-    public interface Handles<T>
+    public interface IHandles<T>
     {
         void Handle(T message);
     }
 
-    public interface ICommandSender
+    public interface ISendCommands
     {
         void Send<T>(T command) where T : Command;
 
     }
-    public interface IEventPublisher
+    public interface IPublishEvents
     {
         Task Publish<T>(T @event) where T : Event;
+
+        void RegisterHandler<T>(Func<T, Task> handler) where T : Message;
+
+        void UnRegisterHandlers();
     }
 }

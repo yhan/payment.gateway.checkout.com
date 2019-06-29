@@ -8,10 +8,10 @@ namespace PaymentGateway.Infrastructure.ReadProjector
 {
     public class PaymentReadProjector
     {
-        private readonly InMemoryBus _bus;
+        private readonly IPublishEvents _bus;
         private readonly IPaymentDetailsRepository _paymentDetailsRepository;
 
-        public PaymentReadProjector(InMemoryBus bus, IPaymentDetailsRepository paymentDetailsRepository)
+        public PaymentReadProjector(IPublishEvents bus, IPaymentDetailsRepository paymentDetailsRepository)
         {
             _bus = bus;
             _paymentDetailsRepository = paymentDetailsRepository;
@@ -23,6 +23,11 @@ namespace PaymentGateway.Infrastructure.ReadProjector
             _bus.RegisterHandler<PaymentSucceeded>(Handle);
             _bus.RegisterHandler<PaymentRejectedByBank>(Handle);
             _bus.RegisterHandler<PaymentFaulted>(Handle);
+        }
+
+        public void UnsubscribeFromEventsForUpdatingReadModel()
+        {
+            _bus.UnRegisterHandlers();
         }
 
         private async Task Handle(PaymentFaulted faulted)

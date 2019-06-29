@@ -15,7 +15,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_Payment_does_not_exist()
         {
-            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
             var nonExistingPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.ReadController.GetPaymentInfo(nonExistingPaymentId);
 
@@ -36,8 +36,8 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = PaymentCQRS.Build(paymentBankStatus);
-            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+            var cqrs = await PaymentCQRS.Build(paymentBankStatus);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;

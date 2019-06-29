@@ -49,9 +49,9 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
+            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
 
-            var response = await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), cqrs.PaymentProcessor);
+            var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), cqrs.PaymentProcessor);
 
             CheckThatPaymentResourceIsCorrectlyCreated(response, gatewayPaymentId, requestId);
         }
@@ -62,13 +62,13 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = Utils.BuildPaymentRequest(requestId);
 
-            var cqrs = PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
+            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted );
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
-            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-            var actionResult = await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult) actionResult;
@@ -84,8 +84,8 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted);
-            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
             //await cqrs.AcquiringBank.WaitForBankResponse();
 
@@ -104,8 +104,8 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
-            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
@@ -124,8 +124,8 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new SimulateException());
-            await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new SimulateException());
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;

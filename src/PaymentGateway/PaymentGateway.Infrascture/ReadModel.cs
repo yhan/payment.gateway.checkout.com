@@ -38,7 +38,7 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
-    public class InventoryListView : Handles<InventoryItemCreated>, Handles<InventoryItemRenamed>, Handles<InventoryItemDeactivated>
+    public class InventoryListView : IHandles<InventoryItemCreated>, IHandles<InventoryItemRenamed>, IHandles<InventoryItemDeactivated>
     {
         public void Handle(InventoryItemCreated message)
         {
@@ -57,7 +57,7 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
-    public class InventoryItemDetailView : Handles<InventoryItemCreated>, Handles<InventoryItemDeactivated>, Handles<InventoryItemRenamed>, Handles<ItemsRemovedFromInventory>, Handles<ItemsCheckedInToInventory>
+    public class InventoryItemDetailView : IHandles<InventoryItemCreated>, IHandles<InventoryItemDeactivated>, IHandles<InventoryItemRenamed>, IHandles<ItemsRemovedFromInventory>, IHandles<ItemsCheckedInToInventory>
     {
         public void Handle(InventoryItemCreated message)
         {

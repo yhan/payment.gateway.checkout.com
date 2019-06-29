@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
@@ -9,12 +8,15 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using PaymentGateway.API.ReadProjector;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 using SimpleCQRS;
 using Swashbuckle.AspNetCore.Swagger;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace PaymentGateway.API
 {
@@ -51,13 +53,17 @@ namespace PaymentGateway.API
             services.AddScoped<IGenerateGuid, DefaultGuidGenerator>();
             services.AddScoped<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
             services.AddSingleton<IEventStore, InMemoryEventStore>();
-            services.AddSingleton<IEventPublisher, InMemoryBus>();
+            services.AddSingleton<IPublishEvents, InMemoryBus>();
             services.AddSingleton<IProvidePaymentIdsMapping, InMemoryPaymentIdsMapping>();
             services.AddScoped<IProcessPayment, PaymentProcessor>(); 
             services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();
             services.AddScoped<IAmAcquiringBank, AcquiringBankSimulator>();
 
             services.AddSingleton<IRandomnizeAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
+
+            services.AddSingleton<IHostedService, ReadProjections>();
+            services.AddSingleton<IPaymentDetailsRepository, PaymentDetailsRepository>();
+            services.AddSingleton<IMapAcquiringBankToPaymentGateway, PaymentIdsMemory>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -87,25 +93,6 @@ namespace PaymentGateway.API
 
             app.UseHttpsRedirection();
             app.UseMvc();
-        }
-    }
-
-    public class AppSettings
-    {
-        public ExecutorType Executor { get; set; }
-    }
-
-    public enum ExecutorType
-    {
-        API,
-        Tests
-    }
-
-    public class DefaultGuidGenerator : IGenerateGuid
-    {
-        public Guid Generate()
-        {
-            return Guid.NewGuid();
         }
     }
 }
