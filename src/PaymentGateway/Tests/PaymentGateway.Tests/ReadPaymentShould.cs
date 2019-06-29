@@ -16,9 +16,9 @@ namespace PaymentGateway.Tests
         {
             var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
             var nonExistingPaymentId = Guid.NewGuid();
-            var actionResult = await cqrs.ReadController.GetPaymentInfo(nonExistingPaymentId);
+            var actionResult = await cqrs.PaymentReadController.GetPaymentInfo(nonExistingPaymentId);
 
-            Check.That(actionResult.Result).IsInstanceOf<NotFoundResult>();
+            Check.That(actionResult.Result).IsInstanceOf<NotFoundObjectResult>();
             Check.That(actionResult.Value).IsNull();
         }
 
@@ -40,8 +40,8 @@ namespace PaymentGateway.Tests
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
-            var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
-            var paymentDetails = (await cqrs.PaymentDetailsReadController.GetPaymentInfo(payment.AcquiringBankPaymentId)).Value;
+            var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
+            var paymentDetails = (await cqrs.PaymentDetailsReadController.GetPaymentDetails(payment.AcquiringBankPaymentId)).Value;
 
             // The response should include a masked card number and card details along with a
             // status code which indicates the result of the payment.
@@ -52,5 +52,18 @@ namespace PaymentGateway.Tests
             Check.That(paymentDetails.Status).IsEqualTo(expectedStatusInPaymentDetails);
             Check.That(paymentDetails.AcquiringBankPaymentId).IsEqualTo((bankPaymentId));
         }
+
+
+        [Test]
+        public async Task Return_NotFound_When_PaymentDetails_does_not_exist()
+        {
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
+            var nonExistingBankPaymentId = Guid.NewGuid();
+            var actionResult = await cqrs.PaymentDetailsReadController.GetPaymentDetails(nonExistingBankPaymentId);
+
+            Check.That(actionResult.Result).IsInstanceOf<NotFoundObjectResult>();
+            Check.That(actionResult.Value).IsNull();
+        }
+
     }
 }

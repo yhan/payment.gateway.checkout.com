@@ -91,7 +91,7 @@ namespace PaymentGateway.Tests
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
           
-            var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
+            var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GateWayPaymentId).IsEqualTo(gatewayPaymentId);
 
@@ -111,7 +111,7 @@ namespace PaymentGateway.Tests
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
-            var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
+            var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GateWayPaymentId).IsEqualTo(gatewayPaymentId);
 

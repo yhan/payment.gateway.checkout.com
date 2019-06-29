@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.API.WriteAPI;
@@ -20,13 +21,20 @@ namespace PaymentGateway.API.ReadAPI
         }
 
         [HttpGet("{acquiringBankPaymentId}")]
-        public async Task<ActionResult<PaymentDetailsDto>> GetPaymentInfo(Guid acquiringBankPaymentId)
+        public async Task<ActionResult<PaymentDetailsDto>> GetPaymentDetails(Guid acquiringBankPaymentId)
         {
-            var paymentGatewayId = _mapper.GetPaymentGatewayId(new AcquiringBankPaymentId(acquiringBankPaymentId));
+            try
+            {
+                var paymentGatewayId = _mapper.GetPaymentGatewayId(new AcquiringBankPaymentId(acquiringBankPaymentId));
 
-            var details = await _repository.GetPaymentDetails(paymentGatewayId);
+                var details = await _repository.GetPaymentDetails(paymentGatewayId);
 
-            return details.AsDto();
+                return details.AsDto();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(acquiringBankPaymentId);
+            }
         }
     }
 

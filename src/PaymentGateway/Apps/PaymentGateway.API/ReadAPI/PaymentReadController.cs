@@ -29,7 +29,7 @@ namespace PaymentGateway.API.ReadAPI
             }
             catch (AggregateNotFoundException)
             {
-                return NotFound();
+                return NotFound(gateWayPaymentId);
             }
         }
     }

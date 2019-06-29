@@ -31,17 +31,4 @@ namespace AcquiringBanks.API
             return JsonConvert.SerializeObject(response);
         }
     }
-
-    public interface IGenerateBankPaymentId
-    {
-        Guid Generate();
-    }
-
-    public class DefaultBankPaymentIdGenerator : IGenerateBankPaymentId
-    {
-        public Guid Generate()
-        {
-            return Guid.NewGuid();
-        }
-    }
 }

@@ -18,15 +18,15 @@ namespace PaymentGateway.Tests
         internal PaymentsDetailsController PaymentDetailsReadController { get; }
         internal PaymentProcessor PaymentProcessor{ get; }
         internal InMemoryPaymentIdsMapping PaymentIdsMapping{ get; }
-        internal PaymentReadController ReadController{ get; }
+        internal PaymentReadController PaymentReadController{ get; }
         internal PaymentRequestsController RequestsController{ get; }
 
-        private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController readController,
+        private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController paymentReadController,
             PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentIdsMapping paymentIdsMapping, PaymentProcessor paymentProcessor)
         {
             PaymentDetailsReadController = paymentDetailsReadController;
             RequestsController = requestController;
-            ReadController = readController;
+            PaymentReadController = paymentReadController;
             PaymentIdsMapping = paymentIdsMapping;
             PaymentProcessor = paymentProcessor;
         }
