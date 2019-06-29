@@ -24,8 +24,8 @@ namespace PaymentGateway.Tests
         }
 
         [Repeat(10)]
+        [TestCase(AcquiringBanks.API.BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
         [TestCase(AcquiringBanks.API.BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
-        //[TestCase(AcquiringBanks.API.BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
         public async Task Can_retrieve_payment_details_using_BankPaymentId(AcquiringBanks.API.BankPaymentStatus paymentBankStatus, PaymentGateway.Domain.PaymentStatus expectedStatusInPaymentDetails
         )
         {
@@ -39,7 +39,7 @@ namespace PaymentGateway.Tests
             var cqrs = PaymentCQRS.Build(paymentBankStatus);
             await cqrs.RequestController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-    
+
             var payment = (await cqrs.ReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             var paymentDetails = (await cqrs.PaymentDetailsReadController.GetPaymentInfo(payment.AcquiringBankPaymentId)).Value;
 

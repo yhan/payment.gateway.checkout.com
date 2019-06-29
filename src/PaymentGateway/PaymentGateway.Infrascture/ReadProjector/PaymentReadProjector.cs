@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using PaymentGateway.Domain;
 using PaymentGateway.Domain.Events;
 using SimpleCQRS;
@@ -24,24 +25,24 @@ namespace PaymentGateway.Infrastructure.ReadProjector
             _bus.RegisterHandler<PaymentFaulted>(Handle);
         }
 
-        private void Handle(PaymentFaulted faulted)
+        private async Task Handle(PaymentFaulted faulted)
         {
-            _paymentDetailsRepository.Update(faulted.GatewayPaymentId, faulted.BankPaymentId, PaymentStatus.FaultedOnGateway);
+            await _paymentDetailsRepository.Update(faulted.GatewayPaymentId, faulted.BankPaymentId, PaymentStatus.FaultedOnGateway);
         }
 
-        private void Handle(PaymentRejectedByBank rejectedByBank)
+        private async Task Handle(PaymentRejectedByBank rejectedByBank)
         {
-            _paymentDetailsRepository.Update(rejectedByBank.GatewayPaymentId, rejectedByBank.BankPaymentId, PaymentStatus.RejectedByBank);
+            await _paymentDetailsRepository.Update(rejectedByBank.GatewayPaymentId, rejectedByBank.BankPaymentId, PaymentStatus.RejectedByBank);
         }
 
-        private void Handle(PaymentSucceeded succeeded)
+        private async Task Handle(PaymentSucceeded succeeded)
         {
-            _paymentDetailsRepository.Update(succeeded.GatewayPaymentId, succeeded.BankPaymentId, PaymentStatus.Success);
+            await _paymentDetailsRepository.Update(succeeded.GatewayPaymentId, succeeded.BankPaymentId, PaymentStatus.Success);
         }
 
-        private void Handle(PaymentRequested requested)
+        private async Task Handle(PaymentRequested requested)
         {
-            _paymentDetailsRepository.Create(requested.GatewayPaymentId, requested.CreditCard);
+            await _paymentDetailsRepository.Create(requested.GatewayPaymentId, requested.CreditCard);
         }
     }
 }

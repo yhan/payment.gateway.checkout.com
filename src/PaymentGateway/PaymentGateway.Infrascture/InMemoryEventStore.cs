@@ -71,7 +71,7 @@ namespace PaymentGateway.Infrastructure
                 eventDescriptors.Add(new EventDescriptor(aggregateId,@event,i));
 
                 // publish current event to the bus for further processing by subscribers
-                _publisher.Publish(@event);
+                await _publisher.Publish(@event);
             }
         }
 

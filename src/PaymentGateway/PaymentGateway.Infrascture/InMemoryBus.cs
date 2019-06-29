@@ -1,36 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
 {
     public class InMemoryBus : ICommandSender, IEventPublisher
     {
+        private readonly Dictionary<Type, List<Func<Message, Task>>> _asyncRoutes = new Dictionary<Type, List<Func<Message, Task>>>();
 
-        public InMemoryBus(bool synchronousPublication = true)
+        public void RegisterHandler<T>(Func<T, Task> handler) where T : Message
         {
-            if (synchronousPublication)
+            if(!_asyncRoutes.TryGetValue(typeof(T), out var handlers))
             {
-                _publicationStrategy = new SynchronousPublicationStrategy();
-            }
-            else
-            {
-                _publicationStrategy = new AsynchronousThreadPoolPublicationStrategy();
-            }
-        }
-
-        private readonly Dictionary<Type, List<Action<Message>>> _routes = new Dictionary<Type, List<Action<Message>>>();
-        private readonly IPublishToHandlers _publicationStrategy;
-
-        public void RegisterHandler<T>(Action<T> handler) where T : Message
-        {
-            List<Action<Message>> handlers;
-
-            if(!_routes.TryGetValue(typeof(T), out handlers))
-            {
-                handlers = new List<Action<Message>>();
-                _routes.Add(typeof(T), handlers);
+                handlers = new List<Func<Message, Task>>();
+                _asyncRoutes.Add(typeof(T), handlers);
             }
 
             handlers.Add((x => handler((T)x)));
@@ -38,16 +23,14 @@ namespace PaymentGateway.Infrastructure
 
         public void Send<T>(T command) where T : Command
         {
-            List<Action<Message>> handlers;
-
-            if (_routes.TryGetValue(typeof(T), out handlers))
+            if (_asyncRoutes.TryGetValue(typeof(T), out var handlers))
             {
                 if (handlers.Count != 1)
                 {
                     throw new InvalidOperationException("cannot send to more than one handler");
                 }
 
-                _publicationStrategy.PublishTo(handlers[0], command);
+                handlers[0](command);
             }
             else
             {
@@ -55,49 +38,23 @@ namespace PaymentGateway.Infrastructure
             }
         }
 
-        public void Publish<T>(T @event) where T : Event
+        public async Task Publish<T>(T @event) where T : Event
         {
-            List<Action<Message>> handlers;
-
-            if (!_routes.TryGetValue(@event.GetType(), out handlers))
+            if (!_asyncRoutes.TryGetValue(@event.GetType(), out var asyncHandlers))
             {
                 return;
             }
 
-            foreach(var handler in handlers)
+            foreach(var handler in asyncHandlers)
             {
-                //dispatch on thread pool for added awesomeness
                 var handler1 = handler;
 
-                _publicationStrategy.PublishTo(handler1, @event);
+                await handler1(@event);
             }
         }
     }
 
-    internal interface IPublishToHandlers 
-    {
-        void PublishTo<T>(Action<Message> handler, T @event)
-            where T : Message;
-    }
-
-    public class AsynchronousThreadPoolPublicationStrategy : IPublishToHandlers
-    {
-        public void PublishTo<T>(Action<Message> handler, T @event)
-            where T : Message
-        {
-            // dispatch on thread pool for added awesomeness
-            ThreadPool.QueueUserWorkItem(x => handler(@event));
-        }
-    }
-
-    public class SynchronousPublicationStrategy: IPublishToHandlers
-    {
-        public void PublishTo<T>(Action<Message> handler, T @event)
-            where T : Message
-        {
-            handler(@event); // synchronous publication to simplify the test of this first step
-        }
-    }
+   
 
     public interface Handles<T>
     {
@@ -111,6 +68,6 @@ namespace PaymentGateway.Infrastructure
     }
     public interface IEventPublisher
     {
-        void Publish<T>(T @event) where T : Event;
+        Task Publish<T>(T @event) where T : Event;
     }
 }
