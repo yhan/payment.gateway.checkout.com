@@ -59,6 +59,7 @@ namespace PaymentGateway.API
             services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();
             services.AddScoped<IAmAcquiringBank, AcquiringBankSimulator>();
             services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
+            services.AddTransient<IProvideRandomBankResponseTime, DefaultDelayProvider>();
 
             services.AddSingleton<IRandomnizeAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
 

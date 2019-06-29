@@ -8,18 +8,20 @@ namespace AcquiringBanks.API
     {
         private readonly IRandomnizeAcquiringBankPaymentStatus _random;
         private readonly IGenerateBankPaymentId _bankPaymentIdGenerator;
+        private readonly IProvideRandomBankResponseTime _delayProvider;
 
-        public AcquiringBankSimulator(IRandomnizeAcquiringBankPaymentStatus random, IGenerateBankPaymentId bankPaymentIdGenerator)
+        public AcquiringBankSimulator(IRandomnizeAcquiringBankPaymentStatus random, IGenerateBankPaymentId bankPaymentIdGenerator, IProvideRandomBankResponseTime delayProvider)
         {
             _random = random;
             _bankPaymentIdGenerator = bankPaymentIdGenerator;
+            _delayProvider = delayProvider;
         }
 
         public async Task<string> RespondsTo(string paymentAttemptJson)
         {
             var payingAttempt = JsonConvert.DeserializeObject<AcquiringBanks.API.PayingAttempt>(paymentAttemptJson);
 
-            await Task.Delay(1);
+            await Task.Delay(_delayProvider.Delays());
 
             var paymentStatus = _random.GeneratePaymentStatus();
 

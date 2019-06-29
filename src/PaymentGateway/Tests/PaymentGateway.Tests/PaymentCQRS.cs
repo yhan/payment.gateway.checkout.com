@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
@@ -49,7 +50,7 @@ namespace PaymentGateway.Tests
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
             var mapIdsFromAcquiringBankToPaymentGateway = new PaymentIdsMemory();
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator), mapIdsFromAcquiringBankToPaymentGateway);
+            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider()), mapIdsFromAcquiringBankToPaymentGateway);
             var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, exceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();
@@ -59,6 +60,14 @@ namespace PaymentGateway.Tests
             await readProjections.StartAsync(new CancellationToken(false));
 
             return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentIdsMapping, mediator);
+        }
+    }
+
+    internal class DelayProvider : IProvideRandomBankResponseTime
+    {
+        public TimeSpan Delays()
+        {
+            return TimeSpan.FromMilliseconds(1);
         }
     }
 }
