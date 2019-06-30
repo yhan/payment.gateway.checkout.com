@@ -9,12 +9,17 @@ namespace AcquiringBanks.API
         private readonly IRandomnizeAcquiringBankPaymentStatus _random;
         private readonly IGenerateBankPaymentId _bankPaymentIdGenerator;
         private readonly IProvideRandomBankResponseTime _delayProvider;
+        private readonly IBankConnectionBehavior _connectionBehavior;
 
-        public AcquiringBankSimulator(IRandomnizeAcquiringBankPaymentStatus random, IGenerateBankPaymentId bankPaymentIdGenerator, IProvideRandomBankResponseTime delayProvider)
+        public AcquiringBankSimulator(IRandomnizeAcquiringBankPaymentStatus random, 
+                                      IGenerateBankPaymentId bankPaymentIdGenerator, 
+                                      IProvideRandomBankResponseTime delayProvider,
+                                      IBankConnectionBehavior connectionBehavior)
         {
             _random = random;
             _bankPaymentIdGenerator = bankPaymentIdGenerator;
             _delayProvider = delayProvider;
+            _connectionBehavior = connectionBehavior;
         }
 
         public async Task<string> RespondsTo(string paymentAttemptJson)
@@ -29,6 +34,24 @@ namespace AcquiringBanks.API
             var response = new Response(bankPaymentId, payingAttempt.GatewayPaymentId, paymentStatus);
 
             return JsonConvert.SerializeObject(response);
+        }
+
+        public async Task<bool> Connect()
+        {
+            return await _connectionBehavior.Connect();
+        }
+    }
+
+    public interface IBankConnectionBehavior
+    {
+        Task<bool> Connect();
+    }
+
+    public class AlwaysSuccessBankConnectionBehavior : IBankConnectionBehavior
+    {
+        public async Task<bool> Connect()
+        {
+            return await Task.FromResult(true);
         }
     }
 }

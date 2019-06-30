@@ -7,32 +7,91 @@ using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure
 {
+
+    /// <summary>
+    /// Glue component which calls bank facade <see cref="ITalkToAcquiringBank"/>.
+    /// Then do necessary changes in PaymentGateway's domain.
+    /// </summary>
     public class PaymentProcessor : IProcessPayment
     {
-        private readonly ITalkToAcquiringBank _acquiringBank;
+        private readonly ITalkToAcquiringBank _acquiringBankFacade;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
-        private readonly SimulateException _exceptionSimulator;
+        private readonly SimulateGatewayException _gatewayExceptionSimulator;
 
-        public PaymentProcessor(ITalkToAcquiringBank acquiringBank, IEventSourcedRepository<Payment> paymentsRepository, SimulateException exceptionSimulator = null)
+        public PaymentProcessor(ITalkToAcquiringBank acquiringBankFacade, IEventSourcedRepository<Payment> paymentsRepository, SimulateGatewayException gatewayExceptionSimulator = null)
         {
-            _acquiringBank = acquiringBank;
+            _acquiringBankFacade = acquiringBankFacade;
             _paymentsRepository = paymentsRepository;
-            _exceptionSimulator = exceptionSimulator;
+            _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
         public async Task AttemptPaying(PayingAttempt payingAttempt)
         {
-            Payment knownPayment = null;
-            Guid bankPaymentId = Guid.Empty;
+            var bankResponse = await _acquiringBankFacade.Pay(payingAttempt);
+            IStrategy strategy = Build(bankResponse, _paymentsRepository);
 
+            await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
+
+           
+        }
+
+        private static IStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
+        {
+            switch (bankResponse)
+            {
+                case BankResponse response:
+                    return new RespondedBank(response, paymentsRepository);
+
+                case BankDoesNotRespond noResponse:
+                    return new NotRespondedBank(noResponse, paymentsRepository);
+            }
+
+            throw new ArgumentException();
+        }
+    }
+
+    internal class NotRespondedBank : IStrategy
+    {
+        private readonly BankDoesNotRespond _noResponse;
+        private readonly IEventSourcedRepository<Payment> _paymentsRepository;
+
+        public NotRespondedBank(BankDoesNotRespond noResponse, IEventSourcedRepository<Payment> paymentsRepository)
+        {
+            _noResponse = noResponse;
+            _paymentsRepository = paymentsRepository;
+        }
+
+        public async Task Handle(SimulateGatewayException gatewayExceptionSimulator, Guid gatewayPaymentId)
+        {
+            var knownPayment = await _paymentsRepository.GetById(gatewayPaymentId);
+
+            knownPayment.BankConnectionFails();
+
+            await _paymentsRepository.Save(knownPayment, knownPayment.Version);
+        }
+    }
+
+    internal class RespondedBank : IStrategy
+    {
+        private readonly BankResponse _bankResponse;
+        private readonly IEventSourcedRepository<Payment> _paymentsRepository;
+
+        public RespondedBank(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository)
+        {
+            _bankResponse = response;
+            _paymentsRepository = paymentsRepository;
+        }
+
+        public async Task Handle(SimulateGatewayException gatewayExceptionSimulator, Guid gatewayPaymentId)
+        {
+            Payment knownPayment = null;
+            var bankPaymentId = _bankResponse.BankPaymentId;
             try
             {
-                var bankResponse = await _acquiringBank.Pay(payingAttempt);
-                bankPaymentId = bankResponse.BankPaymentId;
                 try
                 {
-                    knownPayment = await _paymentsRepository.GetById(payingAttempt.GatewayPaymentId);
-                    _exceptionSimulator?.Throws();
+                    knownPayment = await _paymentsRepository.GetById(gatewayPaymentId);
+                    gatewayExceptionSimulator?.Throws();
                 }
                 catch (AggregateNotFoundException)
                 {
@@ -40,7 +99,7 @@ namespace PaymentGateway.Infrastructure
                     return;
                 }
 
-                switch (bankResponse.PaymentStatus)
+                switch (_bankResponse.PaymentStatus)
                 {
                     case BankPaymentStatus.Accepted:
                         knownPayment.AcceptPayment(bankPaymentId);
@@ -52,7 +111,7 @@ namespace PaymentGateway.Infrastructure
 
                 await _paymentsRepository.Save(knownPayment, knownPayment.Version);
             }
-           
+
             catch (Exception)
             {
                 //TODO: log
@@ -62,13 +121,18 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
-    public class SimulateException
+    public interface IStrategy
+    {
+        Task Handle(SimulateGatewayException gatewayExceptionSimulator, Guid payingAttemptGatewayPaymentId);
+    }
+
+    public class SimulateGatewayException
     {
         public void Throws()
         {
             throw new FakeException();
         }
 
-        private class FakeException : Exception{}
+        private class FakeException : Exception { }
     }
 }

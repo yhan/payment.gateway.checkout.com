@@ -33,7 +33,7 @@ namespace PaymentGateway.Tests
         }
 
         internal static async Task<PaymentCQRS> Build(BankPaymentStatus paymentStatus,
-            IGenerateBankPaymentId bankPaymentIdGenerator, SimulateException exceptionSimulator = null)
+            IGenerateBankPaymentId bankPaymentIdGenerator, IBankConnectionBehavior bankConnectionBehavior, SimulateGatewayException gatewayExceptionSimulator = null)
         {
             var bus = new InMemoryBus();
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(bus));
@@ -51,8 +51,8 @@ namespace PaymentGateway.Tests
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
             var mapIdsFromAcquiringBankToPaymentGateway = new PaymentIdsMemory();
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider()), mapIdsFromAcquiringBankToPaymentGateway);
-            var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, exceptionSimulator);
+            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior), mapIdsFromAcquiringBankToPaymentGateway);
+            var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, gatewayExceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();
             var paymentDetailsReadController = new PaymentsDetailsController(mapIdsFromAcquiringBankToPaymentGateway, paymentDetailsRepository);

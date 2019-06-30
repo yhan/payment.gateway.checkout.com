@@ -48,6 +48,11 @@ namespace PaymentGateway.Domain
 
         }
 
+        public void BankConnectionFails()
+        {
+            ApplyChange(new PaymentFailedBecauseBankUnavailable(GatewayPaymentId));
+        }
+
         #endregion
 
         #region evolution functions
@@ -83,6 +88,24 @@ namespace PaymentGateway.Domain
             Version = evt.Version;
         }
 
+        private void Apply(PaymentFailedBecauseBankUnavailable evt)
+        {
+            Status = evt.Status;
+            Version = evt.Version;
+        }
+
         #endregion
+    }
+
+    public class PaymentFailedBecauseBankUnavailable : Event
+    {
+        public Guid GatewayPaymentId { get; }
+
+        public PaymentStatus Status = PaymentStatus.BankUnavailable;
+
+        public PaymentFailedBecauseBankUnavailable(Guid gatewayPaymentId)
+        {
+            GatewayPaymentId = gatewayPaymentId;
+        }
     }
 }

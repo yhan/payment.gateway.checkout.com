@@ -11,10 +11,10 @@ namespace PaymentGateway.Domain
 
     public interface ITalkToAcquiringBank
     {
-        Task<BankResponse> Pay(PayingAttempt paymentAttempt);
+        Task<IBankResponse> Pay(PayingAttempt paymentAttempt);
     }
 
-    public class BankResponse
+    public class BankResponse : IBankResponse
     {
         public Guid BankPaymentId { get; }
         public Guid GatewayPaymentId { get; }
@@ -26,5 +26,15 @@ namespace PaymentGateway.Domain
             GatewayPaymentId = gatewayPaymentId;
             PaymentStatus = paymentStatus;
         }
+
+        public bool BankContactable()
+        {
+            return true;
+        }
+    }
+
+    public interface IBankResponse
+    {
+        bool BankContactable();
     }
 }

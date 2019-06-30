@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AcquiringBanks.API;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
@@ -14,7 +15,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_Payment_does_not_exist()
         {
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
             var nonExistingPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.PaymentReadController.GetPaymentInfo(nonExistingPaymentId);
 
@@ -36,7 +37,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(paymentBankStatus, new BankPaymentIdGeneratorForTests(bankPaymentId));
+            var cqrs = await PaymentCQRS.Build(paymentBankStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
@@ -57,7 +58,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_PaymentDetails_does_not_exist()
         {
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
             var nonExistingBankPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.PaymentDetailsReadController.GetPaymentDetails(nonExistingBankPaymentId);
 

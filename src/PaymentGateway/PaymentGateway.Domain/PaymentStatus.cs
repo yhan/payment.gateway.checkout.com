@@ -5,6 +5,7 @@
         Requested,
         Success,
         RejectedByBank,
-        FaultedOnGateway
+        FaultedOnGateway,
+        BankUnavailable
     }
 }

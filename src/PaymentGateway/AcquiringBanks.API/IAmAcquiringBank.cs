@@ -5,5 +5,6 @@ namespace AcquiringBanks.API
     public interface IAmAcquiringBank
     {
         Task<string> RespondsTo(string serializeObject);
+        Task<bool> Connect();
     }
 }

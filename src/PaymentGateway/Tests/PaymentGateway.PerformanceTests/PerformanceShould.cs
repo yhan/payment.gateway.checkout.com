@@ -14,6 +14,7 @@ using PaymentGateway.Tests;
 
 namespace PaymentGateway.PerformanceTests
 {
+    [Ignore("Performance tests, may be time consuming. I want fast feedback using NCrunch. Launch this on demand")]
     public class PerformanceShould
     {
         [Test]

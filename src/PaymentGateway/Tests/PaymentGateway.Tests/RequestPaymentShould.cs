@@ -7,6 +7,7 @@ using NUnit.Framework;
 using PaymentGateway.API;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
+using Polly;
 
 
 namespace PaymentGateway.Tests
@@ -23,24 +24,6 @@ namespace PaymentGateway.Tests
     [TestFixture]
     public class RequestPaymentShould
     {
-        private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId,
-            Guid requestId)
-        {
-            Check.That(response).IsInstanceOf<CreatedAtRouteResult>();
-            var createdAtRouteResult = (CreatedAtRouteResult) response;
-
-            var created = createdAtRouteResult.Value;
-            Check.That(created).IsInstanceOf<PaymentDto>();
-            var payment = (PaymentDto) created;
-
-            Check.That(createdAtRouteResult.RouteValues["gateWayPaymentId"]).IsEqualTo(payment.GatewayPaymentId);
-
-
-            Check.That(payment.GatewayPaymentId).IsEqualTo(paymentId);
-            Check.That(payment.RequestId).IsEqualTo(requestId);
-            Check.That(payment.Status).IsEqualTo(PaymentStatus.Requested);
-        }
-
         [Test]
         public async Task Create_payment_When_handling_PaymentRequest()
         {
@@ -50,7 +33,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
             var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentIdsMapping(), cqrs.PaymentProcessor);
 
@@ -63,7 +46,7 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = Utils.BuildPaymentRequest(requestId);
 
-            var cqrs = await PaymentCQRS.Build( AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")));
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -72,8 +55,8 @@ namespace PaymentGateway.Tests
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
-            var badRequest = (BadRequestObjectResult) actionResult;
-            var failDetail = (ProblemDetails) badRequest.Value;
+            var badRequest = (BadRequestObjectResult)actionResult;
+            var failDetail = (ProblemDetails)badRequest.Value;
             Check.That(failDetail.Detail).IsEqualTo("Identical payment request will not be handled more than once");
         }
 
@@ -87,10 +70,10 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId));
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
-          
+
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
@@ -100,14 +83,14 @@ namespace PaymentGateway.Tests
         }
 
         [Test]
-        public async Task Returns_PaymentFaulted_When_AcquiringBank_rejects_payment()
+        public async Task Return_PaymentFaulted_When_AcquiringBank_rejects_payment()
         {
             var requestId = Guid.NewGuid();
             var paymentRequest = Utils.BuildPaymentRequest(requestId);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new SimulateException());
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
 
@@ -116,6 +99,79 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(PaymentStatus.FaultedOnGateway);
+        }
+
+        [Test]
+        public async Task Return_BankUnavailable_When_connection_to_bank_is_broken()
+        {
+            var requestId = Guid.NewGuid();
+            var paymentRequest = Utils.BuildPaymentRequest(requestId);
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), new SimulateGatewayException());
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+
+
+            var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
+            Check.That(payment.RequestId).IsEqualTo(requestId);
+            Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
+
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.BankUnavailable);
+        }
+
+        private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId,
+            Guid requestId)
+        {
+            Check.That(response).IsInstanceOf<CreatedAtRouteResult>();
+            var createdAtRouteResult = (CreatedAtRouteResult)response;
+
+            var created = createdAtRouteResult.Value;
+            Check.That(created).IsInstanceOf<PaymentDto>();
+            var payment = (PaymentDto)created;
+
+            Check.That(createdAtRouteResult.RouteValues["gateWayPaymentId"]).IsEqualTo(payment.GatewayPaymentId);
+
+
+            Check.That(payment.GatewayPaymentId).IsEqualTo(paymentId);
+            Check.That(payment.RequestId).IsEqualTo(requestId);
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.Requested);
+        }
+
+
+        [Test]
+        public async Task PollyForDummy()
+        {
+
+            // Connection to bank
+            var policy = Policy.Handle<FailedConnectionToBankException>()
+                .WaitAndRetryAsync(3, retry => TimeSpan.FromMilliseconds(Math.Pow(2, retry)));
+
+            var policyResult = await policy.ExecuteAndCaptureAsync(async () => await Connect());
+
+            Check.That(policyResult.Result).IsTrue();
+        }
+
+        private int _failed = 0;
+
+        private async Task<bool> Connect()
+        {
+            while (_failed <= 2)
+            {
+                _failed++;
+                throw new FailedConnectionToBankException();
+            }
+
+            return await Task.FromResult(true);
+
+        }
+    }
+
+    public class AlwaysFailBankConnectionBehavior : IBankConnectionBehavior
+    {
+        public Task<bool> Connect()
+        {
+            throw new FailedConnectionToBankException();
         }
     }
 }
