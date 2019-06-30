@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,25 +38,31 @@ namespace PaymentGateway.Infrastructure
             _publisher = publisher;
         }
 
-        private readonly Dictionary<Guid, List<EventDescriptor>> _current = new Dictionary<Guid, List<EventDescriptor>>();
+        //https://stackoverflow.com/questions/28896997/nullreferenceexception-when-adding-to-dictionary-in-asynchronous-context
+        private readonly ConcurrentDictionary<Guid, ConcurrentBag<EventDescriptor>> _current = new ConcurrentDictionary<Guid, ConcurrentBag<EventDescriptor>>();
 
         public async Task SaveEvents(Guid aggregateId, IEnumerable<Event> events, int expectedVersion)
         {
             // Simulate I/O, avoid blocking thread pool thread
             await Task.CompletedTask;
 
-            List<EventDescriptor> eventDescriptors;
+            ConcurrentBag<EventDescriptor> eventDescriptors;
 
             // try to get event descriptors list for given aggregate id
             // otherwise -> create empty dictionary
             if(!_current.TryGetValue(aggregateId, out eventDescriptors))
             {
-                eventDescriptors = new List<EventDescriptor>();
-                _current.Add(aggregateId,eventDescriptors);
+                eventDescriptors = new ConcurrentBag<EventDescriptor>();
+                var tryAdd = _current.TryAdd(aggregateId,eventDescriptors);
+
+                if (!tryAdd)
+                {
+
+                }
             }
             // check whether latest event version matches current aggregate version
             // otherwise -> throw exception
-            else if(eventDescriptors[eventDescriptors.Count - 1].Version != expectedVersion && expectedVersion != -1)
+            else if(eventDescriptors.Last().Version != expectedVersion && expectedVersion != -1)//[eventDescriptors.Count - 1]
             {
                 throw new ConcurrencyException();
             }
@@ -81,14 +88,14 @@ namespace PaymentGateway.Infrastructure
         {
             await Task.CompletedTask;
 
-            List<EventDescriptor> eventDescriptors;
+            ConcurrentBag<EventDescriptor> eventDescriptors;
 
             if (!_current.TryGetValue(aggregateId, out eventDescriptors))
             {
                 throw new AggregateNotFoundException();
             }
 
-            return eventDescriptors.Select(desc => desc.EventData).ToList();
+            return eventDescriptors.Reverse().Select(desc => desc.EventData).ToList();
         }
     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using PaymentGateway.API;
@@ -40,7 +41,7 @@ namespace PaymentGateway.Tests
             var appSettingsAccessor = Substitute.For<IOptionsMonitor<AppSettings>>();
             appSettingsAccessor.CurrentValue.Returns(new AppSettings() {Executor = ExecutorType.Tests});
 
-            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor);
+            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor, Substitute.For<ILogger<PaymentRequestsController>>());
 
             var readController = new PaymentReadController(eventSourcedRepository);
 

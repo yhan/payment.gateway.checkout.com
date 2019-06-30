@@ -25,8 +25,8 @@ namespace PaymentGateway.Infrastructure
         public async Task<T> GetById(Guid id)
         {
             var obj = new T();//lots of ways to do this
-            var e = await  _storage.GetEventsForAggregate(id);
-            obj.LoadsFromHistory(e);
+            var events = await  _storage.GetEventsForAggregate(id);
+            obj.LoadsFromHistory(events);
             return obj;
         }
     }

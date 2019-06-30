@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
@@ -19,12 +20,14 @@ namespace PaymentGateway.API.WriteAPI
     public class PaymentRequestsController : ControllerBase
     {
         private readonly IEventSourcedRepository<Payment> _repository;
+        private readonly ILogger<PaymentRequestsController> _logger;
         internal PaymentRequestCommandHandler Handler;
         private readonly ExecutorType _executorType;
 
-        public PaymentRequestsController(IEventSourcedRepository<Payment> repository, IOptionsMonitor<AppSettings> appSettingsAccessor)
+        public PaymentRequestsController(IEventSourcedRepository<Payment> repository, IOptionsMonitor<AppSettings> appSettingsAccessor, ILogger<PaymentRequestsController> logger)
         {
             _repository = repository;
+            _logger = logger;
             _executorType = appSettingsAccessor.CurrentValue.Executor;
         }
 
@@ -34,6 +37,8 @@ namespace PaymentGateway.API.WriteAPI
             [FromServices]IProvidePaymentIdsMapping paymentIdsMapping,
             [FromServices]IProcessPayment acquiringBank)
         {
+            _logger.LogInformation($"*** Received payment request ***");
+
             var gatewayPaymentId = guidGenerator.Generate();
 
             Handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank, _executorType == ExecutorType.API ? true : false);
@@ -44,7 +49,7 @@ namespace PaymentGateway.API.WriteAPI
                     var paymentDto = success.Entity.AsDto();
 
                     return CreatedAtRoute( nameof(PaymentReadController.GetPaymentInfo), 
-                        routeValues: new {gateWayPaymentId = paymentDto.GateWayPaymentId}, 
+                        routeValues: new {gateWayPaymentId = paymentDto.GatewayPaymentId}, 
                         value: paymentDto);
 
                 case InvalidCommandResult invalid:

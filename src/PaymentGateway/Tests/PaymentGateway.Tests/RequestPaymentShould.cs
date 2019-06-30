@@ -33,10 +33,10 @@ namespace PaymentGateway.Tests
             Check.That(created).IsInstanceOf<PaymentDto>();
             var payment = (PaymentDto) created;
 
-            Check.That(createdAtRouteResult.RouteValues["gateWayPaymentId"]).IsEqualTo(payment.GateWayPaymentId);
+            Check.That(createdAtRouteResult.RouteValues["gateWayPaymentId"]).IsEqualTo(payment.GatewayPaymentId);
 
 
-            Check.That(payment.GateWayPaymentId).IsEqualTo(paymentId);
+            Check.That(payment.GatewayPaymentId).IsEqualTo(paymentId);
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.Status).IsEqualTo(PaymentStatus.Requested);
         }
@@ -93,7 +93,7 @@ namespace PaymentGateway.Tests
           
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
-            Check.That(payment.GateWayPaymentId).IsEqualTo(gatewayPaymentId);
+            Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(expectedPaymentStatusReturnedByGateway);
             Check.That(payment.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
@@ -113,7 +113,7 @@ namespace PaymentGateway.Tests
 
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
-            Check.That(payment.GateWayPaymentId).IsEqualTo(gatewayPaymentId);
+            Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(PaymentStatus.FaultedOnGateway);
         }
