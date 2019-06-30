@@ -33,7 +33,7 @@ namespace PaymentGateway.Tests
         }
 
         internal static async Task<PaymentCQRS> Build(BankPaymentStatus paymentStatus,
-            IGenerateBankPaymentId bankPaymentIdGenerator, IBankConnectionBehavior bankConnectionBehavior, SimulateGatewayException gatewayExceptionSimulator = null)
+            IGenerateBankPaymentId bankPaymentIdGenerator, IBankConnectionBehavior bankConnectionBehavior,  SimulateGatewayException gatewayExceptionSimulator = null)
         {
             var bus = new InMemoryBus();
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(bus));

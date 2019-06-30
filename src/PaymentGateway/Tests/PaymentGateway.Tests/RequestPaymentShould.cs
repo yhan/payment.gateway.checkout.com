@@ -167,11 +167,4 @@ namespace PaymentGateway.Tests
         }
     }
 
-    public class AlwaysFailBankConnectionBehavior : IBankConnectionBehavior
-    {
-        public Task<bool> Connect()
-        {
-            throw new FailedConnectionToBankException();
-        }
-    }
 }

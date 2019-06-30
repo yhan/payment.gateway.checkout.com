@@ -25,7 +25,7 @@ namespace PaymentGateway.PerformanceTests
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             
-            var clients = Enumerable.Repeat(client, 10);
+            var clients = Enumerable.Repeat(client, 100);
 
             IEnumerable<Task<bool>> posts = clients.Select(async c =>
             {
@@ -59,9 +59,12 @@ namespace PaymentGateway.PerformanceTests
                     }
 
                     Check.That(polledPayment.Status == Domain.PaymentStatus.RejectedByBank ||
-                               polledPayment.Status == Domain.PaymentStatus.Success).IsTrue();
-                    
-                    Console.WriteLine($"Bank responds after polled {polled} seconds ");
+                               polledPayment.Status == Domain.PaymentStatus.Success ||
+                               polledPayment.Status == Domain.PaymentStatus.BankUnavailable
+                               ).IsTrue();
+
+                    Console.WriteLine($"Bank responds {polledPayment.Status} after polled {polled} seconds ");
+
                     break;
                 }
 

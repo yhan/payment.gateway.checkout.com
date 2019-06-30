@@ -63,14 +63,4 @@ namespace PaymentGateway.Infrastructure
             return false;
         }
     }
-
-   
-
-    public class FailedConnectionToBankException: Exception
-    {
-    }
-
-    public interface ISimulateBrokenConnectionToBank
-    {
-    }
 }
