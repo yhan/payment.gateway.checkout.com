@@ -11,7 +11,7 @@ using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Tests
 {
-    static class Utils
+    public static class Utils
     {
         public static PaymentRequest BuildPaymentRequest(Guid requestId)
         {

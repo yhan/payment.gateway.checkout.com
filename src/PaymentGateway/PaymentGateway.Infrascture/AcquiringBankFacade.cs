@@ -7,6 +7,9 @@ using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
 {
+    /// <summary>
+    /// Adapter for AcquiringBank API and PaymentGateway API
+    /// </summary>
     public class AcquiringBankFacade : ITalkToAcquiringBank
     {
         private readonly IAmAcquiringBank _bank;
@@ -20,10 +23,10 @@ namespace PaymentGateway.Infrastructure
 
         public async Task<PaymentGateway.Domain.BankResponse> Pay(PaymentGateway.Domain.AcquiringBank.PayingAttempt paymentAttempt)
         {
-            //Send `PayingAttempt` to AcquiringBank, wait, get reply
-
+            //Adapt PaymentGateway to AcquiringBank
             string bankResponseJson = await _bank.RespondsTo(JsonConvert.SerializeObject(paymentAttempt));
             
+            //Adapt AcquiringBank back to PaymentGateway
             var bankResponse = JsonConvert.DeserializeObject<PaymentGateway.Domain.BankResponse>(bankResponseJson);
 
             _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(bankResponse.BankPaymentId), new GatewayPaymentId(bankResponse.GatewayPaymentId));

@@ -50,7 +50,7 @@ namespace PaymentGateway.Tests
             Check.That(paymentDetails.CreditCardExpiry).IsEqualTo("05/19");
             Check.That(paymentDetails.CreditCardCvv).IsEqualTo("321");
             Check.That(paymentDetails.Status).IsEqualTo(expectedStatusInPaymentDetails);
-            Check.That(paymentDetails.AcquiringBankPaymentId).IsEqualTo((bankPaymentId));
+            Check.That(paymentDetails.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
         }
 
 

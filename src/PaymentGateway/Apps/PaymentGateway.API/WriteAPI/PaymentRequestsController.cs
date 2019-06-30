@@ -20,7 +20,7 @@ namespace PaymentGateway.API.WriteAPI
     {
         private readonly IEventSourcedRepository<Payment> _repository;
         internal PaymentRequestCommandHandler Handler;
-        private ExecutorType _executorType;
+        private readonly ExecutorType _executorType;
 
         public PaymentRequestsController(IEventSourcedRepository<Payment> repository, IOptionsMonitor<AppSettings> appSettingsAccessor)
         {
