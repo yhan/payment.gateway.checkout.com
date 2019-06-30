@@ -22,13 +22,21 @@ namespace PaymentGateway.API
                     logging.AddDebug();
                     logging.AddEventSourceLogger();
                 })
+                .UseKestrel()
+                .UseIISIntegration()
+                .UseStartup<Startup>()
+                .ConfigureKestrel((context, options) =>
+                {
+                    // Set properties and call methods on options
+                    options.Limits.MaxConcurrentConnections = 1000;
+                    options.Limits.MaxConcurrentUpgradedConnections = 1000;
+                })
                 
                 .Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                //.UseSetting("https_port", "443")
                 .UseStartup<Startup>();
     }
 }

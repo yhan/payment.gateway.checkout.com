@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
@@ -58,16 +59,18 @@ namespace PaymentGateway.API
             services.AddScoped<IProcessPayment, PaymentProcessor>(); 
             services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();
             services.AddScoped<IAmAcquiringBank, AcquiringBankSimulator>();
-            services.AddScoped<IBankConnectionBehavior, RandomConnectionBehavior>();
+            services.AddScoped<IBankConnectionBehavior, AlwaysSuccessBankConnectionBehavior>();
             
             services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
-            services.AddTransient<IProvideRandomBankResponseTime, DefaultDelayProvider>();
+            services.AddTransient<IProvideRandomBankResponseTime, NoDelayProvider>();
 
             services.AddSingleton<IRandomnizeAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
 
             services.AddSingleton<IHostedService, ReadProjections>();
             services.AddSingleton<IPaymentDetailsRepository, PaymentDetailsRepository>();
+            
             services.AddSingleton<IMapAcquiringBankToPaymentGateway, PaymentIdsMemory>();
+            services.AddSingleton<IKnowAllPaymentsIds>(provider => provider.GetService<IMapAcquiringBankToPaymentGateway>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -97,6 +100,15 @@ namespace PaymentGateway.API
 
             app.UseHttpsRedirection();
             app.UseMvc();
+        }
+    }
+
+
+    internal class NoDelayProvider : IProvideRandomBankResponseTime
+    {
+        public TimeSpan Delays()
+        {
+            return TimeSpan.Zero;
         }
     }
 

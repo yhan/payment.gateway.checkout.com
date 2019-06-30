@@ -48,10 +48,10 @@ namespace PaymentGateway.API.ReadAPI
         public Guid AcquiringBankPaymentId { get; set; }
 
 
-        public PaymentDetailsDto(AcquiringBankPaymentId acquiringBankPaymentId, string creditCardNumber,
+        public PaymentDetailsDto(Guid acquiringBankPaymentId, string creditCardNumber,
             string creditCardHolderName, string creditCardExpiry, string creditCardCvv, PaymentStatus status)
         {
-            AcquiringBankPaymentId = acquiringBankPaymentId.Value;
+            AcquiringBankPaymentId = acquiringBankPaymentId;
 
             CreditCardNumber = creditCardNumber;
             CreditCardHolderName = creditCardHolderName;

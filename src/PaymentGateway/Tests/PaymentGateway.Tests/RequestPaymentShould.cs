@@ -12,7 +12,7 @@ using Polly;
 
 namespace PaymentGateway.Tests
 {
-    public static class Utils
+    public static class TestsUtils
     {
         public static PaymentRequest BuildPaymentRequest(Guid requestId)
         {
@@ -29,7 +29,7 @@ namespace PaymentGateway.Tests
         public async Task Create_payment_When_handling_PaymentRequest()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = Utils.BuildPaymentRequest(requestId);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId);
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -45,7 +45,7 @@ namespace PaymentGateway.Tests
         public async Task Not_handle_a_PaymentRequest_more_than_once()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = Utils.BuildPaymentRequest(requestId);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId);
 
             var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
@@ -66,7 +66,7 @@ namespace PaymentGateway.Tests
         public async Task Return_proper_payment_status_When_AcquiringBank_accepts_or_reject_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = Utils.BuildPaymentRequest(requestId);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -87,7 +87,7 @@ namespace PaymentGateway.Tests
         public async Task Return_PaymentFaulted_When_AcquiringBank_rejects_payment()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = Utils.BuildPaymentRequest(requestId);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -108,7 +108,7 @@ namespace PaymentGateway.Tests
         public async Task Return_proper_payment_status_When_Connect_to_bank_fails_twice_then_connected_AND_AcquiringBank_accepts_or_reject_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = Utils.BuildPaymentRequest(requestId);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -129,7 +129,7 @@ namespace PaymentGateway.Tests
         public async Task Return_BankUnavailable_When_connection_to_bank_is_broken()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = Utils.BuildPaymentRequest(requestId);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 

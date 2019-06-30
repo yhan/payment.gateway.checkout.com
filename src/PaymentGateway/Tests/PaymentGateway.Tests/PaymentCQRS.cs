@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using PaymentGateway.API;
@@ -45,9 +46,9 @@ namespace PaymentGateway.Tests
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(bus));
             
             var appSettingsAccessor = Substitute.For<IOptionsMonitor<AppSettings>>();
-            appSettingsAccessor.CurrentValue.Returns(new AppSettings() {Executor = ExecutorType.Tests});
+            appSettingsAccessor.CurrentValue.Returns(new AppSettings {Executor = ExecutorType.Tests});
 
-            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor, Substitute.For<ILogger<PaymentRequestsController>>());
+            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor, NullLogger<PaymentRequestsController>.Instance);
 
             var readController = new PaymentReadController(eventSourcedRepository);
 
@@ -57,7 +58,7 @@ namespace PaymentGateway.Tests
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
             var paymentsIdsMemory = new PaymentIdsMemory();
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior), paymentsIdsMemory);
+            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior, NullLogger<AcquiringBankSimulator>.Instance), paymentsIdsMemory);
             var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, gatewayExceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();

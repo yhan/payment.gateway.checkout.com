@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace AcquiringBanks.API
@@ -10,23 +11,30 @@ namespace AcquiringBanks.API
         private readonly IGenerateBankPaymentId _bankPaymentIdGenerator;
         private readonly IProvideRandomBankResponseTime _delayProvider;
         private readonly IBankConnectionBehavior _connectionBehavior;
+        private readonly ILogger<AcquiringBankSimulator> _logger;
 
         public AcquiringBankSimulator(IRandomnizeAcquiringBankPaymentStatus random, 
                                       IGenerateBankPaymentId bankPaymentIdGenerator, 
                                       IProvideRandomBankResponseTime delayProvider,
-                                      IBankConnectionBehavior connectionBehavior)
+                                      IBankConnectionBehavior connectionBehavior,
+            ILogger<AcquiringBankSimulator> logger
+            )
         {
             _random = random;
             _bankPaymentIdGenerator = bankPaymentIdGenerator;
             _delayProvider = delayProvider;
             _connectionBehavior = connectionBehavior;
+            _logger = logger;
         }
 
         public async Task<string> RespondsTo(string paymentAttemptJson)
         {
             var payingAttempt = JsonConvert.DeserializeObject<AcquiringBanks.API.PayingAttempt>(paymentAttemptJson);
 
-            await Task.Delay(_delayProvider.Delays());
+            var delay = _delayProvider.Delays();
+
+            _logger.LogInformation($"Bank delayed {delay}");
+            await Task.Delay(delay);
 
             var paymentStatus = _random.GeneratePaymentStatus();
 
