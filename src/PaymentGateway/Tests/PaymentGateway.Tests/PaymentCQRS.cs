@@ -18,18 +18,24 @@ namespace PaymentGateway.Tests
     {
         internal PaymentsDetailsController PaymentDetailsReadController { get; }
         internal PaymentProcessor PaymentProcessor{ get; }
+        public GatewayPaymentsIdsController GatewayPaymentsIdsController { get; }
         internal InMemoryPaymentIdsMapping PaymentIdsMapping{ get; }
         internal PaymentReadController PaymentReadController{ get; }
         internal PaymentRequestsController RequestsController{ get; }
+        public AcquiringBankPaymentsIdsController AcquiringBankPaymentsIdsController { get; set; }
 
         private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController paymentReadController,
-            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentIdsMapping paymentIdsMapping, PaymentProcessor paymentProcessor)
+            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentIdsMapping paymentIdsMapping,
+            PaymentProcessor paymentProcessor, GatewayPaymentsIdsController gatewayGatewayPaymentsIdsController,
+            AcquiringBankPaymentsIdsController acquiringBankPaymentsIdsController)
         {
             PaymentDetailsReadController = paymentDetailsReadController;
             RequestsController = requestController;
             PaymentReadController = paymentReadController;
             PaymentIdsMapping = paymentIdsMapping;
             PaymentProcessor = paymentProcessor;
+            GatewayPaymentsIdsController = gatewayGatewayPaymentsIdsController;
+            AcquiringBankPaymentsIdsController = acquiringBankPaymentsIdsController;
         }
 
         internal static async Task<PaymentCQRS> Build(BankPaymentStatus paymentStatus,
@@ -50,17 +56,20 @@ namespace PaymentGateway.Tests
             var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
-            var mapIdsFromAcquiringBankToPaymentGateway = new PaymentIdsMemory();
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior), mapIdsFromAcquiringBankToPaymentGateway);
+            var paymentsIdsMemory = new PaymentIdsMemory();
+            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior), paymentsIdsMemory);
             var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, gatewayExceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();
-            var paymentDetailsReadController = new PaymentsDetailsController(mapIdsFromAcquiringBankToPaymentGateway, paymentDetailsRepository);
+            var paymentDetailsReadController = new PaymentsDetailsController(paymentsIdsMemory, paymentDetailsRepository);
 
             var readProjections = new ReadProjections(bus, paymentDetailsRepository);
             await readProjections.StartAsync(new CancellationToken(false));
 
-            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentIdsMapping, mediator);
+            var gatewayPaymentsIdsController = new GatewayPaymentsIdsController(paymentsIdsMemory);
+            var acquiringBankPaymentsIdsController = new AcquiringBankPaymentsIdsController(paymentsIdsMemory);
+
+            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentIdsMapping, mediator, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController);
         }
     }
 

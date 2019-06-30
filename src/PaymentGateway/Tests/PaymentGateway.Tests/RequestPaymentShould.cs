@@ -21,6 +21,7 @@ namespace PaymentGateway.Tests
         }
     }
 
+
     [TestFixture]
     public class RequestPaymentShould
     {
@@ -159,34 +160,6 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(paymentId);
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.Status).IsEqualTo(PaymentStatus.Requested);
-        }
-
-
-        [Test]
-        public async Task PollyForDummy()
-        {
-
-            // Connection to bank
-            var policy = Policy.Handle<FailedConnectionToBankException>()
-                .WaitAndRetryAsync(3, retry => TimeSpan.FromMilliseconds(Math.Pow(2, retry)));
-
-            var policyResult = await policy.ExecuteAndCaptureAsync(async () => await Connect());
-
-            Check.That(policyResult.Result).IsTrue();
-        }
-
-        private int _failed = 0;
-
-        private async Task<bool> Connect()
-        {
-            while (_failed <= 2)
-            {
-                _failed++;
-                throw new FailedConnectionToBankException();
-            }
-
-            return await Task.FromResult(true);
-
         }
     }
 

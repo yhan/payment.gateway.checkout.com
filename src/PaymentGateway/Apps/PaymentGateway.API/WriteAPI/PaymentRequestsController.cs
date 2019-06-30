@@ -33,13 +33,13 @@ namespace PaymentGateway.API.WriteAPI
 
         [HttpPost]
         public async Task<IActionResult> ProceedPaymentRequest([FromBody]PaymentRequest paymentRequest, 
-            [FromServices]IGenerateGuid guidGenerator,
+            [FromServices]IGenerateGuid gatewayPaymentIdGenerator,
             [FromServices]IProvidePaymentIdsMapping paymentIdsMapping,
             [FromServices]IProcessPayment acquiringBank)
         {
             _logger.LogInformation($"*** Received payment request ***");
 
-            var gatewayPaymentId = guidGenerator.Generate();
+            var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
 
             Handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank, _executorType == ExecutorType.API ? true : false);
             var commandResult = await Handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
