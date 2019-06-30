@@ -7,13 +7,13 @@ using PaymentGateway.Domain;
 
 namespace PaymentGateway.API.ReadAPI
 {
-    [Route("api/GatewayPaymentsIds")]
+    [Route("api/AcquiringBankPaymentsIds")]
     [ApiController]
-    public class GatewayPaymentsIdsController : ControllerBase
+    public class AcquiringBankPaymentsIdsController : ControllerBase
     {
         private readonly IKnowAllPaymentsIds _paymentsIdsRepository;
 
-        public GatewayPaymentsIdsController(IKnowAllPaymentsIds paymentsIdsRepository)
+        public AcquiringBankPaymentsIdsController(IKnowAllPaymentsIds paymentsIdsRepository)
         {
             _paymentsIdsRepository = paymentsIdsRepository;
         }
@@ -21,7 +21,7 @@ namespace PaymentGateway.API.ReadAPI
         [HttpGet]
         public async Task<IEnumerable<Guid>> Get()
         {
-            var gatewayPaymentIds = await _paymentsIdsRepository.AllGatewayPaymentsIds();
+            var gatewayPaymentIds = await _paymentsIdsRepository.AllAcquiringBankPaymentsIds();
             return gatewayPaymentIds.Select(x => x.Value);
         }
     }

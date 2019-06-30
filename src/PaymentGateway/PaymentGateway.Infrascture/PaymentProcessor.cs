@@ -28,34 +28,34 @@ namespace PaymentGateway.Infrastructure
         public async Task AttemptPaying(PayingAttempt payingAttempt)
         {
             var bankResponse = await _acquiringBankFacade.Pay(payingAttempt);
-            IStrategy strategy = Build(bankResponse, _paymentsRepository);
+            IHandleBankResponseStrategy strategy = Build(bankResponse, _paymentsRepository);
 
             await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
 
            
         }
 
-        private static IStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
+        private static IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
         {
             switch (bankResponse)
             {
                 case BankResponse response:
-                    return new RespondedBank(response, paymentsRepository);
+                    return new RespondedBankStrategy(response, paymentsRepository);
 
                 case BankDoesNotRespond noResponse:
-                    return new NotRespondedBank(noResponse, paymentsRepository);
+                    return new NotRespondedBankStrategy(noResponse, paymentsRepository);
             }
 
             throw new ArgumentException();
         }
     }
 
-    internal class NotRespondedBank : IStrategy
+    internal class NotRespondedBankStrategy : IHandleBankResponseStrategy
     {
         private readonly BankDoesNotRespond _noResponse;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
 
-        public NotRespondedBank(BankDoesNotRespond noResponse, IEventSourcedRepository<Payment> paymentsRepository)
+        public NotRespondedBankStrategy(BankDoesNotRespond noResponse, IEventSourcedRepository<Payment> paymentsRepository)
         {
             _noResponse = noResponse;
             _paymentsRepository = paymentsRepository;
@@ -71,12 +71,12 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
-    internal class RespondedBank : IStrategy
+    internal class RespondedBankStrategy : IHandleBankResponseStrategy
     {
         private readonly BankResponse _bankResponse;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
 
-        public RespondedBank(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository)
+        public RespondedBankStrategy(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository)
         {
             _bankResponse = response;
             _paymentsRepository = paymentsRepository;
@@ -121,7 +121,7 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
-    public interface IStrategy
+    public interface IHandleBankResponseStrategy
     {
         Task Handle(SimulateGatewayException gatewayExceptionSimulator, Guid payingAttemptGatewayPaymentId);
     }
