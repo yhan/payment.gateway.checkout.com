@@ -40,3 +40,8 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
 
 1. Check `BankPaymentId` in tests when bank replies
 1. Alls async, I/O should add timeout cancellation
+
+
+## Publish
+1. goto API csproj folder  
+1. dotnet publish -c Debug -r win10-x64
