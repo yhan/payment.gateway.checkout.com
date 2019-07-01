@@ -36,6 +36,12 @@ namespace PaymentGateway.API.WriteAPI
             var reg = "^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}$";
             return !Regex.IsMatch(_paymentRequest.CardNumber, reg);
         }
+
+        public bool CardExpiryInvalid()
+        {
+            var reg = "^(0?[1-9]|1[012])/[0-9]{2}$";
+            return !Regex.IsMatch(_paymentRequest.Expiry, reg);
+        }
     }
 
     [Route("api/PaymentRequests")]
@@ -70,6 +76,11 @@ namespace PaymentGateway.API.WriteAPI
             if (creditCardValidator.CardCvvInvalid())
             {
                 return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card CVV"));
+            }
+            
+            if (creditCardValidator.CardExpiryInvalid())
+            {
+                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card expiry"));
             }
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
