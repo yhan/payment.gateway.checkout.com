@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +38,10 @@ namespace PaymentGateway.API.WriteAPI
             [FromServices]IProvidePaymentIdsMapping paymentIdsMapping,
             [FromServices]IProcessPayment acquiringBank)
         {
-            _logger.LogInformation($"*** Received payment request ***");
+            if (CardNumberInvalid(paymentRequest.CardNumber))
+            {
+                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card number"));
+            }
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
 
@@ -59,6 +63,11 @@ namespace PaymentGateway.API.WriteAPI
                     throw new NotSupportedException();
             }
         }
-        
+
+        private bool CardNumberInvalid(string cardNumber)
+        {
+            var reg = "^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}$";
+            return !Regex.IsMatch(cardNumber, reg);
+        }
     }
 }

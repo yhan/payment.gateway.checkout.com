@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,12 @@ namespace PaymentGateway.Tests
         public static PaymentRequest BuildPaymentRequest(Guid requestId)
         {
             return new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66),
+                "321");
+        }
+
+        public static PaymentRequest BuildInvalidCardNumberPaymentRequest(Guid requestId)
+        {
+            return new PaymentRequest(requestId, "John Smith", "???? 4587 5698 1200", "05/19", new Money("EUR", 42.66),
                 "321");
         }
     }
@@ -142,6 +149,25 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(PaymentStatus.BankUnavailable);
+        }
+
+
+        [Test]
+        public async Task Return_BadRequest_When_invalid_card_number_is_received()
+        {
+            var requestId = Guid.NewGuid();
+            var paymentRequest = TestsUtils.BuildInvalidCardNumberPaymentRequest(requestId);
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), new SimulateGatewayException());
+            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+
+            Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
+            var badRequest = (BadRequestObjectResult)actionResult;
+            var failDetail = (ProblemDetails)badRequest.Value;
+            Check.That(failDetail.Detail).IsEqualTo("Invalid credit card number");
+
         }
 
         private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId,
