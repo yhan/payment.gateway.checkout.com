@@ -16,6 +16,28 @@ using SimpleCQRS;
 
 namespace PaymentGateway.API.WriteAPI
 {
+    public class PaymentRequestValidator
+    {
+        private readonly PaymentRequest _paymentRequest;
+
+        public PaymentRequestValidator(PaymentRequest paymentRequest)
+        {
+            _paymentRequest = paymentRequest;
+        }
+
+        public bool CardCvvInvalid()
+        {
+            var reg = "^[0-9]{3}$";
+            return !Regex.IsMatch(_paymentRequest.Cvv, reg);
+        }
+
+        public  bool CardNumberInvalid()
+        {
+            var reg = "^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}$";
+            return !Regex.IsMatch(_paymentRequest.CardNumber, reg);
+        }
+    }
+
     [Route("api/PaymentRequests")]
     [ApiController]
     public class PaymentRequestsController : ControllerBase
@@ -38,9 +60,16 @@ namespace PaymentGateway.API.WriteAPI
             [FromServices]IProvidePaymentIdsMapping paymentIdsMapping,
             [FromServices]IProcessPayment acquiringBank)
         {
-            if (CardNumberInvalid(paymentRequest.CardNumber))
+            var creditCardValidator = new PaymentRequestValidator(paymentRequest);
+
+            if (creditCardValidator.CardNumberInvalid())
             {
                 return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card number"));
+            }
+
+            if (creditCardValidator.CardCvvInvalid())
+            {
+                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card CVV"));
             }
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
@@ -62,12 +91,6 @@ namespace PaymentGateway.API.WriteAPI
                 default:
                     throw new NotSupportedException();
             }
-        }
-
-        private bool CardNumberInvalid(string cardNumber)
-        {
-            var reg = "^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}$";
-            return !Regex.IsMatch(cardNumber, reg);
         }
     }
 }

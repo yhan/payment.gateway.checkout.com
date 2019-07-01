@@ -26,6 +26,12 @@ namespace PaymentGateway.Tests
             return new PaymentRequest(requestId, "John Smith", "???? 4587 5698 1200", "05/19", new Money("EUR", 42.66),
                 "321");
         }
+
+        public static PaymentRequest BuildInvalidCardCvvPaymentRequest(Guid requestId)
+        {
+            return new PaymentRequest(requestId, "John Smith", "0214 4587 5698 1200", "05/19", new Money("EUR", 42.66),
+                "32a");
+        }
     }
 
 
@@ -160,15 +166,34 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult)actionResult;
             var failDetail = (ProblemDetails)badRequest.Value;
             Check.That(failDetail.Detail).IsEqualTo("Invalid credit card number");
-
         }
+
+        [Test]
+        public async Task Return_BadRequest_When_invalid_card_cvv_is_received()
+        {
+            var requestId = Guid.NewGuid();
+            var paymentRequest = TestsUtils.BuildInvalidCardCvvPaymentRequest(requestId);
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+
+            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
+            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+
+            Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
+            var badRequest = (BadRequestObjectResult)actionResult;
+            var failDetail = (ProblemDetails)badRequest.Value;
+            Check.That(failDetail.Detail).IsEqualTo("Invalid credit card CVV");
+        }
+
+
+
 
         private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId,
             Guid requestId)

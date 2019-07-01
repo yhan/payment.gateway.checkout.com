@@ -1,6 +1,7 @@
 using System;
+using PaymentGateway.Domain;
 
-namespace PaymentGateway.Domain
+namespace PaymentGateway.API
 {
     public class PaymentRequest
     {
