@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Newtonsoft.Json;
 using NFluent;
-using NUnit.Framework;
+using NUnit.Framework;  
 using PaymentGateway.API;
 using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Tests;
@@ -17,8 +17,8 @@ using PaymentGateway.Write.PerformanceTests;
 namespace PaymentGateway.Read.PerformanceTests
 {
 
-    [Ignore("")]
-    public class PaymentReadPerformanceShould
+    [Ignore("Performance tests, may be time consuming. I want fast feedback using NCrunch. Launch this on demand")]
+    public class ReadPerformanceShould
     {
         [OneTimeSetUp]
         public async Task Setup()
@@ -31,7 +31,7 @@ namespace PaymentGateway.Read.PerformanceTests
         {
             const string baseUri = "https://localhost:5001";
 
-            var clients = WritePerformanceShould.BuildHttpClients(1000, baseUri).ToArray();
+            var clients = WritePerformanceShould.BuildHttpClients(50, baseUri).ToArray();
 
             var httpClient = clients.First();
             var response = await httpClient.GetAsync($"api/GatewayPaymentsIds");

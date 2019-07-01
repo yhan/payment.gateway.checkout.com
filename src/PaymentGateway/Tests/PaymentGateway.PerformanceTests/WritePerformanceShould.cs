@@ -19,7 +19,7 @@ namespace PaymentGateway.Write.PerformanceTests
         [Test]
         public async Task Can_RequestPayments_concurrently()
         {
-            await RequestPayments(1000); 
+            await RequestPayments(1000);  
         }
 
         public static async Task RequestPayments(int concurrentClientsCount)

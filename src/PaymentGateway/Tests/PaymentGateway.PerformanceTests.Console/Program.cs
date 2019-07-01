@@ -48,7 +48,7 @@ namespace PaymentGateway.PerformanceTests.Console
 
                         var bankRespondedPaymentsCount = (await Get<IEnumerable<Guid>>(httpClient, $"api/GatewayPaymentsIds")).Count();
 
-                        IEnumerable<Unit> units = PaymentReadPerformanceShould.Combine(clients, gatewayPaymentsIds);
+                        IEnumerable<Unit> units = ReadPerformanceShould.Combine(clients, gatewayPaymentsIds);
 
                         var stopwatch = Stopwatch.StartNew();
 
@@ -199,7 +199,7 @@ namespace PaymentGateway.PerformanceTests.Console
                         if (payment.Status == Domain.PaymentStatus.RejectedByBank ||
                             payment.Status == Domain.PaymentStatus.Success)
                         {
-                            var details = await PaymentReadPerformanceShould.Get<PaymentDetailsDto>(c,
+                            var details = await ReadPerformanceShould.Get<PaymentDetailsDto>(c,
                                 $"/api/PaymentsDetails/{payment.AcquiringBankPaymentId}");
 
                             Check.That(details.AcquiringBankPaymentId).IsEqualTo(payment.AcquiringBankPaymentId);
