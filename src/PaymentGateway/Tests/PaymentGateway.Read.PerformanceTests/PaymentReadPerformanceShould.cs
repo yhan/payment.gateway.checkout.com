@@ -11,6 +11,7 @@ using NFluent;
 using NUnit.Framework;  
 using PaymentGateway.API;
 using PaymentGateway.API.ReadAPI;
+using PaymentGateway.Infrastructure;
 using PaymentGateway.Tests;
 using PaymentGateway.Write.PerformanceTests;
 

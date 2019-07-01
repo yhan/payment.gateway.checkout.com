@@ -1,7 +1,7 @@
 ﻿using System;
 using PaymentGateway.Domain;
 
-namespace PaymentGateway.API
+namespace PaymentGateway.Infrastructure
 {
     public class PaymentDto
     {

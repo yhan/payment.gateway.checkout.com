@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace PaymentGateway.Domain
 {
 
-    public interface IProvidePaymentIdsMapping
+    public interface IKnowAllPaymentRequests
     {
         Task<bool> AlreadyHandled(PaymentRequestId paymentRequestId);
 

@@ -3,9 +3,10 @@ using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
 {
-    // In distributed system, the cache will be a external shared one.
-    // We will have I/O, here simulate an I/O
-    public class InMemoryPaymentIdsMapping : IProvidePaymentIdsMapping
+    /// <summary>
+    /// Represent the memory aware of all <see cref="PaymentRequest"/> ids
+    /// </summary>
+    public class InMemoryPaymentRequests : IKnowAllPaymentRequests
     {
         private readonly ConcurrentHashSet<PaymentRequestId> _paymentRequests = new ConcurrentHashSet<PaymentRequestId>();
 

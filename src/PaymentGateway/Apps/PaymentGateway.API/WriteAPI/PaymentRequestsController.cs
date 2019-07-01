@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
+using PaymentGateway.Infrastructure;
 using SimpleCQRS;
 
 [assembly: InternalsVisibleTo("PaymentGateway.Tests")]
@@ -63,7 +64,7 @@ namespace PaymentGateway.API.WriteAPI
         [HttpPost]
         public async Task<IActionResult> ProceedPaymentRequest([FromBody]PaymentRequest paymentRequest, 
             [FromServices]IGenerateGuid gatewayPaymentIdGenerator,
-            [FromServices]IProvidePaymentIdsMapping paymentIdsMapping,
+            [FromServices]IKnowAllPaymentRequests paymentRequests,
             [FromServices]IProcessPayment acquiringBank)
         {
             var creditCardValidator = new PaymentRequestValidator(paymentRequest);
@@ -85,7 +86,7 @@ namespace PaymentGateway.API.WriteAPI
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
 
-            Handler = new PaymentRequestCommandHandler(_repository, paymentIdsMapping, acquiringBank, _executorType == ExecutorType.API ? true : false);
+            Handler = new PaymentRequestCommandHandler(_repository, paymentRequests, acquiringBank, _executorType == ExecutorType.API ? true : false);
             var commandResult = await Handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
             switch (commandResult)
             {

@@ -20,20 +20,20 @@ namespace PaymentGateway.Tests
         internal PaymentsDetailsController PaymentDetailsReadController { get; }
         internal PaymentProcessor PaymentProcessor{ get; }
         public GatewayPaymentsIdsController GatewayPaymentsIdsController { get; }
-        internal InMemoryPaymentIdsMapping PaymentIdsMapping{ get; }
+        internal InMemoryPaymentRequests PaymentRequests{ get; }
         internal PaymentReadController PaymentReadController{ get; }
         internal PaymentRequestsController RequestsController{ get; }
         public AcquiringBankPaymentsIdsController AcquiringBankPaymentsIdsController { get; set; }
 
         private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController paymentReadController,
-            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentIdsMapping paymentIdsMapping,
+            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentRequests paymentRequests,
             PaymentProcessor paymentProcessor, GatewayPaymentsIdsController gatewayGatewayPaymentsIdsController,
             AcquiringBankPaymentsIdsController acquiringBankPaymentsIdsController)
         {
             PaymentDetailsReadController = paymentDetailsReadController;
             RequestsController = requestController;
             PaymentReadController = paymentReadController;
-            PaymentIdsMapping = paymentIdsMapping;
+            PaymentRequests = paymentRequests;
             PaymentProcessor = paymentProcessor;
             GatewayPaymentsIdsController = gatewayGatewayPaymentsIdsController;
             AcquiringBankPaymentsIdsController = acquiringBankPaymentsIdsController;
@@ -52,7 +52,7 @@ namespace PaymentGateway.Tests
 
             var readController = new PaymentReadController(eventSourcedRepository);
 
-            var paymentIdsMapping = new InMemoryPaymentIdsMapping();
+            var paymentIdsMapping = new InMemoryPaymentRequests();
 
             var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
             random.GeneratePaymentStatus().Returns(paymentStatus);

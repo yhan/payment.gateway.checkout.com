@@ -22,7 +22,7 @@ namespace PaymentGateway.Tests
 
             var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
-            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, new InMemoryPaymentIdsMapping(), cqrs.PaymentProcessor);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, new InMemoryPaymentRequests(), cqrs.PaymentProcessor);
             
             var gatewayPaymentsIds = await cqrs.GatewayPaymentsIdsController.Get();
             Check.That(gatewayPaymentsIds).ContainsExactly(gatewayPaymentId);
@@ -45,7 +45,7 @@ namespace PaymentGateway.Tests
             var acquiringBankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
             var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(acquiringBankPaymentId), new AlwaysSuccessBankConnectionBehavior());
 
-            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, new InMemoryPaymentIdsMapping(), cqrs.PaymentProcessor);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, new InMemoryPaymentRequests(), cqrs.PaymentProcessor);
             
             var acquiringBankPaymentsIds = await cqrs.AcquiringBankPaymentsIdsController.Get();
             Check.That(acquiringBankPaymentsIds).ContainsExactly(acquiringBankPaymentId);

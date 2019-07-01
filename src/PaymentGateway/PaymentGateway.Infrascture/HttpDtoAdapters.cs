@@ -1,9 +1,8 @@
 ﻿using System;
-using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
 using PaymentDetails = PaymentGateway.Domain.PaymentDetails;
 
-namespace PaymentGateway.API
+namespace PaymentGateway.Infrastructure
 {
     public static class HttpDtoAdapters
     {

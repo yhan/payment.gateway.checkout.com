@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using NFluent;
 using PaymentGateway.API;
 using PaymentGateway.API.ReadAPI;
+using PaymentGateway.Infrastructure;
 using PaymentGateway.Read.PerformanceTests;
 using PaymentGateway.Tests;
 using PaymentGateway.Write.PerformanceTests;

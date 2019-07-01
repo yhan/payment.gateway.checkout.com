@@ -6,6 +6,7 @@ using NFluent;
 using NUnit.Framework;
 using PaymentGateway.API;
 using PaymentGateway.Domain;
+using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Tests
 {
@@ -38,7 +39,7 @@ namespace PaymentGateway.Tests
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
             var cqrs = await PaymentCQRS.Build(paymentBankStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior());
-            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentIdsMapping, cqrs.PaymentProcessor);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequests, cqrs.PaymentProcessor);
 
 
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;

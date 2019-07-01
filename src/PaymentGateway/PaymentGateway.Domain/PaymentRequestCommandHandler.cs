@@ -11,17 +11,17 @@ namespace PaymentGateway.Domain
 {
     public class PaymentRequestCommandHandler : ICommandHandler<RequestPaymentCommand>
     {
-        private readonly IProvidePaymentIdsMapping _paymentIdsMapping;
+        private readonly IKnowAllPaymentRequests _paymentRequests;
         private readonly IProcessPayment _acquiringBank;
         private readonly bool _asynchronous;
         private readonly IEventSourcedRepository<Payment> _repository;
         
         public PaymentRequestCommandHandler(IEventSourcedRepository<Payment> repository,
-            IProvidePaymentIdsMapping paymentIdsMapping,
+            IKnowAllPaymentRequests paymentRequests,
             IProcessPayment acquiringBank, bool asynchronous)
         {
             _repository = repository;
-            _paymentIdsMapping = paymentIdsMapping;
+            _paymentRequests = paymentRequests;
             _acquiringBank = acquiringBank;
             _asynchronous = asynchronous;
         }
@@ -29,7 +29,7 @@ namespace PaymentGateway.Domain
         public async Task<ICommandResult> Handle(RequestPaymentCommand command)
         {
             var paymentRequestId = new PaymentRequestId(command.RequestId);
-            if (await _paymentIdsMapping.AlreadyHandled(paymentRequestId))
+            if (await _paymentRequests.AlreadyHandled(paymentRequestId))
             {
                 //payment request already handled
                 return this.Invalid("Identical payment request will not be handled more than once");
@@ -37,7 +37,7 @@ namespace PaymentGateway.Domain
 
             var payment = new Payment(command.GatewayPaymentId, command.RequestId, command.CreditCard, command.Amount);
             await _repository.Save(payment, Stream.NotCreatedYet);
-            await _paymentIdsMapping.Remember(paymentRequestId);
+            await _paymentRequests.Remember(paymentRequestId);
 
             //TODO: Add cancellation with a timeout
             if(_asynchronous)

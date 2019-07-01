@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using NFluent;
 using NUnit.Framework;
 using PaymentGateway.API;
+using PaymentGateway.Infrastructure;
 using PaymentGateway.Tests;
 
 namespace PaymentGateway.Write.PerformanceTests
