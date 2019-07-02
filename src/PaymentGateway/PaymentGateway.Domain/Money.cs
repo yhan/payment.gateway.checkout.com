@@ -1,6 +1,8 @@
+using System.Text.RegularExpressions;
+
 namespace PaymentGateway.Domain
 {
-    public struct Money
+    public class Money
     {
         public string Currency { get; }
         public double Value { get; }
@@ -9,6 +11,21 @@ namespace PaymentGateway.Domain
         {
             Currency = currency;
             Value = value;
+        }
+        
+        public bool IsValid(out string invalidReason)
+        {
+            invalidReason = null;
+            if (Value <= 0)
+            {
+                invalidReason = "Amount should greater than 0";
+            }
+            if(Currency == null || !Regex.IsMatch(Currency, "[A-Z]{3}"))
+            {
+                invalidReason = "Currency is absent or not correctly formatted";
+            }
+
+            return true;
         }
     }
 }   

@@ -64,22 +64,23 @@ namespace PaymentGateway.API.WriteAPI
         {
             actionResult = null;
             var cardValidator = new PaymentRequestValidator(paymentRequest);
-
-            if (cardValidator.CardNumberInvalid())
+            
+            if (paymentRequest.Card == null || paymentRequest.RequestId == Guid.Empty || paymentRequest.Amount == null
+                || paymentRequest.MerchantId == Guid.Empty )
             {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid card number"));
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid payment request"));
                 return true;
             }
 
-            if (cardValidator.CardCvvInvalid())
+            if (!paymentRequest.Amount.IsValid(out var amountInvalidReason))
             {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid card CVV"));
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, amountInvalidReason));
                 return true;
             }
 
-            if (cardValidator.CardExpiryInvalid())
+            if (!paymentRequest.Card.IsValid(out var cardInvalidReason))
             {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid card expiry"));
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, cardInvalidReason));
                 return true;
             }
 
