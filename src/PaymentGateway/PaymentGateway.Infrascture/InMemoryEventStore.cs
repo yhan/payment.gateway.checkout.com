@@ -53,12 +53,8 @@ namespace PaymentGateway.Infrastructure
             if(!_current.TryGetValue(aggregateId, out eventDescriptors))
             {
                 eventDescriptors = new ConcurrentBag<EventDescriptor>();
-                var tryAdd = _current.TryAdd(aggregateId,eventDescriptors);
-
-                if (!tryAdd)
-                {
-
-                }
+                _current.TryAdd(aggregateId,eventDescriptors);
+                
             }
             // check whether latest event version matches current aggregate version
             // otherwise -> throw exception

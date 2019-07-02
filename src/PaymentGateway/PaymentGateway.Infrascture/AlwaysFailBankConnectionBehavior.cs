@@ -3,7 +3,7 @@ using AcquiringBanks.API;
 
 namespace PaymentGateway.Infrastructure
 {
-    public class AlwaysFailBankConnectionBehavior : IBankConnectionBehavior
+    public class AlwaysFailBankConnectionBehavior : IConnectToAcquiringBanks
     {
         public Task<bool> Connect()
         {

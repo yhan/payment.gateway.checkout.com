@@ -17,13 +17,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.Infrastructu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AcquiringBanks", "AcquiringBanks", "{3E3D9008-D309-4522-8F9E-FE36E1BB50C1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AcquiringBanks.API", "AcquiringBanks.API\AcquiringBanks.API.csproj", "{59555892-0343-446E-A0FA-66FF8E877F9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AcquiringBanks.Stub", "AcquiringBanks.API\AcquiringBanks.Stub.csproj", "{59555892-0343-446E-A0FA-66FF8E877F9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentGateway.Write.PerformanceTests", "Tests\PaymentGateway.PerformanceTests\PaymentGateway.Write.PerformanceTests.csproj", "{153F6DA3-0A24-45FC-8242-8BA0013491F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.Write.PerformanceTests", "Tests\PaymentGateway.PerformanceTests\PaymentGateway.Write.PerformanceTests.csproj", "{153F6DA3-0A24-45FC-8242-8BA0013491F9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.PerformanceTests.Console", "Tests\PaymentGateway.PerformanceTests.Console\PaymentGateway.PerformanceTests.Console.csproj", "{7FD7BE86-2A47-42DD-B10E-52EF364AD106}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentGateway.Read.PerformanceTests", "Tests\PaymentGateway.Read.PerformanceTests\PaymentGateway.Read.PerformanceTests.csproj", "{45DBA008-A225-4ED1-94F5-EAE0AA728C91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.Read.PerformanceTests", "Tests\PaymentGateway.Read.PerformanceTests\PaymentGateway.Read.PerformanceTests.csproj", "{45DBA008-A225-4ED1-94F5-EAE0AA728C91}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{3A245280-F793-4863-A805-B34F76561F55}"
 EndProject

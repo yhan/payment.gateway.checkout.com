@@ -18,10 +18,6 @@
         <ProjectReference Include="..\..\PaymentGateway.Infrascture\PaymentGateway.Infrastructure.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Controllers\" />
-    </ItemGroup>
-
 
 
 

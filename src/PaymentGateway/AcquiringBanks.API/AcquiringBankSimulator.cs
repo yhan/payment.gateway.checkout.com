@@ -10,13 +10,13 @@ namespace AcquiringBanks.API
         private readonly IRandomnizeAcquiringBankPaymentStatus _random;
         private readonly IGenerateBankPaymentId _bankPaymentIdGenerator;
         private readonly IProvideRandomBankResponseTime _delayProvider;
-        private readonly IBankConnectionBehavior _connectionBehavior;
+        private readonly IConnectToAcquiringBanks _connectionBehavior;
         private readonly ILogger<AcquiringBankSimulator> _logger;
 
         public AcquiringBankSimulator(IRandomnizeAcquiringBankPaymentStatus random, 
                                       IGenerateBankPaymentId bankPaymentIdGenerator, 
                                       IProvideRandomBankResponseTime delayProvider,
-                                      IBankConnectionBehavior connectionBehavior,
+                                      IConnectToAcquiringBanks connectionBehavior,
             ILogger<AcquiringBankSimulator> logger
             )
         {
@@ -50,7 +50,7 @@ namespace AcquiringBanks.API
         }
     }
 
-    public class RandomConnectionBehavior : IBankConnectionBehavior
+    public class RandomConnectionBehavior : IConnectToAcquiringBanks
     {
         private static readonly Random _random = new Random(42);
         private bool _alreadyFailedOnce = false;
@@ -77,12 +77,12 @@ namespace AcquiringBanks.API
     }
 
 
-    public interface IBankConnectionBehavior
+    public interface IConnectToAcquiringBanks
     {
         Task<bool> Connect();
     }
 
-    public class AlwaysSuccessBankConnectionBehavior : IBankConnectionBehavior
+    public class AlwaysSuccessBankConnectionBehavior : IConnectToAcquiringBanks
     {
         public async Task<bool> Connect()
         {

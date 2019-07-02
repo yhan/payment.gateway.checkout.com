@@ -247,7 +247,7 @@ namespace PaymentGateway.Tests
         }
     }
 
-    public class FailTwiceBankThenSuccessConnectionBehavior : IBankConnectionBehavior
+    public class FailTwiceBankThenSuccessConnectionBehavior : IConnectToAcquiringBanks
     {
         private int _failed = 0;
 
