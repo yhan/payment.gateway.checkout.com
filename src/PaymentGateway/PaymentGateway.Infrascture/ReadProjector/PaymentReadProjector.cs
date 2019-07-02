@@ -1,8 +1,6 @@
-using System;
 using System.Threading.Tasks;
 using PaymentGateway.Domain;
 using PaymentGateway.Domain.Events;
-using SimpleCQRS;
 
 namespace PaymentGateway.Infrastructure.ReadProjector
 {

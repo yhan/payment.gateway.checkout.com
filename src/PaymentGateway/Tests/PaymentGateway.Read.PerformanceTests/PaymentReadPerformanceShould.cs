@@ -1,18 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Newtonsoft.Json;
 using NFluent;
-using NUnit.Framework;  
-using PaymentGateway.API;
-using PaymentGateway.API.ReadAPI;
+using NUnit.Framework;
 using PaymentGateway.Infrastructure;
-using PaymentGateway.Tests;
 using PaymentGateway.Write.PerformanceTests;
 
 namespace PaymentGateway.Read.PerformanceTests

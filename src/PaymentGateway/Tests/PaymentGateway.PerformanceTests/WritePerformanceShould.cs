@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NFluent;
 using NUnit.Framework;
-using PaymentGateway.API;
 using PaymentGateway.Infrastructure;
 using PaymentGateway.Tests;
 

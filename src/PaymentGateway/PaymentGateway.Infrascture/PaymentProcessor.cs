@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using AcquiringBanks.API;
 using PaymentGateway.Domain;
 using SimpleCQRS;
-using BankPaymentStatus = PaymentGateway.Domain.AcquiringBank.BankPaymentStatus;
 using PayingAttempt = PaymentGateway.Domain.AcquiringBank.PayingAttempt;
 
 namespace PaymentGateway.Infrastructure

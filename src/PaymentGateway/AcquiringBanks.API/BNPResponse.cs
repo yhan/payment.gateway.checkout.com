@@ -1,7 +1,4 @@
-﻿using System;
-using AcquiringBanks.API;
-
-namespace AcquiringBanks.Stub
+﻿namespace AcquiringBanks.Stub
 {
    
 

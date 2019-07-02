@@ -8,7 +8,6 @@ using NUnit.Framework;
 using PaymentGateway.API;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
-using Polly;
 
 
 namespace PaymentGateway.Tests

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PaymentGateway.Domain
+﻿namespace PaymentGateway.Domain
 {
     public class PaymentDetails
     {

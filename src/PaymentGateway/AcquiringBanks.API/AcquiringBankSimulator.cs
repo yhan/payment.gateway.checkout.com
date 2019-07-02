@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AcquiringBanks.Stub;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace AcquiringBanks.API
 {

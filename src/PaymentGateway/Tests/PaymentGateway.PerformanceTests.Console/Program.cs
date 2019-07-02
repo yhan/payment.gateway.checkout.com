@@ -8,8 +8,6 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NFluent;
-using PaymentGateway.API;
-using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Infrastructure;
 using PaymentGateway.Read.PerformanceTests;
 using PaymentGateway.Tests;

@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using AcquiringBanks.API;
-using Newtonsoft.Json;
-using PaymentGateway.Domain;
-using Polly;
-using Polly.Retry;
-using PayingAttempt = PaymentGateway.Domain.AcquiringBank.PayingAttempt;
 
 namespace PaymentGateway.Infrastructure
 {
