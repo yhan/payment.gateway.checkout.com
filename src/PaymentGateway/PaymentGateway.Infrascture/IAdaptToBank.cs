@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AcquiringBanks.API;
 using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using PaymentGateway.Domain;
 using Polly;
 using PayingAttempt = PaymentGateway.Domain.AcquiringBank.PayingAttempt;
@@ -23,7 +22,7 @@ namespace PaymentGateway.Infrastructure
         private readonly IConnectToAcquiringBanks _connectionBehavior;
         protected readonly ILogger<BankAdapterSelector> Logger;
 
-        public AdaptToBank(IRandomnizeAcquiringBankPaymentStatus random,
+        protected AdaptToBank(IRandomnizeAcquiringBankPaymentStatus random,
             IGenerateBankPaymentId bankPaymentIdGenerator,
             IProvideRandomBankResponseTime delayProvider,
             IConnectToAcquiringBanks connectionBehavior,
@@ -54,13 +53,12 @@ namespace PaymentGateway.Infrastructure
             return await CallBank( paymentAttempt.GatewayPaymentId);
         }
 
-        protected abstract Task<IBankResponse> CallBank(Guid gatewayPaymentId);
-
-
         public async Task<bool> Connect()
         {
             return await _connectionBehavior.Connect();
         }
+
+        protected abstract Task<IBankResponse> CallBank(Guid gatewayPaymentId);
     }
 
     public class SoiceteGeneraleAdapter : AdaptToBank
@@ -89,9 +87,11 @@ namespace PaymentGateway.Infrastructure
             await Task.Delay(delay);
             Logger.LogInformation($"Bank delayed {delay}");
 
+            // generate random payment status
             var paymentStatus = Random.GeneratePaymentStatus();
-            var bankPaymentId = BankPaymentIdGenerator.Generate();
 
+            // generate random bank's payment id
+            var bankPaymentId = BankPaymentIdGenerator.Generate();
 
             var response = new SocieteGeneraleResponse(bankPaymentId, gatewayPaymentId, paymentStatus);
 
@@ -101,7 +101,7 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
-    class BNPAdapter : AdaptToBank
+    public class BNPAdapter : AdaptToBank
     {
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
 

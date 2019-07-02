@@ -30,15 +30,10 @@ namespace PaymentGateway.Infrastructure
 
     public class MerchantToBankAdapterMapper : IMapMerchantToBankAdapter
     {
-        private readonly ISelectAdapter _adapterSelector;
-
         public MerchantToBankAdapterMapper(ISelectAdapter adapterSelector)
         {
-            _adapterSelector = adapterSelector;
-
-
-            _store.Add(Amazon, _adapterSelector.Select(Bank.SocieteGenerale));
-            _store.Add(Alibaba, _adapterSelector.Select(Bank.BNP));
+            _store.Add(Amazon, adapterSelector.Select(Bank.SocieteGenerale));
+            _store.Add(Alibaba, adapterSelector.Select(Bank.BNP));
         }
 
         private readonly IDictionary<Guid, IAdaptToBank> _store = new Dictionary<Guid, IAdaptToBank>();

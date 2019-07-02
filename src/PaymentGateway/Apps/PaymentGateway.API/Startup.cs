@@ -56,9 +56,10 @@ namespace PaymentGateway.API
             services.AddSingleton<IEventStore, InMemoryEventStore>();
             services.AddSingleton<IPublishEvents, InMemoryBus>();
             services.AddSingleton<IKnowAllPaymentRequests, InMemoryPaymentRequests>();
-            services.AddScoped<IProcessPayment, PaymentProcessor>(); 
-            //services.AddScoped<ITalkToAcquiringBank, AcquiringBankFacade>();
-            //services.AddScoped<IAmAcquiringBank, AcquiringBankSimulator>();
+            services.AddScoped<IProcessPayment, PaymentProcessor>();
+
+            services.AddScoped<ISelectAdapter, BankAdapterSelector>();
+            services.AddScoped<IMapMerchantToBankAdapter, MerchantToBankAdapterMapper>();
             services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
             
             services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
