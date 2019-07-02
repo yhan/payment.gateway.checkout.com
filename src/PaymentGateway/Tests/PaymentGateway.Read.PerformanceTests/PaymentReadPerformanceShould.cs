@@ -17,7 +17,7 @@ namespace PaymentGateway.Read.PerformanceTests
         [OneTimeSetUp]
         public async Task Setup()
         {
-            //await WritePerformanceShould.RequestPayments(100);
+            await WritePerformanceShould.RequestPayments(100);
         }
 
         [Test]

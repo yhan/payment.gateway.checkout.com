@@ -19,7 +19,7 @@ namespace PaymentGateway.Write.PerformanceTests
         [Test]
         public async Task Can_RequestPayments_concurrently()
         {
-            await RequestPayments(1000);  
+            await RequestPayments(500);  
         }
 
         public static async Task RequestPayments(int concurrentClientsCount)
@@ -29,7 +29,7 @@ namespace PaymentGateway.Write.PerformanceTests
 
             IEnumerable<Task<PaymentDto>> posts = clients.Select(async c =>
             {
-                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid());
+                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon);
                 var content = new StringContent(JsonConvert.SerializeObject(paymentRequest));
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -98,7 +98,7 @@ namespace PaymentGateway.Write.PerformanceTests
 
             var posts = clients.Select(c =>
             {
-                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid());
+                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon);
                 var content = new StringContent(JsonConvert.SerializeObject(paymentRequest));
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 

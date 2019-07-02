@@ -41,10 +41,8 @@ namespace PaymentGateway.Infrastructure
             {
                 case Bank.SocieteGenerale:
                     return new SoiceteGeneraleAdapter(_random, _bankPaymentIdGenerator, _delayProvider, _connectionBehavior, _paymentIdsMapper, _logger);
-                    break;
                 case Bank.BNP:
                     return new BNPAdapter(_random, _bankPaymentIdGenerator, _delayProvider, _connectionBehavior, _paymentIdsMapper, _logger);
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(bank), bank, null);
             }

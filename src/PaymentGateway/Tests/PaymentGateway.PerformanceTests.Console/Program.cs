@@ -17,7 +17,7 @@ namespace PaymentGateway.PerformanceTests.Console
 {
     class Program
     {
-        public static async Task Test()
+        public static async Task ConcurrentClientsRequestsPaymentThenReadPaymentDetails()
         {
 
             while (true)
@@ -109,14 +109,12 @@ namespace PaymentGateway.PerformanceTests.Console
 
         public static async Task RequestPayments(int concurrentClientsCount)
         {
-
-
             const string baseUri = "https://localhost:5001";
             var clients = WritePerformanceShould.BuildHttpClients(concurrentClientsCount, baseUri);
 
             IEnumerable<Task<PaymentDto>> posts = clients.Select(async c =>
             {
-                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid());
+                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Alibaba);
                 var content = new StringContent(JsonConvert.SerializeObject(paymentRequest));
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -139,94 +137,13 @@ namespace PaymentGateway.PerformanceTests.Console
 
         static void Main(string[] args)
         {
-            //ConcurrentClientsRequestsPaymentThenReadPaymnetDetails();
-
-            Test().Wait();
+            ConcurrentClientsRequestsPaymentThenReadPaymentDetails().Wait();
         }
-
-        private static void ConcurrentClientsRequestsPaymentThenReadPaymnetDetails()
-        {
-            while (true)
-            {
-                var clientCounts = int.Parse(System.Console.ReadLine());
-                var stopwatch = Stopwatch.StartNew();
-
-                const string baseUri = "https://localhost:5001";
-
-                var clients = WritePerformanceShould.BuildHttpClients(1, baseUri);
-
-                IEnumerable<Task<bool>> posts = clients.Select(async c =>
-                {
-                    var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid());
-                    var content = new StringContent(JsonConvert.SerializeObject(paymentRequest));
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-                    var response = await c.PostAsync("/api/PaymentRequests", content);
-
-                    Check.That(response.StatusCode).IsEqualTo(HttpStatusCode.Created);
-
-                    Check.That(response.Headers.Location.ToString()).StartsWith($"{baseUri}/api/Payments/");
-
-                    var payment = JsonConvert.DeserializeObject<PaymentDto>(await response.Content.ReadAsStringAsync());
-                    Check.That(payment.Status).IsEqualTo(Domain.PaymentStatus.Requested);
-                    Check.That(payment.AcquiringBankPaymentId).IsEqualTo(Guid.Empty);
-
-                    var gatewayPaymentId = payment.GatewayPaymentId;
-
-                    while (true)
-                    {
-                        var getPaymentResponse = await c.GetAsync($"/api/Payments/{gatewayPaymentId}");
-
-                        var polledPayment =
-                            JsonConvert.DeserializeObject<PaymentDto>(await getPaymentResponse.Content.ReadAsStringAsync());
-                        int polled = 0;
-                        if (polledPayment.Status == Domain.PaymentStatus.Requested)
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(1));
-                            polled++;
-                            continue;
-                        }
-
-                        Check.That(polledPayment.Status == Domain.PaymentStatus.RejectedByBank ||
-                                   polledPayment.Status == Domain.PaymentStatus.Success ||
-                                   polledPayment.Status == Domain.PaymentStatus.BankUnavailable
-                        ).IsTrue();
-
-
-                        System.Console.WriteLine($"Bank responds {payment.Status} after polled {polled} seconds ");
-
-                        if (payment.Status == Domain.PaymentStatus.RejectedByBank ||
-                            payment.Status == Domain.PaymentStatus.Success)
-                        {
-                            var details = await ReadPerformanceShould.Get<PaymentDetailsDto>(c,
-                                $"/api/PaymentsDetails/{payment.AcquiringBankPaymentId}");
-
-                            Check.That(details.AcquiringBankPaymentId).IsEqualTo(payment.AcquiringBankPaymentId);
-                            Check.That(details.Status == Domain.PaymentStatus.RejectedByBank ||
-                                       details.Status == Domain.PaymentStatus.Success).IsTrue();
-                        }
-
-                        break;
-                    }
-
-                    return true;
-                });
-
-                Task.WhenAll(posts).Wait();
-
-                System.Console.WriteLine($"Finishes {stopwatch.Elapsed.Seconds} seconds");
-                //stopwatch.Reset();
-            }
-        }
-
 
         private static async Task<T> Get<T>(ISafeHttpClient client, string getUri)
         {
             var response = await client.GetAsync(getUri);
             return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
         }
-
     }
-
-
 }
