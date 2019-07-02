@@ -12,21 +12,21 @@ namespace PaymentGateway.Infrastructure
 
     public class BankAdapterSelector : ISelectAdapter
     {
-        private readonly IRandomnizeAcquiringBankPaymentStatus _random;
+        private readonly IRandomnizeAcquiringBankPaymentStatus _paymentStatusRandom;
         private readonly IGenerateBankPaymentId _bankPaymentIdGenerator;
         private readonly IProvideRandomBankResponseTime _delayProvider;
         private readonly IConnectToAcquiringBanks _connectionBehavior;
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
         private readonly ILogger<BankAdapterSelector> _logger;
 
-        public BankAdapterSelector(IRandomnizeAcquiringBankPaymentStatus random, 
+        public BankAdapterSelector(IRandomnizeAcquiringBankPaymentStatus paymentStatusRandom, 
             IGenerateBankPaymentId bankPaymentIdGenerator, 
             IProvideRandomBankResponseTime delayProvider,
             IConnectToAcquiringBanks connectionBehavior,
             IMapAcquiringBankToPaymentGateway paymentIdsMapper,
             ILogger<BankAdapterSelector> logger )
         {
-            _random = random;
+            _paymentStatusRandom = paymentStatusRandom;
             _bankPaymentIdGenerator = bankPaymentIdGenerator;
             _delayProvider = delayProvider;
             _connectionBehavior = connectionBehavior;
@@ -40,9 +40,11 @@ namespace PaymentGateway.Infrastructure
             switch (bank)
             {
                 case Bank.SocieteGenerale:
-                    return new SoiceteGeneraleAdapter(_random, _bankPaymentIdGenerator, _delayProvider, _connectionBehavior, _paymentIdsMapper, _logger);
+                    return new SoiceteGeneraleAdapter(_delayProvider, _connectionBehavior, 
+                        _paymentIdsMapper, new SocieteGenerale(_bankPaymentIdGenerator, _paymentStatusRandom, _connectionBehavior), 
+                        _logger);
                 case Bank.BNP:
-                    return new BNPAdapter(_random, _bankPaymentIdGenerator, _delayProvider, _connectionBehavior, _paymentIdsMapper, _logger);
+                    return new BNPAdapter(_delayProvider, _connectionBehavior, _paymentIdsMapper, new BNP(_bankPaymentIdGenerator, _paymentStatusRandom, _connectionBehavior), _logger);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(bank), bank, null);
             }

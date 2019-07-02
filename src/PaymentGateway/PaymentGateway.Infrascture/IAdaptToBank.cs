@@ -15,22 +15,12 @@ namespace PaymentGateway.Infrastructure
 
     public abstract class AdaptToBank : IAdaptToBank
     {
-        protected readonly IRandomnizeAcquiringBankPaymentStatus Random;
-        protected readonly IGenerateBankPaymentId BankPaymentIdGenerator;
         protected readonly IProvideRandomBankResponseTime DelayProvider;
-        private readonly IConnectToAcquiringBanks _connectionBehavior;
         protected readonly ILogger<BankAdapterSelector> Logger;
 
-        protected AdaptToBank(IRandomnizeAcquiringBankPaymentStatus random,
-            IGenerateBankPaymentId bankPaymentIdGenerator,
-            IProvideRandomBankResponseTime delayProvider,
-            IConnectToAcquiringBanks connectionBehavior,
-            ILogger<BankAdapterSelector> logger)
+        protected AdaptToBank(IProvideRandomBankResponseTime delayProvider, ILogger<BankAdapterSelector> logger)
         {
-            Random = random;
-            BankPaymentIdGenerator = bankPaymentIdGenerator;
             DelayProvider = delayProvider;
-            _connectionBehavior = connectionBehavior;
             Logger = logger;
         }
 
@@ -45,33 +35,31 @@ namespace PaymentGateway.Infrastructure
             {
                 return new BankDoesNotRespond(paymentAttempt.GatewayPaymentId);
             }
-
-           
-            // adapt `paymentAttempt` to  accepted format of a specific bank
-            // network call the specific bank's payment endpoint
-            return await CallBank( paymentAttempt.GatewayPaymentId);
+            
+            return await CallBank( paymentAttempt);
         }
 
-        public async Task<bool> Connect()
-        {
-            return await _connectionBehavior.Connect();
-        }
+        public abstract Task<bool> Connect();
+        //{
+        //    return await _connectionBehavior.Connect();
+        //}
 
-        protected abstract Task<IBankResponse> CallBank(Guid gatewayPaymentId);
+        protected abstract Task<IBankResponse> CallBank(PayingAttempt payingAttempt);
     }
 
     public class SoiceteGeneraleAdapter : AdaptToBank
     {
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
-        
-        public SoiceteGeneraleAdapter(IRandomnizeAcquiringBankPaymentStatus random, 
-            IGenerateBankPaymentId bankPaymentIdGenerator, 
-            IProvideRandomBankResponseTime delayProvider,
+        private readonly SocieteGenerale _societeGenerale;
+
+        public SoiceteGeneraleAdapter(IProvideRandomBankResponseTime delayProvider,
             IConnectToAcquiringBanks connectionBehavior,
             IMapAcquiringBankToPaymentGateway paymentIdsMapper,
-            ILogger<BankAdapterSelector> logger ) : base(random, bankPaymentIdGenerator, delayProvider, connectionBehavior, logger)
+            SocieteGenerale societeGenerale,
+            ILogger<BankAdapterSelector> logger) : base(delayProvider, logger)
         {
             _paymentIdsMapper = paymentIdsMapper;
+            _societeGenerale = societeGenerale;
         }
 
         private IBankResponse AdaptToBankResponse(SocieteGeneraleResponse response)
@@ -79,22 +67,23 @@ namespace PaymentGateway.Infrastructure
             return new BankResponse(response.BankPaymentId, response.GatewayPaymentId, response.PaymentStatus);
         }
 
-        protected override async Task<IBankResponse> CallBank(Guid gatewayPaymentId)
+        public override async Task<bool> Connect()
+        {
+            return  await _societeGenerale.Connect();
+        }
+
+        protected override async Task<IBankResponse> CallBank(PayingAttempt payingAttempt)
         {
             // Simulate bank response delay
             var delay = DelayProvider.Delays();
             await Task.Delay(delay);
             Logger.LogInformation($"Bank delayed {delay}");
-
-            // generate random payment status
-            var paymentStatus = Random.GeneratePaymentStatus();
-
-            // generate random bank's payment id
-            var bankPaymentId = BankPaymentIdGenerator.Generate();
-
-            var response = new SocieteGeneraleResponse(bankPaymentId, gatewayPaymentId, paymentStatus);
-
-            _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(bankPaymentId), new GatewayPaymentId(gatewayPaymentId) );
+            
+            // Call bank's service
+            var request = new SocieteGeneralePaymentRequest(payingAttempt.GatewayPaymentId, payingAttempt.Amount, payingAttempt.Currency, payingAttempt.CardCvv, payingAttempt.CardExpiry, payingAttempt.CardNumber);
+            SocieteGeneraleResponse response = await _societeGenerale.RespondToPayment(request);
+            
+            _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(response.BankPaymentId), new GatewayPaymentId(response.GatewayPaymentId) );
 
             return AdaptToBankResponse(response);
         }
@@ -103,16 +92,17 @@ namespace PaymentGateway.Infrastructure
     public class BNPAdapter : AdaptToBank
     {
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
+        private readonly BNP _bnp;
 
-        public BNPAdapter(IRandomnizeAcquiringBankPaymentStatus random,
-            IGenerateBankPaymentId bankPaymentIdGenerator, 
-            IProvideRandomBankResponseTime delayProvider,
+        public BNPAdapter(IProvideRandomBankResponseTime delayProvider,
             IConnectToAcquiringBanks connectionBehavior,
             IMapAcquiringBankToPaymentGateway paymentIdsMapper,
+            BNP bnp,
             ILogger<BankAdapterSelector> logger)
-            : base(random, bankPaymentIdGenerator, delayProvider, connectionBehavior, logger)
+            : base(delayProvider, logger)
         {
             _paymentIdsMapper = paymentIdsMapper;
+            _bnp = bnp;
         }
 
         private IBankResponse AdaptToBankResponse(BNPResponse response)
@@ -120,19 +110,25 @@ namespace PaymentGateway.Infrastructure
             return new BankResponse(response.BankPaymentId, response.GatewayPaymentId, response.PaymentStatus);
         }
 
-        protected override async Task<IBankResponse> CallBank(Guid gatewayPaymentId)
+        public override async Task<bool> Connect()
+        {
+            return  await _bnp.Connect();
+        }
+
+        protected override async Task<IBankResponse> CallBank(PayingAttempt payingAttempt)
         {
             // Simulate bank response delay
             var delay = DelayProvider.Delays();
             await Task.Delay(delay);
             Logger.LogInformation($"Bank delayed {delay}");
 
-            var paymentStatus = Random.GeneratePaymentStatus();
-            var bankPaymentId = BankPaymentIdGenerator.Generate();
-
-            var response = new BNPResponse(bankPaymentId, gatewayPaymentId, paymentStatus);
-            _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(bankPaymentId), new GatewayPaymentId(gatewayPaymentId) );
+            // Call bank's service
+            var request = new BNPPaymentRequest(payingAttempt.GatewayPaymentId, payingAttempt.Amount, payingAttempt.Currency, payingAttempt.CardCvv, payingAttempt.CardExpiry, payingAttempt.CardNumber);
+            BNPResponse response = await _bnp.RespondToPayment(request);
+            
+            _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(response.BankPaymentId), new GatewayPaymentId(response.GatewayPaymentId) );
             return AdaptToBankResponse(response);
         }
     }
+
 }

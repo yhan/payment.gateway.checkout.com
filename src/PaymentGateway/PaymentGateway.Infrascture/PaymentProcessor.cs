@@ -1,13 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
-using AcquiringBanks.Stub;
-using PaymentGateway.Domain;
-using SimpleCQRS;
-using PayingAttempt = PaymentGateway.Domain.AcquiringBank.PayingAttempt;
+﻿
 
 namespace PaymentGateway.Infrastructure
 {
-
+    using System;
+    using System.Threading.Tasks;
+    using AcquiringBanks.Stub;
+    using Domain;
+    using SimpleCQRS;
     /// <summary>
     /// Glue component which calls bank facade <see cref="IAdaptToBank"/>.
     /// Then do necessary changes in PaymentGateway's domain.
@@ -25,9 +24,11 @@ namespace PaymentGateway.Infrastructure
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
-        public async Task AttemptPaying(PayingAttempt payingAttempt)
+        public async Task AttemptPaying(Domain.AcquiringBank.PayingAttempt payingAttempt)
         {
-            var bankResponse = await _bankAdapterMapper.FindBankAdapter(payingAttempt.MerchantId).RespondToPaymentAttempt(payingAttempt);
+            var bankAdapter = _bankAdapterMapper.FindBankAdapter(payingAttempt.MerchantId);
+            var bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt);
+
             IHandleBankResponseStrategy strategy = Build(bankResponse, _paymentsRepository);
 
             await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
@@ -40,8 +41,8 @@ namespace PaymentGateway.Infrastructure
                 case BankResponse response:
                     return new RespondedBankStrategy(response, paymentsRepository);
 
-                case BankDoesNotRespond noResponse:
-                    return new NotRespondedBankStrategy(noResponse, paymentsRepository);
+                case BankDoesNotRespond _:
+                    return new NotRespondedBankStrategy(paymentsRepository);
             }
 
             throw new ArgumentException();
@@ -50,12 +51,10 @@ namespace PaymentGateway.Infrastructure
 
     internal class NotRespondedBankStrategy : IHandleBankResponseStrategy
     {
-        private readonly BankDoesNotRespond _noResponse;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
 
-        public NotRespondedBankStrategy(BankDoesNotRespond noResponse, IEventSourcedRepository<Payment> paymentsRepository)
+        public NotRespondedBankStrategy(IEventSourcedRepository<Payment> paymentsRepository)
         {
-            _noResponse = noResponse;
             _paymentsRepository = paymentsRepository;
         }
 

@@ -7,8 +7,4 @@ namespace PaymentGateway.Domain
     {
         Task AttemptPaying(PayingAttempt payingAttempt);
     }
-
-   
-
-   
 }
