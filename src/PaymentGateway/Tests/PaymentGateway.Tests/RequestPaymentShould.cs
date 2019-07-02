@@ -17,25 +17,25 @@ namespace PaymentGateway.Tests
     {
         public static PaymentRequest BuildPaymentRequest(Guid requestId)
         {
-            return new PaymentRequest(requestId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66),
                 "321");
         }
 
         public static PaymentRequest BuildInvalidCardNumberPaymentRequest(Guid requestId, string invalidCardNumber)
         {
-            return new PaymentRequest(requestId, "John Smith", invalidCardNumber, "05/19", new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "John Smith", invalidCardNumber, "05/19", new Money("EUR", 42.66),
                 "321");
         }
 
         public static PaymentRequest BuildInvalidCardCvvPaymentRequest(Guid requestId, string invalidCvv)
         {
-            return new PaymentRequest(requestId, "John Smith", "0214 4587 5698 1200", "05/19", new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "John Smith", "0214 4587 5698 1200", "05/19", new Money("EUR", 42.66),
                 invalidCvv);
         }
 
         public static PaymentRequest BuildInvalidCardExpiryPaymentRequest(Guid requestId, string invalidExpiry)
         {
-            return new PaymentRequest(requestId, "John Smith", "0214 4587 5698 1200", invalidExpiry, new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "John Smith", "0214 4587 5698 1200", invalidExpiry, new Money("EUR", 42.66),
                 "325");
         }
     }

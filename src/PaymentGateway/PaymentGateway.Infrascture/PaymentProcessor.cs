@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AcquiringBanks.API;
 using PaymentGateway.Domain;
-using PaymentGateway.Domain.AcquiringBank;
 using SimpleCQRS;
+using BankPaymentStatus = PaymentGateway.Domain.AcquiringBank.BankPaymentStatus;
+using PayingAttempt = PaymentGateway.Domain.AcquiringBank.PayingAttempt;
 
 namespace PaymentGateway.Infrastructure
 {
@@ -14,25 +16,23 @@ namespace PaymentGateway.Infrastructure
     /// </summary>
     public class PaymentProcessor : IProcessPayment
     {
-        private readonly ITalkToAcquiringBank _acquiringBankFacade;
+        private readonly IMapMerchantToBankAdapter _bankAdapterMapper;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
         private readonly SimulateGatewayException _gatewayExceptionSimulator;
 
-        public PaymentProcessor(ITalkToAcquiringBank acquiringBankFacade, IEventSourcedRepository<Payment> paymentsRepository, SimulateGatewayException gatewayExceptionSimulator = null)
+        public PaymentProcessor(IMapMerchantToBankAdapter bankAdapterMapper, IEventSourcedRepository<Payment> paymentsRepository, SimulateGatewayException gatewayExceptionSimulator = null)
         {
-            _acquiringBankFacade = acquiringBankFacade;
+            _bankAdapterMapper = bankAdapterMapper;
             _paymentsRepository = paymentsRepository;
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
         public async Task AttemptPaying(PayingAttempt payingAttempt)
         {
-            var bankResponse = await _acquiringBankFacade.Pay(payingAttempt);
+            var bankResponse = await _bankAdapterMapper.FindBankAdapter(payingAttempt.MerchantId).RespondToPaymentAttempt(payingAttempt);
             IHandleBankResponseStrategy strategy = Build(bankResponse, _paymentsRepository);
 
             await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
-
-           
         }
 
         private static IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
@@ -101,10 +101,10 @@ namespace PaymentGateway.Infrastructure
 
                 switch (_bankResponse.PaymentStatus)
                 {
-                    case BankPaymentStatus.Accepted:
+                    case AcquiringBanks.API.BankPaymentStatus.Accepted:
                         knownPayment.AcceptPayment(bankPaymentId);
                         break;
-                    case BankPaymentStatus.Rejected:
+                    case AcquiringBanks.API.BankPaymentStatus.Rejected:
                         knownPayment.BankRejectPayment(bankPaymentId);
                         break;
                 }

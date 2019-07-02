@@ -11,11 +11,13 @@ namespace PaymentGateway.Infrastructure
         public string Expiry { get; }
         public Money Amount { get; }
         public string Cvv { get; }
+        public Guid MerchantId { get; }
 
-        public PaymentRequest(Guid requestId, string cardHolderName, string cardNumber, string expiry, Money amount,
+        public PaymentRequest(Guid requestId, Guid merchantId, string cardHolderName, string cardNumber, string expiry, Money amount,
             string cvv)
         {
             RequestId = requestId;
+            MerchantId = merchantId;
             CardHolderName = cardHolderName;
             CardNumber = cardNumber;
             Expiry = expiry;

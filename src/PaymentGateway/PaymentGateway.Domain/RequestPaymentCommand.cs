@@ -10,10 +10,12 @@ namespace PaymentGateway.Domain
         public Guid RequestId { get; }
         public CreditCard CreditCard { get; }
         public Money Amount { get; }
+        public Guid MerchantId { get; set; }
 
-        public RequestPaymentCommand(Guid gatewayPaymentId, Guid requestId, CreditCard creditCard, Money amount)
+        public RequestPaymentCommand(Guid gatewayPaymentId, Guid merchantId, Guid requestId, CreditCard creditCard, Money amount)
         {
             GatewayPaymentId = gatewayPaymentId;
+            MerchantId = merchantId;
             RequestId = requestId;
             CreditCard = creditCard;
             Amount = amount;

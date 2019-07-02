@@ -60,8 +60,9 @@ namespace PaymentGateway.Tests
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
             var paymentsIdsMemory = new PaymentIdsMemory();
-            var acquiringBank = new AcquiringBankFacade(new AcquiringBankSimulator(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior, NullLogger<AcquiringBankSimulator>.Instance), paymentsIdsMemory);
-            var mediator = new PaymentProcessor(acquiringBank, eventSourcedRepository, gatewayExceptionSimulator);
+
+
+            var mediator = new PaymentProcessor(new MerchantToBankAdapterMapper(new BankAdapterSelector(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance)), eventSourcedRepository, gatewayExceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();
             var paymentDetailsReadController = new PaymentsDetailsController(paymentsIdsMemory, paymentDetailsRepository);

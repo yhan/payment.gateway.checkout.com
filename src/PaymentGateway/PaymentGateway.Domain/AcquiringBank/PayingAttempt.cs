@@ -15,10 +15,12 @@ namespace PaymentGateway.Domain.AcquiringBank
         public double Amount { get;  }
 
         public string Currency { get;  }
+        public Guid MerchantId { get; private set; }
 
-        public PayingAttempt(Guid gatewayPaymentId, string creditCardNumber, string creditCardCvv, string creditCardExpiry, string creditCardHolderName, double amount, string currency)
+        public PayingAttempt(Guid gatewayPaymentId, Guid merchantId,  string creditCardNumber, string creditCardCvv, string creditCardExpiry, string creditCardHolderName, double amount, string currency)
         {
             GatewayPaymentId = gatewayPaymentId;
+            MerchantId = merchantId;
             CreditCardNumber = creditCardNumber;
             CreditCardCvv = creditCardCvv;
             CreditCardExpiry = creditCardExpiry;

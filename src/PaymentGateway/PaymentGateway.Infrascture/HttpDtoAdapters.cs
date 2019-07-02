@@ -9,7 +9,7 @@ namespace PaymentGateway.Infrastructure
         public static RequestPaymentCommand AsCommand(this PaymentRequest request, Guid gateWayPaymentId)
         {
             var creditCard = new CreditCard(request.CardNumber, request.Cvv, request.Expiry, request.CardHolderName);
-            return new RequestPaymentCommand(gateWayPaymentId, request.RequestId, creditCard, request.Amount);
+            return new RequestPaymentCommand(gateWayPaymentId, request.MerchantId, request.RequestId, creditCard, request.Amount);
         }
 
         public static PaymentDto AsDto(this Payment payment)
