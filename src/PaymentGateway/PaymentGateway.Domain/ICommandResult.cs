@@ -16,27 +16,6 @@ namespace PaymentGateway.Domain
         }
     }
 
-    public class EntityNotFoundCommandResult : FailureCommandResult
-    {
-        public EntityNotFoundCommandResult(string message)
-            : base(message)
-        {
-        }
-
-        public EntityNotFoundCommandResult(object id)
-            : this($"Entity {id} was not found.")
-        {
-        }
-    }
-
-    public class EntityConflictCommandResult : FailureCommandResult
-    {
-        public EntityConflictCommandResult(object id)
-            : base($"Conflict on entity {id}.")
-        {
-        }
-    }
-
     public class InvalidCommandResult : FailureCommandResult
     {
         public Guid PaymentRequestId { get; }

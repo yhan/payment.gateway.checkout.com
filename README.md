@@ -203,6 +203,19 @@ To run performance tests:
     ```
 1. Run the tests in `PaymentGateway.Write.PerformanceTests` and `PaymentGateway.Read.PerformanceTests`
 
+# Unit and Acceptance tests
+The coding is entirely test driven.  
+
+Code coverage: 67.17%.  
+
+Non covered codes are:  
+ - API bootstrap
+ - Performance tests them self
+ - Some infrastructure code borrowed from [Greg Young's git repository](https://github.com/gregoryyoung/m-r)
+ - Some randomness generation only for production. (Acceptance tests use output deterministic behavior)
+ - Properties in acquiring bank stubs, they are there just to show the design.
+
+
 # Prerequisite for building the solution in Visual Studio
    Ensure that you have .NET Core 2.2 SDK installed. 
 
