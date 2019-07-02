@@ -7,6 +7,9 @@ using PaymentGateway.Domain;
 
 namespace PaymentGateway.API.ReadAPI
 {
+    /// <summary>
+    /// Not public API, only for facilitate testing
+    /// </summary>
     [Route("api/AcquiringBankPaymentsIds")]
     [ApiController]
     public class AcquiringBankPaymentsIdsController : ControllerBase

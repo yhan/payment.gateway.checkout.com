@@ -15,12 +15,6 @@ namespace AcquiringBanks.Stub
             GatewayPaymentId = gatewayPaymentId;
             PaymentStatus = paymentStatus;
         }
-
-
-        public bool BankContactable()
-        {
-            return true;
-        }
     }
 
     public class BNPResponse: IBankResponse
@@ -35,11 +29,5 @@ namespace AcquiringBanks.Stub
             GatewayPaymentId = gatewayPaymentId;
             PaymentStatus = paymentStatus;
         }
-
-        public bool BankContactable()
-        {
-            return true;
-        }
-
     }
 }

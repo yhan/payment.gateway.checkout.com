@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace AcquiringBanks.API
 {
@@ -15,15 +14,9 @@ namespace AcquiringBanks.API
             GatewayPaymentId = gatewayPaymentId;
             PaymentStatus = paymentStatus;
         }
-
-        public bool BankContactable()
-        {
-            return true;
-        }
     }
 
     public interface IBankResponse
     {
-        bool BankContactable();
     }
 }

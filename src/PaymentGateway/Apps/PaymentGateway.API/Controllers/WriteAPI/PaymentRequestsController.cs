@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,39 +9,9 @@ using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 using SimpleCQRS;
 
-[assembly: InternalsVisibleTo("PaymentGateway.Tests")]
-
 namespace PaymentGateway.API.WriteAPI
 {
-    public class PaymentRequestValidator
-    {
-        private readonly PaymentRequest _paymentRequest;
-
-        public PaymentRequestValidator(PaymentRequest paymentRequest)
-        {
-            _paymentRequest = paymentRequest;
-        }
-
-        public bool CardCvvInvalid()
-        {
-            var reg = "^[0-9]{3}$";
-            return !Regex.IsMatch(_paymentRequest.Cvv, reg);
-        }
-
-        public  bool CardNumberInvalid()
-        {
-            var reg = "^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}$";
-            return !Regex.IsMatch(_paymentRequest.CardNumber, reg);
-        }
-
-        public bool CardExpiryInvalid()
-        {
-            var reg = "^(0?[1-9]|1[012])/[0-9]{2}$";
-            return !Regex.IsMatch(_paymentRequest.Expiry, reg);
-        }
-    }
-
-    [Route("api/PaymentRequests")]
+    [Route("api/Payments")]
     [ApiController]
     public class PaymentRequestsController : ControllerBase
     {
@@ -64,21 +33,9 @@ namespace PaymentGateway.API.WriteAPI
             [FromServices]IKnowAllPaymentRequests paymentRequests,
             [FromServices]IProcessPayment acquiringBank)
         {
-            var cardValidator = new PaymentRequestValidator(paymentRequest);
-
-            if (cardValidator.CardNumberInvalid())
+            if (ReturnBadRequestWhenReceivedInvalidPaymentRequest(paymentRequest, out var actionResult))
             {
-                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card number"));
-            }
-
-            if (cardValidator.CardCvvInvalid())
-            {
-                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card CVV"));
-            }
-            
-            if (cardValidator.CardExpiryInvalid())
-            {
-                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card expiry"));
+                return actionResult;
             }
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
@@ -100,6 +57,33 @@ namespace PaymentGateway.API.WriteAPI
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private static bool ReturnBadRequestWhenReceivedInvalidPaymentRequest(PaymentRequest paymentRequest,
+            out IActionResult actionResult)
+        {
+            actionResult = null;
+            var cardValidator = new PaymentRequestValidator(paymentRequest);
+
+            if (cardValidator.CardNumberInvalid())
+            {
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card number"));
+                return true;
+            }
+
+            if (cardValidator.CardCvvInvalid())
+            {
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card CVV"));
+                return true;
+            }
+
+            if (cardValidator.CardExpiryInvalid())
+            {
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card expiry"));
+                return true;
+            }
+
+            return false;
         }
     }
 }

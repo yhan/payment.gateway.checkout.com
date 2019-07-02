@@ -9,7 +9,7 @@ namespace PaymentGateway.Infrastructure
 {
 
     /// <summary>
-    /// Glue component which calls bank facade <see cref="ITalkToAcquiringBank"/>.
+    /// Glue component which calls bank facade <see cref="IAdaptToBank"/>.
     /// Then do necessary changes in PaymentGateway's domain.
     /// </summary>
     public class PaymentProcessor : IProcessPayment

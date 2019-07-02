@@ -3,26 +3,6 @@ using System.Collections.Generic;
 
 namespace PaymentGateway.Infrastructure
 {
-    //public interface IProvideBankAdapters
-    //{
-    //    IAdaptToBank FindBankAdapter(Guid paymentAttemptMerchantId);
-    //}
-
-    //class BankAdaptersProvider : IProvideBankAdapters
-    //{
-    //    private readonly IMapMerchantToBankAdapter _merchantToBankAdapter;
-
-    //    public BankAdaptersProvider(IMapMerchantToBankAdapter merchantToBankAdapter)
-    //    {
-    //        _merchantToBankAdapter = merchantToBankAdapter;
-    //    }
-
-    //    public IAdaptToBank FindBankAdapter(Guid paymentAttemptMerchantId)
-    //    {
-    //        return _merchantToBankAdapter.FindBankAdapter(paymentAttemptMerchantId);
-    //    }
-    //}
-
     public interface IMapMerchantToBankAdapter
     {
         IAdaptToBank FindBankAdapter(Guid merchantId);
