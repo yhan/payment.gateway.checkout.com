@@ -42,7 +42,7 @@ namespace PaymentGateway.Read.PerformanceTests
                 {
                     var payment = await Get<PaymentDto>(client, $"/api/Payments/{gatewayPaymentId}");
                     int polled = 0;
-                    if (payment.Status == Domain.PaymentStatus.Requested)
+                    if (payment.Status == Domain.PaymentStatus.Pending)
                     {
                         await Task.Delay(TimeSpan.FromSeconds(1));
                         polled++;

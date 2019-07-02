@@ -40,7 +40,7 @@ namespace PaymentGateway.Write.PerformanceTests
                 Check.That(response.Headers.Location.ToString()).StartsWith($"{baseUri}/api/Payments/");
 
                 var payment = JsonConvert.DeserializeObject<PaymentDto>(await response.Content.ReadAsStringAsync());
-                Check.That(payment.Status).IsEqualTo(Domain.PaymentStatus.Requested);
+                Check.That(payment.Status).IsEqualTo(Domain.PaymentStatus.Pending);
                 Check.That(payment.AcquiringBankPaymentId).IsEqualTo(Guid.Empty);
 
                 //var gatewayPaymentId = payment.GatewayPaymentId;
@@ -51,7 +51,7 @@ namespace PaymentGateway.Write.PerformanceTests
 
                 //    var polledPayment = JsonConvert.DeserializeObject<PaymentDto>(await getPaymentResponse.Content.ReadAsStringAsync());
                 //    int polled = 0;
-                //    if (polledPayment.Status == Domain.PaymentStatus.Requested)
+                //    if (polledPayment.Status == Domain.PaymentStatus.Pending)
                 //    {
                 //        polled++;
                 //        await Task.Delay(TimeSpan.FromSeconds(1));

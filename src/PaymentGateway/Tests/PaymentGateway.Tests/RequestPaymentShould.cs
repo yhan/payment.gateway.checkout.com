@@ -12,30 +12,6 @@ using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Tests
 {
-    public static class TestsUtils
-    {
-        public static PaymentRequest BuildPaymentRequest(Guid requestId, Guid merchantId)
-        {
-            return new PaymentRequest(requestId, merchantId, new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card("4524 4587 5698 1200", "05/19", "321"));
-        }
-
-        public static PaymentRequest BuildInvalidCardNumberPaymentRequest(Guid requestId, string invalidCardNumber)
-        {
-            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card(invalidCardNumber, "05/19", "321"));
-        }
-
-        public static PaymentRequest BuildInvalidCardCvvPaymentRequest(Guid requestId, string invalidCvv)
-        {
-            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card("0214 4587 5698 1200", "05/19", invalidCvv));
-        }
-
-        public static PaymentRequest BuildInvalidCardExpiryPaymentRequest(Guid requestId, string invalidExpiry)
-        {
-            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card("0214 4587 5698 1200", invalidExpiry, "325"));
-        }
-    }
-
-
     [TestFixture]
     public class RequestPaymentShould
     {
@@ -94,6 +70,7 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(expectedPaymentStatusReturnedByGateway);
+            Check.That(payment.Approved).IsEqualTo(payment.Status == PaymentGateway.Domain.PaymentStatus.Success);
             Check.That(payment.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
         }
 
@@ -114,6 +91,7 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(PaymentStatus.FaultedOnGateway);
+            Check.That(payment.Approved).IsFalse();
         }
 
 
@@ -136,6 +114,7 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(expectedPaymentStatusReturnedByGateway);
+            Check.That(payment.Approved).IsEqualTo(payment.Status == PaymentGateway.Domain.PaymentStatus.Success);
             Check.That(payment.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
         }
 
@@ -154,7 +133,7 @@ namespace PaymentGateway.Tests
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
-
+            Check.That(payment.Approved).IsFalse();
             Check.That(payment.Status).IsEqualTo(PaymentStatus.BankUnavailable);
         }
 
@@ -215,20 +194,12 @@ namespace PaymentGateway.Tests
             var failDetail = (ProblemDetails)badRequest.Value;
             Check.That(failDetail.Detail).IsEqualTo("Invalid card expiry");
         }
-        
-        [Test]
-        public void validMonth()
-        {
-            var reg = "^(0?[1-9]|1[012])/[0-9]{2}$";
-            Check.That(Regex.IsMatch("08/22", reg)).IsTrue();
-        }
-
 
         private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId,
             Guid requestId)
         {
-            Check.That(response).IsInstanceOf<CreatedAtRouteResult>();
-            var createdAtRouteResult = (CreatedAtRouteResult)response;
+            Check.That(response).IsInstanceOf<AcceptedAtRouteResult>();
+            var createdAtRouteResult = (AcceptedAtRouteResult)response;
 
             var created = createdAtRouteResult.Value;
             Check.That(created).IsInstanceOf<PaymentDto>();
@@ -238,7 +209,7 @@ namespace PaymentGateway.Tests
 
             Check.That(payment.GatewayPaymentId).IsEqualTo(paymentId);
             Check.That(payment.RequestId).IsEqualTo(requestId);
-            Check.That(payment.Status).IsEqualTo(PaymentStatus.Requested);
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.Pending);
         }
     }
 

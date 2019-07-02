@@ -8,6 +8,8 @@
         public AcquiringBankPaymentId BankPaymentId { get; private set; }
         public PaymentStatus Status { get; set; }
 
+
+
         public PaymentDetails(GatewayPaymentId gatewayPaymentId, Card card)
         {
             GatewayPaymentId = gatewayPaymentId;

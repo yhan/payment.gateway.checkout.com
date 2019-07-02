@@ -64,7 +64,7 @@ namespace PaymentGateway.Domain
             GatewayPaymentId = evt.GatewayPaymentId;
             MerchantId = evt.MerchantId;
             RequestId = evt.RequestId;
-            Status = PaymentStatus.Requested;
+            Status = PaymentStatus.Pending;
             Card = evt.Card;
             Amount = evt.Amount;
 

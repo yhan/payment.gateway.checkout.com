@@ -1,3 +1,5 @@
+using System;
+
 namespace PaymentGateway.Domain
 {
     public interface ICommandResult
@@ -42,9 +44,11 @@ namespace PaymentGateway.Domain
 
     public class InvalidCommandResult : FailureCommandResult
     {
-        public InvalidCommandResult(string reason) : base(reason)
-        {
+        public Guid PaymentRequestId { get; }
 
+        public InvalidCommandResult(Guid paymentRequestId, string reason) : base(reason)
+        {
+            PaymentRequestId = paymentRequestId;
         }
     }
 }

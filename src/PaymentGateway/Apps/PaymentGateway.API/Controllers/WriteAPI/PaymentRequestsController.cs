@@ -47,8 +47,8 @@ namespace PaymentGateway.API.WriteAPI
                 case SuccessCommandResult<Payment> success:
                     var paymentDto = success.Entity.AsDto();
 
-                    return CreatedAtRoute( nameof(PaymentReadController.GetPaymentInfo), 
-                        routeValues: new {gateWayPaymentId = paymentDto.GatewayPaymentId}, 
+                    return AcceptedAtRoute(nameof(PaymentReadController.GetPaymentInfo),
+                        routeValues: new {gateWayPaymentId = paymentDto.GatewayPaymentId},
                         value: paymentDto);
 
                 case InvalidCommandResult invalid:
@@ -67,19 +67,19 @@ namespace PaymentGateway.API.WriteAPI
 
             if (cardValidator.CardNumberInvalid())
             {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card number"));
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid card number"));
                 return true;
             }
 
             if (cardValidator.CardCvvInvalid())
             {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card CVV"));
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid card CVV"));
                 return true;
             }
 
             if (cardValidator.CardExpiryInvalid())
             {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card expiry"));
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid card expiry"));
                 return true;
             }
 

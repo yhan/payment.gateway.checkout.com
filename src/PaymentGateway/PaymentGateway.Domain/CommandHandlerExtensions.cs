@@ -1,4 +1,5 @@
-﻿using SimpleCQRS;
+﻿using System;
+using SimpleCQRS;
 
 namespace PaymentGateway.Domain
 {
@@ -10,10 +11,10 @@ namespace PaymentGateway.Domain
             return new SuccessCommandResult<TEntity>(entity);
         }
 
-        public static ICommandResult Invalid<TCommand>(this ICommandHandler<TCommand> handler, string reason)
+        public static ICommandResult Invalid<TCommand>(this ICommandHandler<TCommand> handler, Guid commandId, string reason)
             where TCommand : Command
         {
-            return new InvalidCommandResult(reason);
+            return new InvalidCommandResult(commandId, reason);
         }
 
         public static ICommandResult Failure<TCommand>(this ICommandHandler<TCommand> handler, string reason)

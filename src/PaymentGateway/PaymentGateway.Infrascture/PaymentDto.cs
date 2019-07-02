@@ -10,6 +10,8 @@ namespace PaymentGateway.Infrastructure
         public PaymentStatus Status { get; }
         public Guid RequestId { get; set; }
 
+        public bool Approved => Status == PaymentStatus.Success;
+
         public PaymentDto(Guid requestId, Guid gatewayPaymentId, Guid acquiringBankPaymentId,
             PaymentStatus status)
         {

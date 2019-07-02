@@ -30,7 +30,7 @@ namespace PaymentGateway.Domain
             if (await _paymentRequests.AlreadyHandled(paymentRequestId))
             {
                 //payment request already handled
-                return this.Invalid("Identical payment request will not be handled more than once");
+                return this.Invalid(command.RequestId, "Identical payment request will not be handled more than once");
             }
 
             var payment = new Payment(command.GatewayPaymentId, command.MerchantId, command.RequestId, command.Card, command.Amount);

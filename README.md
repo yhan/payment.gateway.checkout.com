@@ -38,7 +38,7 @@
 
 # Architecture
 
-## CQRS
+## **CQRS**
 CQRS is chosen for these *reasons*:  
 I am asked to develop two features: Payment request and Payment details retrieval. 
 1. They should be scaled differently.
@@ -63,16 +63,21 @@ Still you can see the embryonic form of the 3 processes.
 - [Read projector](https://github.com/yhan/payment.gateway.checkout.com/tree/master/src/PaymentGateway/Apps/PaymentGateway.API/ReadProjector)
 
 
-## EventSourcing
+## **EventSourcing**
+For a Gateway which handles sensitive financial transactions second to to second, it is critical that we have a full audit trail of what has happened.
 
-## Hexagonal##
+Event sourcing also helps constructing CQRS. i.e. we have **always** capabilities to construct diverse and varied read models, as events recorded all information chronologically.
+
+## **Hexagonal**
+The motivation of Hexagonal is very general, can be found for example [here](https://apiumhub.com/tech-blog-barcelona/hexagonal-architecture/)
+
 
 1. Command handling sync or async  
 To manage burst/back pressure
 
 # Design
 1. Entity:  
-   **Payment**
+**Payment** represent a financial transaction achieved with the help of a bank payment card. A `Payment` can fail or succeed.
 
 1. Never put Http Dto into domain and Never expose domain type to Http
 
