@@ -5,7 +5,7 @@
         public GatewayPaymentId GatewayPaymentId { get; }
         public Card Card { get; }
 
-        public AcquiringBankPaymentId BankPaymentId { get; private set; }
+        public AcquiringBankPaymentId? BankPaymentId { get; private set; }
         public PaymentStatus Status { get; set; }
 
 

@@ -28,7 +28,7 @@ namespace PaymentGateway.Domain
 
         public PaymentStatus Status { get; private set; }
 
-        public Guid AcquiringBankPaymentId { get; private set; }
+        public Guid? AcquiringBankPaymentId { get; private set; }
         
         public Guid MerchantId { get; private set; }
 

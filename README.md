@@ -72,12 +72,20 @@ Event sourcing also helps constructing CQRS. i.e. we have **always** capabilitie
 The motivation of Hexagonal is very general, can be found for example [here](https://apiumhub.com/tech-blog-barcelona/hexagonal-architecture/)
 
 
-1. Command handling sync or async  
-To manage burst/back pressure
+
 
 # Design
 1. Entity:  
 **Payment** represent a financial transaction achieved with the help of a bank payment card. A `Payment` can fail or succeed.
+
+1. **Command handling asynchrony**  
+For managing: 
+   - unreliable network, unknown bank API availability and latency
+   - burst/back pressure: i.e. if we handle `PaymentRequest` synchronously, because of network and long latency, our Gateway may suffer from high I/O waiting, the system will congested. 
+
+   I decided to handle `PaymentRequest` asynchronously. i.e. When `PaymentRequest` arrives, Gateway create immediately a `Payment` resource. The request forwarding and bank response handling are done asynchronously. HTTP status 202 Accepted along with a resource identifier in location header will be returned. Merchant can follow up the payment with the given address.
+
+   In real world, for the sake pragmatism, we can do more *smart* handling. i.e. We can say: if the Gateway get a response from the bank within 50 ms, it returns 201 Created with the `Payment` final status: Accepted or Rejected (by the bank); otherwise returns 202 Accepted.
 
 1. Never put Http Dto into domain and Never expose domain type to Http
 
@@ -90,6 +98,8 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
 
 # API
 1. Ids  
+
+1. Typical API using scenarios:
 
 # SLA
 
@@ -130,6 +140,9 @@ Hereunder some improvements should be definitely done:
 
    For achieving query for a time window, I should add payment timestamp to both my `Events` and `Read models`.
 
+1. Require `PaymentRequest` smart batching ([here by Martin Thompson](https://github.com/real-logic/aeron/wiki/Design-Principles) or [here](https://blog.scooletz.com/2018/01/22/the-batch-is-dead-long-live-the-smart-batch/))
+
+TODO develop the idea
    
 
 ## Publish

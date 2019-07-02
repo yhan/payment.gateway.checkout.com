@@ -19,7 +19,7 @@ namespace PaymentGateway.Infrastructure
 
         public static PaymentDetailsDto AsDto(this PaymentDetails paymentDetails)
         {
-            return new PaymentDetailsDto(paymentDetails.BankPaymentId.Value, new Infrastructure.Card(paymentDetails.Card.Number, paymentDetails.Card.Expiry, paymentDetails.Card.Cvv),  paymentDetails.Status);
+            return new PaymentDetailsDto(paymentDetails.BankPaymentId?.Value, new Infrastructure.Card(paymentDetails.Card.Number, paymentDetails.Card.Expiry, paymentDetails.Card.Cvv),  paymentDetails.Status);
         }
     }
 }

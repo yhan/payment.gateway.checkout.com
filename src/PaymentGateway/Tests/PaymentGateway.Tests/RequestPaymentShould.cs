@@ -91,7 +91,8 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
             Check.That(payment.Status).IsEqualTo(PaymentStatus.FaultedOnGateway);
-            Check.That(payment.Approved).IsFalse();
+            Check.That(payment.Approved.Value).IsFalse();
+            Check.That(payment.AcquiringBankPaymentId).IsNull();
         }
 
 
@@ -133,8 +134,9 @@ namespace PaymentGateway.Tests
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
-            Check.That(payment.Approved).IsFalse();
+            Check.That(payment.Approved.Value).IsFalse();
             Check.That(payment.Status).IsEqualTo(PaymentStatus.BankUnavailable);
+            Check.That(payment.AcquiringBankPaymentId).IsNull();
         }
 
 
@@ -210,6 +212,7 @@ namespace PaymentGateway.Tests
             Check.That(payment.GatewayPaymentId).IsEqualTo(paymentId);
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.Status).IsEqualTo(PaymentStatus.Pending);
+            Check.That(payment.Approved).IsNull();
         }
     }
 

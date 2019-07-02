@@ -6,23 +6,9 @@ namespace PaymentGateway.Infrastructure
     public class PaymentRequest
     {
         public Guid RequestId { get; }
-        //public string CardNumber { get; }
-        //public string Expiry { get; }
-        //public string Cvv { get; }
         public Money Amount { get; }
         public Card Card { get; }
         public Guid MerchantId { get; }
-
-        public PaymentRequest(Guid requestId, Guid merchantId, Money amount, string cardNumber, string expiry,
-            string cvv)
-        {
-            RequestId = requestId;
-            MerchantId = merchantId;
-            //CardNumber = cardNumber;
-            //Expiry = expiry;
-            //Cvv = cvv;
-            Amount = amount;
-        }
 
         public PaymentRequest(Guid requestId, Guid merchantId, Money amount, Card card)
         {

@@ -42,7 +42,9 @@ namespace PaymentGateway.Tests
 
 
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
-            var paymentDetails = (await cqrs.PaymentDetailsReadController.GetPaymentDetails(payment.AcquiringBankPaymentId)).Value;
+
+            Check.That(payment.AcquiringBankPaymentId).HasAValue();
+            var paymentDetails = (await cqrs.PaymentDetailsReadController.GetPaymentDetails(payment.AcquiringBankPaymentId.Value)).Value;
 
             // The response should include a masked card number and card details along with a
             // status code which indicates the result of the payment.
@@ -50,6 +52,7 @@ namespace PaymentGateway.Tests
             Check.That(paymentDetails.Card.Expiry).IsEqualTo("05/19");
             Check.That(paymentDetails.Card.Cvv).IsEqualTo("321");
             Check.That(paymentDetails.Status).IsEqualTo(expectedStatusInPaymentDetails);
+            Check.That(paymentDetails.Approved).IsEqualTo(expectedStatusInPaymentDetails == PaymentStatus.Success);
             Check.That(paymentDetails.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
         }
 
@@ -64,6 +67,5 @@ namespace PaymentGateway.Tests
             Check.That(actionResult.Result).IsInstanceOf<NotFoundObjectResult>();
             Check.That(actionResult.Value).IsNull();
         }
-
     }
 }
