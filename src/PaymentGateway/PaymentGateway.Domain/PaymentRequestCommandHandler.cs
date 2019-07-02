@@ -63,7 +63,7 @@ namespace PaymentGateway.Domain
                                      cardNumber: payment.Card.Number, 
                                      cardCvv: payment.Card.Cvv,
                                      cardExpiry: payment.Card.Expiry,
-                                     amount: payment.Amount.Amount, 
+                                     amount: payment.Amount.Value, 
                                      currency: payment.Amount.Currency);
         }
     }

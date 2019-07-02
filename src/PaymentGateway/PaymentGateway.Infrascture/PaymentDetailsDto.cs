@@ -5,20 +5,14 @@ namespace PaymentGateway.Infrastructure
 {
     public class PaymentDetailsDto
     {
-        public string CardNumber { get; }
-        public string CardExpiry { get; }
-        public string CardCvv { get; }
         public PaymentGateway.Domain.PaymentStatus Status { get; }
         public Guid AcquiringBankPaymentId { get; set; }
+        public Card Card { get; }
 
-
-        public PaymentDetailsDto(Guid acquiringBankPaymentId, string cardNumber, string cardExpiry, string cardCvv, PaymentStatus status)
+        public PaymentDetailsDto(Guid acquiringBankPaymentId, Card card, PaymentStatus status)
         {
             AcquiringBankPaymentId = acquiringBankPaymentId;
-
-            CardNumber = cardNumber;
-            CardExpiry = cardExpiry;
-            CardCvv = cardCvv;
+            Card = card;
             Status = status;
         }
     }

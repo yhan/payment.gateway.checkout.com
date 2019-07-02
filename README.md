@@ -30,9 +30,7 @@
    
    The question is how the system can forward a `Payment Request` to the `Merchant`'s Acquiring bank? 
 
-   I added `Merchant`'s id to the `Payment Request`.   
-
-   
+   I added `Merchant`'s id to the `Payment Request`.      
 
 # Architecture
 
@@ -72,6 +70,20 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
 1. Check `BankPaymentId` in tests when bank replies
 1. Alls async, I/O should add timeout cancellation
 
+
+# Go further
+1. Retrieving a payment’s details API
+   The exercise text states a basic requirement:  
+   > The second requirement for the payment gateway is to allow a merchant to retrieve details of a previously made payment using its identifier.  
+
+   In real world, we may consider adding:
+   1. Query for a time window
+   1. Query pagination
+   1. Other filters
+
+   For achieving query for a time window, I should add payment timestamp to both my `Events` and `Read models`.
+
+   
 
 ## Publish
 1. goto API csproj folder  

@@ -10,14 +10,13 @@ namespace PaymentGateway.Infrastructure
     {
         private readonly ConcurrentDictionary<GatewayPaymentId, PaymentDetails> _storage = new ConcurrentDictionary<GatewayPaymentId, PaymentDetails>();
 
-        public async Task Create(GatewayPaymentId gatewayPaymentId, Card card)
+        public async Task Create(GatewayPaymentId gatewayPaymentId, PaymentGateway.Domain.Card card)
         {
             //Simulate IO
             await Task.Delay(1);
 
             if (!_storage.TryAdd(gatewayPaymentId,
-                new PaymentDetails(gatewayPaymentId, Mask(card.Number), card.Expiry,
-                    card.Cvv)))
+                new PaymentDetails(gatewayPaymentId, new Domain.Card(Mask(card.Number), card.Expiry, card.Cvv) )))
             {
                 throw new ConstraintException($"Payment with GatewayId '{gatewayPaymentId}' already created");
             }

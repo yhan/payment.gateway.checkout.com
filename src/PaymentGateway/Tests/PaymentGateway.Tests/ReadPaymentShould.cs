@@ -31,8 +31,7 @@ namespace PaymentGateway.Tests
         )
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest =  new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66),
-                "321");
+            var paymentRequest =  new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon,  new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card("4524 4587 5698 1200", "05/19", "321"));
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -47,9 +46,9 @@ namespace PaymentGateway.Tests
 
             // The response should include a masked card number and card details along with a
             // status code which indicates the result of the payment.
-            Check.That(paymentDetails.CardNumber).IsEqualTo("4524 XXXX XXXX XXXX");
-            Check.That(paymentDetails.CardExpiry).IsEqualTo("05/19");
-            Check.That(paymentDetails.CardCvv).IsEqualTo("321");
+            Check.That(paymentDetails.Card.Number).IsEqualTo("4524 XXXX XXXX XXXX");
+            Check.That(paymentDetails.Card.Expiry).IsEqualTo("05/19");
+            Check.That(paymentDetails.Card.Cvv).IsEqualTo("321");
             Check.That(paymentDetails.Status).IsEqualTo(expectedStatusInPaymentDetails);
             Check.That(paymentDetails.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
         }
