@@ -1,5 +1,5 @@
 ﻿using System;
-using AcquiringBanks.API;
+using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Domain;
 

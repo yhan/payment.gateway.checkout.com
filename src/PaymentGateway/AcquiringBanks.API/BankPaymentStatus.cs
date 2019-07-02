@@ -1,4 +1,4 @@
-﻿namespace AcquiringBanks.API
+﻿namespace AcquiringBanks.Stub
 {
     public enum BankPaymentStatus
     {

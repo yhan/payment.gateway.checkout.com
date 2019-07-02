@@ -1,12 +1,16 @@
 ﻿using System;
 
-namespace AcquiringBanks.API
+namespace AcquiringBanks.Stub
 {
+    public interface IBankResponse
+    {
+    }
+
     public class BankResponse : IBankResponse
     {
         public Guid BankPaymentId { get; }
         public Guid GatewayPaymentId { get; }
-        public AcquiringBanks.API.BankPaymentStatus PaymentStatus { get; }
+        public BankPaymentStatus PaymentStatus { get; }
 
         public BankResponse(Guid bankPaymentId, Guid gatewayPaymentId, BankPaymentStatus paymentStatus)
         {
@@ -16,7 +20,31 @@ namespace AcquiringBanks.API
         }
     }
 
-    public interface IBankResponse
+    public class SocieteGeneraleResponse
     {
+        public Guid BankPaymentId { get; }
+        public Guid GatewayPaymentId { get; }
+        public BankPaymentStatus PaymentStatus { get; }
+
+        public SocieteGeneraleResponse(Guid bankPaymentId, Guid gatewayPaymentId, BankPaymentStatus paymentStatus)
+        {
+            BankPaymentId = bankPaymentId;
+            GatewayPaymentId = gatewayPaymentId;
+            PaymentStatus = paymentStatus;
+        }
+    }
+
+    public class BNPResponse
+    {
+        public Guid BankPaymentId { get; }
+        public Guid GatewayPaymentId { get; }
+        public BankPaymentStatus PaymentStatus { get; }
+
+        public BNPResponse(Guid bankPaymentId, Guid gatewayPaymentId, BankPaymentStatus paymentStatus)
+        {
+            BankPaymentId = bankPaymentId;
+            GatewayPaymentId = gatewayPaymentId;
+            PaymentStatus = paymentStatus;
+        }
     }
 }

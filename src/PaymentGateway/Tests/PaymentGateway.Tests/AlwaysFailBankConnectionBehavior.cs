@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using AcquiringBanks.API;
+using AcquiringBanks.Stub;
 
-namespace PaymentGateway.Infrastructure
+namespace PaymentGateway.Tests
 {
     public class AlwaysFailBankConnectionBehavior : IConnectToAcquiringBanks
     {

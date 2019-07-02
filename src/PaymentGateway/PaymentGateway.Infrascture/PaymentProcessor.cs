@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AcquiringBanks.API;
+using AcquiringBanks.Stub;
 using PaymentGateway.Domain;
 using SimpleCQRS;
 using PayingAttempt = PaymentGateway.Domain.AcquiringBank.PayingAttempt;
@@ -99,10 +99,10 @@ namespace PaymentGateway.Infrastructure
 
                 switch (_bankResponse.PaymentStatus)
                 {
-                    case AcquiringBanks.API.BankPaymentStatus.Accepted:
+                    case BankPaymentStatus.Accepted:
                         knownPayment.AcceptPayment(bankPaymentId);
                         break;
-                    case AcquiringBanks.API.BankPaymentStatus.Rejected:
+                    case BankPaymentStatus.Rejected:
                         knownPayment.BankRejectPayment(bankPaymentId);
                         break;
                 }

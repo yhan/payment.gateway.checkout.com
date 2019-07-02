@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AcquiringBanks.API
+namespace AcquiringBanks.Stub
 {
     public interface IRandomnizeAcquiringBankPaymentStatus
     {

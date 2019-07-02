@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using AcquiringBanks.API;
+using AcquiringBanks.Stub;
 using NFluent;
 using NUnit.Framework;
 using PaymentGateway.API;
@@ -20,7 +20,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid gatewayPaymentIdGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, new InMemoryPaymentRequests(), cqrs.PaymentProcessor);
             

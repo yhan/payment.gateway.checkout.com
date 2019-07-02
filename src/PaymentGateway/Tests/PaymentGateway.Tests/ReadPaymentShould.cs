@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using AcquiringBanks.API;
+using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
@@ -16,7 +16,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_Payment_does_not_exist()
         {
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
             var nonExistingPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.PaymentReadController.GetPaymentInfo(nonExistingPaymentId);
 
@@ -25,9 +25,9 @@ namespace PaymentGateway.Tests
         }
 
         [Repeat(10)]
-        [TestCase(AcquiringBanks.API.BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
-        [TestCase(AcquiringBanks.API.BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
-        public async Task Can_retrieve_payment_details_using_BankPaymentId(AcquiringBanks.API.BankPaymentStatus paymentBankStatus, PaymentGateway.Domain.PaymentStatus expectedStatusInPaymentDetails
+        [TestCase(BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
+        [TestCase(BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
+        public async Task Can_retrieve_payment_details_using_BankPaymentId(BankPaymentStatus paymentBankStatus, PaymentGateway.Domain.PaymentStatus expectedStatusInPaymentDetails
         )
         {
             var requestId = Guid.NewGuid();
@@ -60,7 +60,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_PaymentDetails_does_not_exist()
         {
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
             var nonExistingBankPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.PaymentDetailsReadController.GetPaymentDetails(nonExistingBankPaymentId);
 

@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AcquiringBanks.API;
+using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
@@ -24,7 +24,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
             var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentRequests(), cqrs.PaymentProcessor);
 
@@ -37,7 +37,7 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -51,8 +51,8 @@ namespace PaymentGateway.Tests
             Check.That(failDetail.Detail).IsEqualTo("Identical payment request will not be handled more than once");
         }
 
-        [TestCase(AcquiringBanks.API.BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
-        [TestCase(AcquiringBanks.API.BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
+        [TestCase(BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
+        [TestCase(BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
         public async Task Return_proper_payment_status_When_AcquiringBank_accepts_or_reject_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
@@ -82,7 +82,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequests, cqrs.PaymentProcessor);
 
 
@@ -96,8 +96,8 @@ namespace PaymentGateway.Tests
         }
 
 
-        [TestCase(AcquiringBanks.API.BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
-        [TestCase(AcquiringBanks.API.BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
+        [TestCase(BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
+        [TestCase(BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
         public async Task Return_proper_payment_status_When_Connect_to_bank_fails_twice_then_connected_AND_AcquiringBank_accepts_or_reject_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
@@ -127,7 +127,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), new SimulateGatewayException());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequests, cqrs.PaymentProcessor);
 
 
@@ -151,7 +151,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequests, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
@@ -168,7 +168,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequests, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
@@ -188,7 +188,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(AcquiringBanks.API.BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequests, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
