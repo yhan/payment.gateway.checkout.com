@@ -16,25 +16,25 @@ namespace PaymentGateway.Tests
     {
         public static PaymentRequest BuildPaymentRequest(Guid requestId, Guid merchantId)
         {
-            return new PaymentRequest(requestId, merchantId, "John Smith", "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, merchantId, "4524 4587 5698 1200", "05/19", new Money("EUR", 42.66),
                 "321");
         }
 
         public static PaymentRequest BuildInvalidCardNumberPaymentRequest(Guid requestId, string invalidCardNumber)
         {
-            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "John Smith", invalidCardNumber, "05/19", new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, invalidCardNumber, "05/19", new Money("EUR", 42.66),
                 "321");
         }
 
         public static PaymentRequest BuildInvalidCardCvvPaymentRequest(Guid requestId, string invalidCvv)
         {
-            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "John Smith", "0214 4587 5698 1200", "05/19", new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "0214 4587 5698 1200", "05/19", new Money("EUR", 42.66),
                 invalidCvv);
         }
 
         public static PaymentRequest BuildInvalidCardExpiryPaymentRequest(Guid requestId, string invalidExpiry)
         {
-            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "John Smith", "0214 4587 5698 1200", invalidExpiry, new Money("EUR", 42.66),
+            return new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon, "0214 4587 5698 1200", invalidExpiry, new Money("EUR", 42.66),
                 "325");
         }
     }
@@ -47,7 +47,7 @@ namespace PaymentGateway.Tests
         public async Task Create_payment_When_handling_PaymentRequest()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Alibaba);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Apple);
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -84,7 +84,7 @@ namespace PaymentGateway.Tests
         public async Task Return_proper_payment_status_When_AcquiringBank_accepts_or_reject_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Alibaba);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Apple);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -147,7 +147,7 @@ namespace PaymentGateway.Tests
         public async Task Return_BankUnavailable_When_connection_to_bank_is_broken()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Alibaba);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Apple);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -180,7 +180,7 @@ namespace PaymentGateway.Tests
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult)actionResult;
             var failDetail = (ProblemDetails)badRequest.Value;
-            Check.That(failDetail.Detail).IsEqualTo("Invalid credit card number");
+            Check.That(failDetail.Detail).IsEqualTo("Invalid card number");
         }
 
         [TestCase("a45")]
@@ -197,7 +197,7 @@ namespace PaymentGateway.Tests
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult)actionResult;
             var failDetail = (ProblemDetails)badRequest.Value;
-            Check.That(failDetail.Detail).IsEqualTo("Invalid credit card CVV");
+            Check.That(failDetail.Detail).IsEqualTo("Invalid card CVV");
         }
         
         [TestCase("13/12")]
@@ -217,7 +217,7 @@ namespace PaymentGateway.Tests
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult)actionResult;
             var failDetail = (ProblemDetails)badRequest.Value;
-            Check.That(failDetail.Detail).IsEqualTo("Invalid credit card expiry");
+            Check.That(failDetail.Detail).IsEqualTo("Invalid card expiry");
         }
         
         [Test]

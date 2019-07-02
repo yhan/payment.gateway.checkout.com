@@ -4,20 +4,18 @@
     {
         public GatewayPaymentId GatewayPaymentId { get; }
         public AcquiringBankPaymentId BankPaymentId { get; private set; }
-        public string CreditCardHolderName { get; }
-        public string CreditCardNumber { get; }
-        public string CreditCardExpiry { get; }
-        public string CreditCardCvv { get; }
+        public string CardNumber { get; }
+        public string CardExpiry { get; }
+        public string CardCvv { get; }
         public PaymentStatus Status { get; set; }
 
 
-        public PaymentDetails(GatewayPaymentId gatewayPaymentId, string creditCardHolderName, string creditCardNumber, string creditCardExpiry, string creditCardCvv)
+        public PaymentDetails(GatewayPaymentId gatewayPaymentId, string cardNumber, string cardExpiry, string cardCvv)
         {
             GatewayPaymentId = gatewayPaymentId;
-            CreditCardHolderName = creditCardHolderName;
-            CreditCardNumber = creditCardNumber;
-            CreditCardExpiry = creditCardExpiry;
-            CreditCardCvv = creditCardCvv;
+            CardNumber = cardNumber;
+            CardExpiry = cardExpiry;
+            CardCvv = cardCvv;
 
             Status = PaymentStatus.Requested;
         }

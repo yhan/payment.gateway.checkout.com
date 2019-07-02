@@ -10,22 +10,22 @@ namespace PaymentGateway.Infrastructure
     {
         private readonly ConcurrentDictionary<GatewayPaymentId, PaymentDetails> _storage = new ConcurrentDictionary<GatewayPaymentId, PaymentDetails>();
 
-        public async Task Create(GatewayPaymentId gatewayPaymentId, CreditCard creditCard)
+        public async Task Create(GatewayPaymentId gatewayPaymentId, Card card)
         {
             //Simulate IO
             await Task.Delay(1);
 
             if (!_storage.TryAdd(gatewayPaymentId,
-                new PaymentDetails(gatewayPaymentId, creditCard.HolderName, Mask(creditCard.Number), creditCard.Expiry,
-                    creditCard.Cvv)))
+                new PaymentDetails(gatewayPaymentId, Mask(card.Number), card.Expiry,
+                    card.Cvv)))
             {
                 throw new ConstraintException($"Payment with GatewayId '{gatewayPaymentId}' already created");
             }
         }
 
-        private static string Mask(string creditCardNumber)
+        private static string Mask(string cardNumber)
         {
-            var mask = creditCardNumber.Select((c, i) =>
+            var mask = cardNumber.Select((c, i) =>
             {
                 if (i <= 3) return c;
                 if (c == ' ') return c;

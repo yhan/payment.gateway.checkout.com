@@ -8,8 +8,8 @@ namespace PaymentGateway.Infrastructure
     {
         public static RequestPaymentCommand AsCommand(this PaymentRequest request, Guid gateWayPaymentId)
         {
-            var creditCard = new CreditCard(request.CardNumber, request.Cvv, request.Expiry, request.CardHolderName);
-            return new RequestPaymentCommand(gateWayPaymentId, request.MerchantId, request.RequestId, creditCard, request.Amount);
+            var card = new Card(request.CardNumber, request.Cvv, request.Expiry);
+            return new RequestPaymentCommand(gateWayPaymentId, request.MerchantId, request.RequestId, card, request.Amount);
         }
 
         public static PaymentDto AsDto(this Payment payment)
@@ -19,7 +19,7 @@ namespace PaymentGateway.Infrastructure
 
         public static PaymentDetailsDto AsDto(this PaymentDetails paymentDetails)
         {
-            return new PaymentDetailsDto(paymentDetails.BankPaymentId.Value, paymentDetails.CreditCardNumber, paymentDetails.CreditCardHolderName, paymentDetails.CreditCardExpiry, paymentDetails.CreditCardCvv, paymentDetails.Status);
+            return new PaymentDetailsDto(paymentDetails.BankPaymentId.Value, paymentDetails.CardNumber, paymentDetails.CardExpiry, paymentDetails.CardCvv, paymentDetails.Status);
         }
     }
 }

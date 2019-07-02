@@ -8,33 +8,31 @@ namespace PaymentGateway.Domain
  
         public Guid GatewayPaymentId { get; }
         public Guid RequestId { get; }
-        public CreditCard CreditCard { get; }
+        public Card Card { get; }
         public Money Amount { get; }
         public Guid MerchantId { get; set; }
 
-        public RequestPaymentCommand(Guid gatewayPaymentId, Guid merchantId, Guid requestId, CreditCard creditCard, Money amount)
+        public RequestPaymentCommand(Guid gatewayPaymentId, Guid merchantId, Guid requestId, Card card, Money amount)
         {
             GatewayPaymentId = gatewayPaymentId;
             MerchantId = merchantId;
             RequestId = requestId;
-            CreditCard = creditCard;
+            Card = card;
             Amount = amount;
         }
     }
 
-    public class CreditCard
+    public class Card
     {
         public string Number { get; }
         public string Cvv { get; }
         public string Expiry { get; }
-        public string HolderName { get; }
 
-        public CreditCard( string number, string cvv, string expiry, string holderName)
+        public Card( string number, string cvv, string expiry)
         {
             Number = number;
             Cvv = cvv;
             Expiry = expiry;
-            HolderName = holderName;
         }
     }
 }

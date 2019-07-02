@@ -10,9 +10,9 @@ namespace PaymentGateway.Domain
         {
         }
 
-        public Payment(Guid gatewayPaymentId, Guid merchantId, Guid requestId, CreditCard creditCard, Money amount)
+        public Payment(Guid gatewayPaymentId, Guid merchantId, Guid requestId, Card card, Money amount)
         {
-            ApplyChange(new PaymentRequested(gatewayPaymentId, merchantId, requestId, creditCard, amount));
+            ApplyChange(new PaymentRequested(gatewayPaymentId, merchantId, requestId, card, amount));
         }
 
 
@@ -22,7 +22,7 @@ namespace PaymentGateway.Domain
 
         public Guid GatewayPaymentId { get; private set; }
 
-        public CreditCard CreditCard { get; private set; }
+        public Card Card { get; private set; }
 
         public Money Amount { get; private set; }
 
@@ -65,7 +65,7 @@ namespace PaymentGateway.Domain
             MerchantId = evt.MerchantId;
             RequestId = evt.RequestId;
             Status = PaymentStatus.Requested;
-            CreditCard = evt.CreditCard;
+            Card = evt.Card;
             Amount = evt.Amount;
 
             Version = evt.Version;

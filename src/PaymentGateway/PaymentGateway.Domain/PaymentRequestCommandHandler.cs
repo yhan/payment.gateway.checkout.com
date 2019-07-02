@@ -33,7 +33,7 @@ namespace PaymentGateway.Domain
                 return this.Invalid("Identical payment request will not be handled more than once");
             }
 
-            var payment = new Payment(command.GatewayPaymentId, command.MerchantId, command.RequestId, command.CreditCard, command.Amount);
+            var payment = new Payment(command.GatewayPaymentId, command.MerchantId, command.RequestId, command.Card, command.Amount);
             await _repository.Save(payment, Stream.NotCreatedYet);
             await _paymentRequests.Remember(paymentRequestId);
 
@@ -58,9 +58,13 @@ namespace PaymentGateway.Domain
     {
         public static PayingAttempt MapToAcquiringBank(this Payment payment)
         {
-            return new PayingAttempt(payment.GatewayPaymentId, payment.MerchantId, payment.CreditCard.Number, payment.CreditCard.Cvv,
-                payment.CreditCard.Expiry, payment.CreditCard.HolderName, payment.Amount.Amount,
-                payment.Amount.Currency);
+            return new PayingAttempt(gatewayPaymentId: payment.GatewayPaymentId, 
+                                     merchantId: payment.MerchantId, 
+                                     cardNumber: payment.Card.Number, 
+                                     cardCvv: payment.Card.Cvv,
+                                     cardExpiry: payment.Card.Expiry,
+                                     amount: payment.Amount.Amount, 
+                                     currency: payment.Amount.Currency);
         }
     }
 }

@@ -114,7 +114,7 @@ namespace PaymentGateway.PerformanceTests.Console
 
             IEnumerable<Task<PaymentDto>> posts = clients.Select(async c =>
             {
-                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Alibaba);
+                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Apple);
                 var content = new StringContent(JsonConvert.SerializeObject(paymentRequest));
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 

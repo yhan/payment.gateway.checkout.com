@@ -64,21 +64,21 @@ namespace PaymentGateway.API.WriteAPI
             [FromServices]IKnowAllPaymentRequests paymentRequests,
             [FromServices]IProcessPayment acquiringBank)
         {
-            var creditCardValidator = new PaymentRequestValidator(paymentRequest);
+            var cardValidator = new PaymentRequestValidator(paymentRequest);
 
-            if (creditCardValidator.CardNumberInvalid())
+            if (cardValidator.CardNumberInvalid())
             {
-                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card number"));
+                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card number"));
             }
 
-            if (creditCardValidator.CardCvvInvalid())
+            if (cardValidator.CardCvvInvalid())
             {
-                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card CVV"));
+                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card CVV"));
             }
             
-            if (creditCardValidator.CardExpiryInvalid())
+            if (cardValidator.CardExpiryInvalid())
             {
-                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid credit card expiry"));
+                return ActionResultHelper.ToActionResult(new InvalidCommandResult("Invalid card expiry"));
             }
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();

@@ -45,7 +45,7 @@ namespace PaymentGateway.Infrastructure.ReadProjector
 
         private async Task Handle(PaymentRequested requested)
         {
-            await _paymentDetailsRepository.Create(new GatewayPaymentId(requested.GatewayPaymentId), requested.CreditCard);
+            await _paymentDetailsRepository.Create(new GatewayPaymentId(requested.GatewayPaymentId), requested.Card);
         }
     }
 }

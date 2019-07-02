@@ -7,24 +7,22 @@ namespace PaymentGateway.Domain.AcquiringBank
         public Guid GatewayPaymentId { get;  }
 
 
-        public string CreditCardNumber { get; }
-        public string CreditCardCvv { get; }
-        public string CreditCardExpiry { get; }
-        public string CreditCardHolderName { get; }
+        public string CardNumber { get; }
+        public string CardCvv { get; }
+        public string CardExpiry { get; }
 
         public double Amount { get;  }
 
         public string Currency { get;  }
         public Guid MerchantId { get; private set; }
 
-        public PayingAttempt(Guid gatewayPaymentId, Guid merchantId,  string creditCardNumber, string creditCardCvv, string creditCardExpiry, string creditCardHolderName, double amount, string currency)
+        public PayingAttempt(Guid gatewayPaymentId, Guid merchantId,  string cardNumber, string cardCvv, string cardExpiry, double amount, string currency)
         {
             GatewayPaymentId = gatewayPaymentId;
             MerchantId = merchantId;
-            CreditCardNumber = creditCardNumber;
-            CreditCardCvv = creditCardCvv;
-            CreditCardExpiry = creditCardExpiry;
-            CreditCardHolderName = creditCardHolderName;
+            CardNumber = cardNumber;
+            CardCvv = cardCvv;
+            CardExpiry = cardExpiry;
             Amount = amount;
             Currency = currency;
         }

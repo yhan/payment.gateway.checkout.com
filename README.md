@@ -5,6 +5,15 @@
    > For Visual Studio 2017 (which I am actually using) compatibility reason, please use https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-2.2.107-windows-x64-installer 
 
 
+# Assumptions
+1. Acquiring bank
+
+   Hereunder the statement of the test:
+    > It also performs some validation of the card information and then **sends the payment details to the appropriate 3rd party organization for processing**.
+
+    1. I suppose the `Acquiring bank` is a component of the Information System, not the real bank. 
+    1. I suppose the `Third party` is a legal 
+
 # Architecture
 
 1. Should be 3 processes in production, but as ...
@@ -44,4 +53,4 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
 
 ## Publish
 1. goto API csproj folder  
-1. dotnet publish -c Debug -r win10-x64
+1. dotnet publish -c Release -r win10-x64
