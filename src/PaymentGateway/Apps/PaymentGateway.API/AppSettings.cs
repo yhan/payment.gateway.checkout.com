@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.API
+﻿namespace PaymentGateway
 {
     public class AppSettings
     {

@@ -5,7 +5,7 @@ using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
-using PaymentGateway.API;
+using PaymentGateway;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 
@@ -26,7 +26,7 @@ namespace PaymentGateway.Tests
 
             var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
-            var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new InMemoryPaymentRequests(), cqrs.PaymentProcessor);
+            var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new PaymentRequestsMemory(), cqrs.PaymentProcessor);
 
             CheckThatPaymentResourceIsCorrectlyCreated(response, gatewayPaymentId, requestId);
         }

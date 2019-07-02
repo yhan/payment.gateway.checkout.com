@@ -1,8 +1,10 @@
 ﻿using System;
-using SimpleCQRS;
 
 namespace PaymentGateway.Domain.Events
 {
+    /// <summary>
+    /// Raised when payment processing failed inside `Gateway`
+    /// </summary>
     public class PaymentFaulted : Event
     {
         public Guid GatewayPaymentId { get; }

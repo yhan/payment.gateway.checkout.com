@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using PaymentGateway.Infrastructure;
 
-namespace PaymentGateway.API.WriteAPI
+namespace PaymentGateway.WriteAPI
 {
     public class PaymentRequestValidator
     {

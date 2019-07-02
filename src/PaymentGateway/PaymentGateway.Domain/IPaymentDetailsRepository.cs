@@ -2,6 +2,9 @@
 
 namespace PaymentGateway.Domain
 {
+    /// <summary>
+    /// Repository of real models
+    /// </summary>
     public interface IPaymentDetailsRepository
     {
         Task<PaymentDetails> GetPaymentDetails(GatewayPaymentId paymentGatewayId);

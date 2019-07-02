@@ -5,7 +5,7 @@ using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 using PaymentGateway.Infrastructure.ReadProjector;
 
-namespace PaymentGateway.API.ReadProjector
+namespace PaymentGateway.ReadProjector
 {
     public class ReadProjections : IHostedService
     {

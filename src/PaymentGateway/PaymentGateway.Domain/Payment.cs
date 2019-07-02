@@ -1,6 +1,5 @@
 ﻿using System;
 using PaymentGateway.Domain.Events;
-using SimpleCQRS;
 
 namespace PaymentGateway.Domain
 {
@@ -57,7 +56,7 @@ namespace PaymentGateway.Domain
 
         #endregion
 
-        #region evolution functions
+        #region evolution functions, dynamically invoked
 
         private void Apply(PaymentRequested evt)
         {

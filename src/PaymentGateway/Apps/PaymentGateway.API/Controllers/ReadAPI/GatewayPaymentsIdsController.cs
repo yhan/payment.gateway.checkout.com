@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Domain;
 
-namespace PaymentGateway.API.ReadAPI
+namespace PaymentGateway.ReadAPI
 {
     /// <summary>
     /// Not public API, only for facilitate testing
+    /// Get all acquiring bank payments ids
     /// </summary>
     [Route("api/GatewayPaymentsIds")]
     [ApiController]

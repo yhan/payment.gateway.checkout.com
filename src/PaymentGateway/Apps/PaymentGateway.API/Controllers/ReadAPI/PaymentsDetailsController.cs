@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 
-namespace PaymentGateway.API.ReadAPI
+namespace PaymentGateway.ReadAPI
 {
     [Route("api/PaymentsDetails")]
     [ApiController]

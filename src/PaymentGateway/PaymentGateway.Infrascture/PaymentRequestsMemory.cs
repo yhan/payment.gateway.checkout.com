@@ -6,7 +6,7 @@ namespace PaymentGateway.Infrastructure
     /// <summary>
     /// Represent the memory aware of all <see cref="PaymentRequest"/> ids
     /// </summary>
-    public class InMemoryPaymentRequests : IKnowAllPaymentRequests
+    public class PaymentRequestsMemory : IKnowAllPaymentRequests
     {
         private readonly ConcurrentHashSet<PaymentRequestId> _paymentRequests = new ConcurrentHashSet<PaymentRequestId>();
 
@@ -20,6 +20,7 @@ namespace PaymentGateway.Infrastructure
 
         public async Task Remember(PaymentRequestId paymentRequestId)
         {
+            // Simulate I/O
             await Task.CompletedTask;
 
             _paymentRequests.Add(paymentRequestId);

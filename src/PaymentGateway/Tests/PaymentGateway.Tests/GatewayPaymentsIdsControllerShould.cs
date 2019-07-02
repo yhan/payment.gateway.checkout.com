@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AcquiringBanks.Stub;
 using NFluent;
 using NUnit.Framework;
-using PaymentGateway.API;
+using PaymentGateway;
 using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Tests
@@ -22,7 +22,7 @@ namespace PaymentGateway.Tests
 
             var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
-            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, new InMemoryPaymentRequests(), cqrs.PaymentProcessor);
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, new PaymentRequestsMemory(), cqrs.PaymentProcessor);
             
             var gatewayPaymentsIds = await cqrs.GatewayPaymentsIdsController.Get();
             Check.That(gatewayPaymentsIds).ContainsExactly(gatewayPaymentId);

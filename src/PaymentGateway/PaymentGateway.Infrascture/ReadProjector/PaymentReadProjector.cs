@@ -4,6 +4,10 @@ using PaymentGateway.Domain.Events;
 
 namespace PaymentGateway.Infrastructure.ReadProjector
 {
+    /// <summary>
+    ///  Receives <see cref="Event"/> published by the <see cref="InMemoryBus"/> <see cref="IPublishEvents"/>,
+    ///  then project the events to a read model
+    /// </summary>
     public class PaymentReadProjector
     {
         private readonly IPublishEvents _bus;

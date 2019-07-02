@@ -1,23 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using SimpleCQRS;
+using PaymentGateway.Domain;
+using PaymentGateway.Domain.Commands;
+using PaymentGateway.Domain.Events;
 
 namespace PaymentGateway.Infrastructure
 {
+    /// <summary>
+    /// Represent a in memory message bus.
+    /// Can publish both <see cref="Event"/> and <see cref="Command"/>
+    /// </summary>
     public class InMemoryBus : ISendCommands, IPublishEvents
     {
-        private readonly Dictionary<Type, List<Func<Message, Task>>> _routes = new Dictionary<Type, List<Func<Message, Task>>>();
+        private readonly Dictionary<Type, List<Func<IMessage, Task>>> _routes = new Dictionary<Type, List<Func<IMessage, Task>>>();
 
-        public void RegisterHandler<T>(Func<T, Task> handler) where T : Message
+        public void RegisterHandler<T>(Func<T, Task> handler) where T : IMessage
         {
             if(!_routes.TryGetValue(typeof(T), out var handlers))
             {
-                handlers = new List<Func<Message, Task>>();
+                handlers = new List<Func<IMessage, Task>>();
                 _routes.Add(typeof(T), handlers);
             }
 
-            handlers.Add((x => handler((T)x)));
+            handlers.Add(x => handler((T)x));
         }
 
         public void UnRegisterHandlers()
@@ -57,9 +63,7 @@ namespace PaymentGateway.Infrastructure
             }
         }
     }
-
-   
-
+    
     public interface IHandles<T>
     {
         void Handle(T message);
@@ -74,7 +78,7 @@ namespace PaymentGateway.Infrastructure
     {
         Task Publish<T>(T @event) where T : Event;
 
-        void RegisterHandler<T>(Func<T, Task> handler) where T : Message;
+        void RegisterHandler<T>(Func<T, Task> handler) where T : IMessage;
 
         void UnRegisterHandlers();
     }

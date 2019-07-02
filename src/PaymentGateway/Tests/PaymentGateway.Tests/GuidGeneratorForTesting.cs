@@ -1,5 +1,5 @@
 using System;
-using PaymentGateway.API;
+using PaymentGateway;
 
 namespace PaymentGateway.Tests
 {

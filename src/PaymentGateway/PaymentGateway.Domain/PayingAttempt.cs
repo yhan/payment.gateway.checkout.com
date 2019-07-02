@@ -1,20 +1,19 @@
 ﻿using System;
 
-namespace PaymentGateway.Domain.AcquiringBank
+namespace PaymentGateway.Domain
 {
     public class PayingAttempt
     {
         public Guid GatewayPaymentId { get;  }
-
 
         public string CardNumber { get; }
         public string CardCvv { get; }
         public string CardExpiry { get; }
 
         public double Amount { get;  }
-
         public string Currency { get;  }
-        public Guid MerchantId { get; private set; }
+
+        public Guid MerchantId { get; }
 
         public PayingAttempt(Guid gatewayPaymentId, Guid merchantId,  string cardNumber, string cardCvv, string cardExpiry, double amount, string currency)
         {
@@ -26,10 +25,5 @@ namespace PaymentGateway.Domain.AcquiringBank
             Amount = amount;
             Currency = currency;
         }
-    }
-
-    public enum BankPaymentStatus
-    {
-        Accepted, Rejected
     }
 }

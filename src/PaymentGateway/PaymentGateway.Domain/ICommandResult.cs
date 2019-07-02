@@ -35,11 +35,6 @@ namespace PaymentGateway.Domain
             : base($"Conflict on entity {id}.")
         {
         }
-
-        //public EntityConflictCommandResult(object id, Timestamp expected, Timestamp actual)
-        //    : base($"Conflict on entity {id} expected timestamp {expected}, actual {actual}.")
-        //{
-        //}
     }
 
     public class InvalidCommandResult : FailureCommandResult

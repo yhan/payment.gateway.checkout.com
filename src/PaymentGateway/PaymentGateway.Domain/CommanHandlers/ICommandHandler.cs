@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using SimpleCQRS;
+using PaymentGateway.Domain.Commands;
 
 namespace PaymentGateway.Domain
 {

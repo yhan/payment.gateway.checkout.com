@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using SimpleCQRS;
+using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
 {
-    public class EventSourcedRepository<T> : IEventSourcedRepository<T> where T: AggregateRoot, new() //shortcut you can do as you see fit with new()
+    public class EventSourcedRepository<T> : IEventSourcedRepository<T>
+        where T : AggregateRoot, new()
     {
         private readonly IEventStore _storage;
 
@@ -17,14 +18,12 @@ namespace PaymentGateway.Infrastructure
         {
             var uncommittedChanges = aggregate.GetUncommittedChanges();
             await _storage.SaveEvents(aggregate.Id, uncommittedChanges, expectedVersion);
-
-            //aggregate.UpdateVersion(uncommittedChanges.Last().Version);
         }
 
         public async Task<T> GetById(Guid id)
         {
-            var obj = new T();//lots of ways to do this
-            var events = await  _storage.GetEventsForAggregate(id);
+            var obj = new T(); //lots of ways to do this
+            var events = await _storage.GetEventsForAggregate(id);
             obj.LoadsFromHistory(events);
             return obj;
         }

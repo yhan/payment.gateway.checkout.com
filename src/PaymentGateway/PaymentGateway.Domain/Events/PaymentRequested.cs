@@ -1,8 +1,11 @@
 ﻿using System;
-using SimpleCQRS;
 
 namespace PaymentGateway.Domain.Events
 {
+    /// <summary>
+    /// Raised when <see cref="PaymentRequested"/> is validated.
+    /// The very first event raised on a newly created <see cref="Payment"/>
+    /// </summary>
     public class PaymentRequested : Event
     {
         public Guid GatewayPaymentId { get; }
@@ -11,8 +14,7 @@ namespace PaymentGateway.Domain.Events
         public Card Card { get; }
         public Money Amount { get; }
 
-        public PaymentRequested(Guid gatewayPaymentId, Guid merchantId, Guid requestId, Card card,
-            Money amount)
+        public PaymentRequested(Guid gatewayPaymentId, Guid merchantId, Guid requestId, Card card, Money amount)
         {
             GatewayPaymentId = gatewayPaymentId;
             MerchantId = merchantId;

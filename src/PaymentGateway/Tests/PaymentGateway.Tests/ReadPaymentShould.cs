@@ -4,7 +4,7 @@ using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
-using PaymentGateway.API;
+using PaymentGateway;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 

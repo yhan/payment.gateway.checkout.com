@@ -1,7 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using PaymentGateway.Domain.AcquiringBank;
-using SimpleCQRS;
 
 [assembly:InternalsVisibleTo("PaymentGateway.Tests")]
 

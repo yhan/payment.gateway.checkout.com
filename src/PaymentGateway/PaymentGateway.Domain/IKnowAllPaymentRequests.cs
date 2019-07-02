@@ -2,7 +2,6 @@
 
 namespace PaymentGateway.Domain
 {
-
     public interface IKnowAllPaymentRequests
     {
         Task<bool> AlreadyHandled(PaymentRequestId paymentRequestId);

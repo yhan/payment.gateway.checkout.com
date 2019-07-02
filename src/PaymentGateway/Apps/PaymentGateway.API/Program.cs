@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace PaymentGateway.API
+namespace PaymentGateway
 {
     public class Program
     {

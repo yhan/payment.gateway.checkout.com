@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Domain;
 
-namespace PaymentGateway.API
+namespace PaymentGateway
 {
     //[ExcludeFromCodeCoverage]
     public static class ActionResultHelper

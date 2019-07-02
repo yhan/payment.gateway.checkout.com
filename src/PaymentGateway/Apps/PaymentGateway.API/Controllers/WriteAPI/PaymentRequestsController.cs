@@ -4,26 +4,23 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using PaymentGateway.API.ReadAPI;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
-using SimpleCQRS;
+using PaymentGateway.ReadAPI;
 
-namespace PaymentGateway.API.WriteAPI
+namespace PaymentGateway.WriteAPI
 {
     [Route("api/Payments")]
     [ApiController]
     public class PaymentRequestsController : ControllerBase
     {
         private readonly IEventSourcedRepository<Payment> _repository;
-        private readonly ILogger<PaymentRequestsController> _logger;
         internal PaymentRequestCommandHandler Handler;
         private readonly ExecutorType _executorType;
 
         public PaymentRequestsController(IEventSourcedRepository<Payment> repository, IOptionsMonitor<AppSettings> appSettingsAccessor, ILogger<PaymentRequestsController> logger)
         {
             _repository = repository;
-            _logger = logger;
             _executorType = appSettingsAccessor.CurrentValue.Executor;
         }
 

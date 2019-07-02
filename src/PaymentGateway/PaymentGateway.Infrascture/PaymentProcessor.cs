@@ -6,7 +6,7 @@ namespace PaymentGateway.Infrastructure
     using System.Threading.Tasks;
     using AcquiringBanks.Stub;
     using Domain;
-    using SimpleCQRS;
+
     /// <summary>
     /// Glue component which calls bank facade <see cref="IAdaptToBank"/>.
     /// Then do necessary changes in PaymentGateway's domain.
@@ -24,7 +24,7 @@ namespace PaymentGateway.Infrastructure
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
-        public async Task AttemptPaying(Domain.AcquiringBank.PayingAttempt payingAttempt)
+        public async Task AttemptPaying(PayingAttempt payingAttempt)
         {
             var bankAdapter = _bankAdapterMapper.FindBankAdapter(payingAttempt.MerchantId);
             var bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt);

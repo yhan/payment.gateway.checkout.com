@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SimpleCQRS;
+using PaymentGateway.Domain.Events;
 
 namespace PaymentGateway.Infrastructure
 {
@@ -84,9 +84,7 @@ namespace PaymentGateway.Infrastructure
         {
             await Task.CompletedTask;
 
-            ConcurrentBag<EventDescriptor> eventDescriptors;
-
-            if (!_current.TryGetValue(aggregateId, out eventDescriptors))
+            if (!_current.TryGetValue(aggregateId, out var eventDescriptors))
             {
                 throw new AggregateNotFoundException();
             }

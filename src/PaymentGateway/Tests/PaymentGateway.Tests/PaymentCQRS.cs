@@ -5,12 +5,12 @@ using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
-using PaymentGateway.API;
-using PaymentGateway.API.ReadAPI;
-using PaymentGateway.API.ReadProjector;
-using PaymentGateway.API.WriteAPI;
+using PaymentGateway;
+using PaymentGateway.ReadProjector;
+using PaymentGateway.WriteAPI;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
+using PaymentGateway.ReadAPI;
 
 namespace PaymentGateway.Tests
 {
@@ -19,13 +19,13 @@ namespace PaymentGateway.Tests
         internal PaymentsDetailsController PaymentDetailsReadController { get; }
         internal PaymentProcessor PaymentProcessor{ get; }
         public GatewayPaymentsIdsController GatewayPaymentsIdsController { get; }
-        internal InMemoryPaymentRequests PaymentRequests{ get; }
+        internal PaymentRequestsMemory PaymentRequests{ get; }
         internal PaymentReadController PaymentReadController{ get; }
         internal PaymentRequestsController RequestsController{ get; }
         public AcquiringBankPaymentsIdsController AcquiringBankPaymentsIdsController { get; set; }
 
         private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController paymentReadController,
-            PaymentsDetailsController paymentDetailsReadController, InMemoryPaymentRequests paymentRequests,
+            PaymentsDetailsController paymentDetailsReadController, PaymentRequestsMemory paymentRequests,
             PaymentProcessor paymentProcessor, GatewayPaymentsIdsController gatewayGatewayPaymentsIdsController,
             AcquiringBankPaymentsIdsController acquiringBankPaymentsIdsController)
         {
@@ -53,7 +53,7 @@ namespace PaymentGateway.Tests
 
             var readController = new PaymentReadController(eventSourcedRepository);
 
-            var paymentIdsMapping = new InMemoryPaymentRequests();
+            var paymentIdsMapping = new PaymentRequestsMemory();
 
             var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
             random.GeneratePaymentStatus().Returns(paymentStatus);

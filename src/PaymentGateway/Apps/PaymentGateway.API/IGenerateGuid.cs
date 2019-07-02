@@ -1,6 +1,6 @@
 using System;
 
-namespace PaymentGateway.API
+namespace PaymentGateway
 {
     public interface IGenerateGuid
     {

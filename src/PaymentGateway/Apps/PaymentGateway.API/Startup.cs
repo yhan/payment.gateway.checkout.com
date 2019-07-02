@@ -6,14 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using PaymentGateway.API.ReadProjector;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
-using SimpleCQRS;
+using PaymentGateway.ReadProjector;
 using Swashbuckle.AspNetCore.Swagger;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
-namespace PaymentGateway.API
+namespace PaymentGateway
 {
     public class Startup
     {
@@ -49,7 +48,7 @@ namespace PaymentGateway.API
             services.AddScoped<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
             services.AddSingleton<IEventStore, InMemoryEventStore>();
             services.AddSingleton<IPublishEvents, InMemoryBus>();
-            services.AddSingleton<IKnowAllPaymentRequests, InMemoryPaymentRequests>();
+            services.AddSingleton<IKnowAllPaymentRequests, PaymentRequestsMemory>();
             services.AddScoped<IProcessPayment, PaymentProcessor>();
 
             services.AddScoped<ISelectAdapter, BankAdapterSelector>();
@@ -57,7 +56,7 @@ namespace PaymentGateway.API
             services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
             
             services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
-            services.AddTransient<IProvideRandomBankResponseTime, NoDelayProvider>();
+            services.AddTransient<IProvideRandomBankResponseTime, RandomDelayProvider>();
 
             services.AddSingleton<IRandomnizeAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
 

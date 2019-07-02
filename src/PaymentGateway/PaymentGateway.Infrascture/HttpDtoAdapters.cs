@@ -1,9 +1,9 @@
-﻿using System;
-using PaymentGateway.Domain;
-using PaymentDetails = PaymentGateway.Domain.PaymentDetails;
-
+﻿
 namespace PaymentGateway.Infrastructure
 {
+    using System;
+    using Domain;
+
     public static class HttpDtoAdapters
     {
         public static RequestPaymentCommand AsCommand(this PaymentRequest request, Guid gateWayPaymentId)

@@ -1,8 +1,10 @@
 ﻿using System;
-using SimpleCQRS;
 
 namespace PaymentGateway.Domain.Events
 {
+    /// <summary>
+    /// Raised when acquiring bank rejects payment
+    /// </summary>
     public class PaymentRejectedByBank : Event
     {
         public PaymentStatus Status = PaymentStatus.RejectedByBank;

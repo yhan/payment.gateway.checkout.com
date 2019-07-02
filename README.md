@@ -1,9 +1,3 @@
-# Prerequisite
-1. Build  
-   Ensure that you have .NET Core 2.2 SDK installed. 
-
-   > For Visual Studio 2017 (which I am actually using) compatibility reason, please use https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-2.2.107-windows-x64-installer 
-
 
 # Assumptions
 1. **Acquiring bank**
@@ -73,7 +67,6 @@ The motivation of Hexagonal is very general, can be found for example [here](htt
 
 
 
-
 # Design
 1. Entity:  
 **Payment** represent a financial transaction achieved with the help of a bank payment card. A `Payment` can fail or succeed.
@@ -83,26 +76,112 @@ For managing:
    - unreliable network, unknown bank API availability and latency
    - burst/back pressure: i.e. if we handle `PaymentRequest` synchronously, because of network and long latency, our Gateway may suffer from high I/O waiting, the system will congested. 
 
-   I decided to handle `PaymentRequest` asynchronously. i.e. When `PaymentRequest` arrives, Gateway create immediately a `Payment` resource. The request forwarding and bank response handling are done asynchronously. HTTP status 202 Accepted along with a resource identifier in location header will be returned. Merchant can follow up the payment with the given address.
+   I decided to handle `PaymentRequest` asynchronously. i.e. When `PaymentRequest` arrives, Gateway create immediately a `Payment` resource. The request forwarding and bank response handling are done asynchronously. HTTP status 202 Accepted along with a resource identifier in location header will be returned. Merchant can follow up (polling) the payment with the given address.
+
+   > In real world, we can consider long polling, Server Sent Event or Webhooks.
 
    In real world, for the sake pragmatism, we can do more *smart* handling. i.e. We can say: if the Gateway get a response from the bank within 50 ms, it returns 201 Created with the `Payment` final status: Accepted or Rejected (by the bank); otherwise returns 202 Accepted.
 
-1. Never put Http Dto into domain and Never expose domain type to Http
+1. **Anti corruption**:
 
-1. Flat event structure (no embedded type, for easing event versioning), except for entity never changes
+  - Never put HTTP dto & external library into Domain and never expose domain type to HTTP.
+  - Always do adaptation from one world to another.
+
+1. **Event structure: flat**   
+no embedded type, for easing event versioning.
 
 1. Simulate I/O, avoid blocking thread pool thread waiting for I/O
 
 1. Anti Corruption  
 Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate, do mapping instead
 
-# API
-1. Ids  
+# Public API
 
-1. Typical API using scenarios:
+1. **Request a payment**:  
+  - **POST api/Payments**
+     Endpoint to send payment request.  
+     
+     Request example:  
+     ```json
+     {
+        "requestId": "ccd8af8e-5a27-40dc-93c5-f19e78984391",
+        "merchantId": "2d0ae468-7ac9-48f4-be3f-73628de3600e",
+        "card":{
+            "number": "4524 4587 5698 1200",
+            "Expiry": "05/19",
+            "Cvv": "321"
+        },
+        "amount": {
+            "currency": "EUR",
+            "amount": 42.66
+        }
+    }
+    ```
+   
+    Response example:  
+    1. 202 Accepted
+    ```json
+    {
+       "gatewayPaymentId": "41b49021-98a2-41cf-80dc-6f87382322f8",
+       "acquiringBankPaymentId": null,
+       "status": "Pending",
+       "requestId": "ccd8af8e-5a27-40dc-93c5-f19e78984391",
+       "approved": null
+    }
+    ```
+       and with the header location.
+
+    2. 404 Bad request with the invalidity details, if the request is invalid
+    ```json
+    {
+       "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+       "title": "Invalid request",
+       "status": 400,
+       "detail": "Invalid card CVV"
+    }
+    ```
+
+1. **Get payment and payment details**:  
+
+   - **GET api/Payments/{gateWayPaymentId}**  
+     Endpoint to retrieving payment status. Write controller redirect to this controller (why? Cf. [Command handling asynchrony](#Design)).  
+     Response example:
+     ```json
+     {
+       "gatewayPaymentId": "41b49021-98a2-41cf-80dc-6f87382322f8",
+       "acquiringBankPaymentId": "0bfa5d5b-8742-459f-94c9-484d61ad6093",
+       "status": "RejectedByBank",
+       "requestId": "ccd8af8e-5a27-40dc-93c5-f19e78984391",
+       "approved": false
+     } 
+     ```
+
+   -  **GET api/PaymentsDetails/{acquiringBankPaymentId}**  
+      Endpoint to retrieving payment details
+
+      Response example:
+      ```json
+      {
+        "status": "RejectedByBank",
+        "acquiringBankPaymentId": "0bfa5d5b-8742-459f-94c9-484d61ad6093",
+        "card":{
+        "number": "4524 XXXX XXXX XXXX",
+        "expiry": "05/19",
+        "cvv": "321"
+        },
+        "approved": false
+      }
+      ```
+
+1. **Ids**: three types of ids
+   - **Payment request id**: Payment unique identifier from merchants. Is part of payment request payload. Cf. C# struct `PaymentRequestId`. In real world, each `Merchant` will send their own format of request unique identifier. We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
+
+   - **Gateway payment id**: Unique identifier of payment in Gateway internal system, Cf. C# struct `Domain.GatewayPaymentId`. 
+
+   - **Acquiring bank payment id**: Unique identifier returned from acquiring banks, Cf C# struct `Domain.AcquiringBankPaymentId`. In real world, each `Acquiring bank` will send their own unique identifer.  We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
+
 
 # SLA
-
 1. A `PaymentRequestId` will be handled once and only once.
 
 # Tradeoff
@@ -111,11 +190,23 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
 
    1. Reject duplicated  `PaymentRequest`.
 
-# TODO
+   I chose the 2nd.
 
-1. Check `BankPaymentId` in tests when bank replies
-1. Alls async, I/O should add timeout cancellation
+# Performance
+When IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.
 
+To run performance tests:
+1. Goto API csproj folder  
+1. Run: 
+    ```
+    Dotnet publish -c Release -r win10-x64
+    ```
+1. Run the tests in `PaymentGateway.Write.PerformanceTests` and `PaymentGateway.Read.PerformanceTests`
+
+# Prerequisite for building the solution in Visual Studio
+   Ensure that you have .NET Core 2.2 SDK installed. 
+
+   > For Visual Studio 2017 (which I am actually using) compatibility reason, please use https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-2.2.107-windows-x64-installer 
 
 # Improvements
 
@@ -126,7 +217,9 @@ Hereunder some improvements should be definitely done:
    In real world we should do authentication negotiation to let Gateway to know which `Merchant` I am dialoguing. This can be achieved as follows:  
 
     1. When we onboard a `Merchant`, we distribute a `secret` in a very safe manner to `Merchant`. 
-    1. In all exchanges between `Merchant` to `Gateway`, the secret should be included in HTTP header '' 
+    1. In all exchanges between `Merchant` to `Gateway`, the secret key should be included in HTTP header 'Authorization' 
+
+1. Alls simulated async, I/O should add timeout cancellation
 
 # Go further
 1. Retrieving a payment’s details API
@@ -140,11 +233,14 @@ Hereunder some improvements should be definitely done:
 
    For achieving query for a time window, I should add payment timestamp to both my `Events` and `Read models`.
 
-1. Require `PaymentRequest` smart batching ([here by Martin Thompson](https://github.com/real-logic/aeron/wiki/Design-Principles) or [here](https://blog.scooletz.com/2018/01/22/the-batch-is-dead-long-live-the-smart-batch/))
+1. Require `PaymentRequest` Smart Batching ([here by Martin Thompson](https://github.com/real-logic/aeron/wiki/Design-Principles) or [here](https://blog.scooletz.com/2018/01/22/the-batch-is-dead-long-live-the-smart-batch/))
 
-TODO develop the idea
+   The motivations are:
+   - Maybe for a merchant, say Amazon, the receives 50,000 payment requests per second from shopper. Batching 5000 requests is an option, because shopper doesn't care about 1s of delay.
+   - For our Gateway, we will have less resources to consume, thus improve the performance. 
+
+   > A combination of time window and number of requests can be used to size the Smart Batching.
    
+# Open source used:
+The event sourcing infrastructure is borrowed from [Greg Young's git repository](https://github.com/gregoryyoung/m-r)
 
-## Publish
-1. goto API csproj folder  
-1. dotnet publish -c Release -r win10-x64

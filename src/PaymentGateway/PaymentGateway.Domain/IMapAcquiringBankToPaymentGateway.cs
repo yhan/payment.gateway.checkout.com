@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PaymentGateway.Domain
@@ -16,18 +15,5 @@ namespace PaymentGateway.Domain
         Task<ICollection<GatewayPaymentId>> AllGatewayPaymentsIds();
 
         Task<ICollection<AcquiringBankPaymentId>> AllAcquiringBankPaymentsIds();
-    }
-
-
-    public struct PaymentIds
-    {
-        public Guid BankPaymentId { get; }
-        public Guid GatewayPaymentId { get; }
-
-        public PaymentIds(Guid bankPaymentId, Guid gatewayPaymentId)
-        {
-            BankPaymentId = bankPaymentId;
-            GatewayPaymentId = gatewayPaymentId;
-        }
     }
 }
