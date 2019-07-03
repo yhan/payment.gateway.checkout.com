@@ -214,9 +214,10 @@ For sake of simplicity of the exercise, I used InMemory for:
 For a Payment Gateway, what is important is:
 - High availability
 - Throughput
+- Low latency
 - Scalability
 
-I have done in solution some throughput test, when IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.  
+I have done in solution some throughput and latency tests, when IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.  
 
 For read payments, 93100 parallel requests seem to be the limit of the system. We can configure proper max limit parallel calls to kestrel.  
 ```csharp
