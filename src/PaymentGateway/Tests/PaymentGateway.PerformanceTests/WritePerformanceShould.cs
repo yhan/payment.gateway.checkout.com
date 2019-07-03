@@ -32,7 +32,7 @@ namespace PaymentGateway.Write.PerformanceTests
 
                 Console.WriteLine($"client {index}");
 
-                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon);
+                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon);
                 var content = new StringContent(JsonConvert.SerializeObject(paymentRequest));
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -75,7 +75,7 @@ namespace PaymentGateway.Write.PerformanceTests
 
             var posts = clients.Select(c =>
             {
-                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon);
+                var paymentRequest = TestsUtils.BuildPaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon);
                 var content = new StringContent(JsonConvert.SerializeObject(paymentRequest));
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 

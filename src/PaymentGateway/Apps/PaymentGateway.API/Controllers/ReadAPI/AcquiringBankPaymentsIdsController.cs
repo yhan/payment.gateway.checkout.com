@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Domain;
+using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.ReadAPI
 {
@@ -27,6 +28,24 @@ namespace PaymentGateway.ReadAPI
         {
             var gatewayPaymentIds = await _paymentsIdsRepository.AllAcquiringBankPaymentsIds();
             return gatewayPaymentIds.Select(x => x.Value);
+        }
+    }
+
+    [Route("api/Merchants")]
+    [ApiController]
+    public class MerchantsController : ControllerBase
+    {
+        private readonly IKnowAllMerchants _merchantsRepository;
+
+        public MerchantsController(IKnowAllMerchants merchantsRepository)
+        {
+            _merchantsRepository = merchantsRepository;
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<MerchantDto>> GetAllMerchants()
+        {
+            return (await _merchantsRepository.GetAllMerchants()).AsDto();
         }
     }
 }

@@ -1,0 +1,280 @@
+{
+  "front-version": "2.19.2",
+  "version": 3,
+  "nodes": [
+    {
+      "type": "Request",
+      "method": {
+        "link": "http://tools.ietf.org/html/rfc7231#section-4.3.1",
+        "name": "GET"
+      },
+      "body": {
+        "formBody": {
+          "overrideContentType": true,
+          "encoding": "application/x-www-form-urlencoded",
+          "items": []
+        },
+        "bodyType": "Text",
+        "autoSetLength": true
+      },
+      "headersType": "Form",
+      "uri": {
+        "query": {
+          "delimiter": "&",
+          "items": []
+        },
+        "scheme": {
+          "secure": true,
+          "name": "https",
+          "version": "V11"
+        },
+        "host": "localhost:5001",
+        "path": "/api/AcquiringBankPaymentsIds"
+      },
+      "id": "71bc869a-66f1-4566-ac9b-b662e4543bde",
+      "lastModified": "2019-07-01T00:44:57.864+02:00",
+      "name": "GET AcquiringBankPaymentsIds",
+      "headers": [],
+      "metaInfo": {
+        "ownerId": "github|760399"
+      }
+    },
+    {
+      "type": "Request",
+      "method": {
+        "link": "http://tools.ietf.org/html/rfc7231#section-4.3.1",
+        "name": "GET"
+      },
+      "body": {
+        "formBody": {
+          "overrideContentType": true,
+          "encoding": "application/x-www-form-urlencoded",
+          "items": []
+        },
+        "bodyType": "Text",
+        "autoSetLength": true
+      },
+      "headersType": "Form",
+      "uri": {
+        "query": {
+          "delimiter": "&",
+          "items": []
+        },
+        "scheme": {
+          "secure": true,
+          "name": "https",
+          "version": "V11"
+        },
+        "host": "localhost:5001",
+        "path": "/api/Merchants"
+      },
+      "id": "3d9ce789-d8c0-40db-ad44-505c707222ca",
+      "lastModified": "2019-07-03T23:31:13.211+02:00",
+      "name": "GET Merchants",
+      "headers": [],
+      "metaInfo": {
+        "ownerId": "github|760399"
+      }
+    },
+    {
+      "uriEditor": true,
+      "type": "Request",
+      "method": {
+        "link": "http://tools.ietf.org/html/rfc7231#section-4.3.1",
+        "name": "GET"
+      },
+      "body": {
+        "formBody": {
+          "overrideContentType": true,
+          "encoding": "application/x-www-form-urlencoded",
+          "items": []
+        },
+        "bodyType": "Text",
+        "autoSetLength": true,
+        "textBody": "{\"FullName\":\"John Smith\",\"CardNumber\":\"4524 4587 5698 1200\",\"Expiry\":\"05/19\",\"Money\":{\"Currency\":\"EUR\",\"Amount\":42.66},\"Cvv\":\"321\"}"
+      },
+      "headersType": "Form",
+      "uri": {
+        "query": {
+          "delimiter": "&",
+          "items": []
+        },
+        "scheme": {
+          "secure": true,
+          "name": "https",
+          "version": "V11"
+        },
+        "host": "localhost:5001",
+        "path": "/api/Payments/10e0e570-5f68-40bb-82c3-755bec4fb023"
+      },
+      "id": "52da2b4e-0572-47d5-a533-ee2c88df085e",
+      "lastModified": "2019-07-03T08:35:03.695+02:00",
+      "name": "GET Payment",
+      "headers": [
+        {
+          "enabled": true,
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaInfo": {
+        "ownerId": "github|760399"
+      }
+    },
+    {
+      "type": "Request",
+      "method": {
+        "link": "http://tools.ietf.org/html/rfc7231#section-4.3.1",
+        "name": "GET"
+      },
+      "uri": {
+        "query": {
+          "delimiter": "&",
+          "items": []
+        },
+        "scheme": {
+          "secure": true,
+          "name": "https",
+          "version": "V11"
+        },
+        "host": "localhost:5001",
+        "path": "/api/PaymentsDetails/4431992c-2e17-4b88-a384-3aeacbe8f7fa"
+      },
+      "id": "36d4fe4d-03a6-4011-8f89-ce5f82ccf0ac",
+      "lastModified": "2019-07-03T08:35:25.963+02:00",
+      "name": "GET PaymentDetails",
+      "metaInfo": {
+        "ownerId": "github|760399"
+      }
+    },
+    {
+      "type": "Request",
+      "method": {
+        "link": "http://tools.ietf.org/html/rfc7231#section-4.3.1",
+        "name": "GET"
+      },
+      "body": {
+        "formBody": {
+          "overrideContentType": true,
+          "encoding": "application/x-www-form-urlencoded",
+          "items": []
+        },
+        "bodyType": "Text",
+        "autoSetLength": true
+      },
+      "headersType": "Form",
+      "uri": {
+        "query": {
+          "delimiter": "&",
+          "items": []
+        },
+        "scheme": {
+          "secure": true,
+          "name": "https",
+          "version": "V11"
+        },
+        "host": "localhost:5001",
+        "path": "/api/GatewayPaymentsIds"
+      },
+      "id": "6aeaf1ae-3c5f-446f-a70d-6854e02c8161",
+      "lastModified": "2019-07-01T00:09:53.015+02:00",
+      "name": "GET gatewayPaymentsIds",
+      "headers": [],
+      "metaInfo": {
+        "ownerId": "github|760399"
+      }
+    },
+    {
+      "uriEditor": true,
+      "type": "Request",
+      "method": {
+        "requestBody": true,
+        "link": "http://tools.ietf.org/html/rfc7231#section-4.3.3",
+        "name": "POST"
+      },
+      "body": {
+        "formBody": {
+          "overrideContentType": true,
+          "encoding": "application/x-www-form-urlencoded",
+          "items": []
+        },
+        "bodyType": "Text",
+        "autoSetLength": true,
+        "textBody": "{\n  \"RequestId\": \"eed8af8e-5a27-40dc-93c5-f19e78984391\",\n  \"MerchantId\": \"2d3ae468-7ac9-48f4-be3f-73628de3600e\",\n  \"card\":{\n    \"number\": \"4524 4587 5698 1200\",\n    \"Expiry\": \"05/19\",\n      \"Cvv\": \"321\"\n  },\n  \n  \"Amount\": {\n    \"Currency\": \"EUR\",\n    \"Value\": 42.66\n  }\n}"
+      },
+      "headersType": "Form",
+      "uri": {
+        "query": {
+          "delimiter": "&",
+          "items": []
+        },
+        "scheme": {
+          "secure": true,
+          "name": "https",
+          "version": "V11"
+        },
+        "host": "localhost:5001",
+        "path": "/api/Payments"
+      },
+      "id": "abb61b2a-e998-40d8-bbda-e7310d60a08e",
+      "lastModified": "2019-07-03T23:45:00.582+02:00",
+      "name": "Malformated POST RequestPayment",
+      "headers": [
+        {
+          "enabled": true,
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaInfo": {
+        "ownerId": "github|760399"
+      }
+    },
+    {
+      "uriEditor": true,
+      "type": "Request",
+      "method": {
+        "requestBody": true,
+        "link": "http://tools.ietf.org/html/rfc7231#section-4.3.3",
+        "name": "POST"
+      },
+      "body": {
+        "formBody": {
+          "overrideContentType": true,
+          "encoding": "application/x-www-form-urlencoded",
+          "items": []
+        },
+        "bodyType": "Text",
+        "autoSetLength": true,
+        "textBody": "{\n  \"RequestId\": \"bdb6ece9-bf50-4733-9eff-f1b2ca9c9dcc\",\n  \"MerchantId\": \"2d0ae468-7ac9-48f4-be3f-73628de3600e\",\n  \"card\":{\n    \"number\": \"4524 4587 5698 1200\",\n    \"Expiry\": \"05/19\",\n      \"Cvv\": \"321\"\n  },\n  \n  \"Amount\": {\n    \"Currency\": \"EUR\",\n    \"value\": 42.66\n  }\n}"
+      },
+      "headersType": "Form",
+      "uri": {
+        "query": {
+          "delimiter": "&",
+          "items": []
+        },
+        "scheme": {
+          "secure": true,
+          "name": "https",
+          "version": "V11"
+        },
+        "host": "localhost:5001",
+        "path": "/api/Payments"
+      },
+      "id": "6c4ea605-0665-44cb-8a7b-12fac20674b0",
+      "lastModified": "2019-07-03T23:47:52.891+02:00",
+      "name": "POST RequestPayment",
+      "headers": [
+        {
+          "enabled": true,
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaInfo": {
+        "ownerId": "github|760399"
+      }
+    }
+  ]
+}

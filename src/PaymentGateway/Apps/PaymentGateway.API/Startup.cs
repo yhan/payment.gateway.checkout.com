@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Domain;
@@ -66,6 +67,7 @@ namespace PaymentGateway
             // Acquiring bank related
             services.AddScoped<ISelectAdapter, BankAdapterSelector>();
             services.AddScoped<IMapMerchantToBankAdapter, MerchantToBankAdapterMapper>();
+            services.AddSingleton<IKnowAllMerchants, MerchantsRepository>();
             services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
             services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
             services.AddTransient<IProvideBankResponseTime, DelayProvider>();

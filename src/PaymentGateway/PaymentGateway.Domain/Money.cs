@@ -18,7 +18,7 @@ namespace PaymentGateway.Domain
             invalidReason = null;
             if (Value <= 0)
             {
-                invalidReason = "Amount should greater than 0";
+                invalidReason = "Amount should be greater than 0";
                 return false;
             }
             if(Currency == null || !Regex.IsMatch(Currency, "[A-Z]{3}"))

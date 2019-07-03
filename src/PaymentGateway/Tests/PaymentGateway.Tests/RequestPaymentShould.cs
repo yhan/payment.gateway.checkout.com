@@ -21,7 +21,7 @@ namespace PaymentGateway.Tests
         public async Task Create_payment_When_handling_PaymentRequest()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Apple);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Apple);
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -37,7 +37,7 @@ namespace PaymentGateway.Tests
         public async Task Not_handle_a_PaymentRequest_more_than_once()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
 
             var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior());
 
@@ -58,7 +58,7 @@ namespace PaymentGateway.Tests
         public async Task Return_proper_payment_status_When_AcquiringBank_accepts_or_reject_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Apple);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Apple);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -80,7 +80,7 @@ namespace PaymentGateway.Tests
         public async Task Return_PaymentFaulted_When_AcquiringBank_rejects_payment()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -103,7 +103,7 @@ namespace PaymentGateway.Tests
         public async Task Return_proper_payment_status_When_Connect_to_bank_fails_twice_then_connected_AND_AcquiringBank_accepts_or_reject_payment(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -125,7 +125,7 @@ namespace PaymentGateway.Tests
         public async Task Return_BankUnavailable_When_connection_to_bank_is_broken()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Apple);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Apple);
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -208,10 +208,10 @@ namespace PaymentGateway.Tests
 
                 yield return new TestCaseData(new PaymentRequest(requestId: Guid.Empty, merchantId: Guid.NewGuid(), amount: validMoney, card: validCard), "Invalid Request id missing");
                 yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: Guid.Empty, amount: validMoney, card: validCard), "Merchant id missing");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: null, card: validCard), "Amount missing");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: validMoney, card: null), "Card info missing");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: new Money("helloworld", 42), card: validCard), "Currency is absent or not correctly formatted");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: MerchantToBankAdapterMapper.Amazon, amount: new Money("USD", -42), card: validCard), "Amount should greater than 0");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon, amount: null, card: validCard), "Amount missing");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon, amount: validMoney, card: null), "Card info missing");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon, amount: new Money("helloworld", 42), card: validCard), "Currency is absent or not correctly formatted");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: MerchantsRepository.Amazon, amount: new Money("USD", -42), card: validCard), "Amount should be greater than 0");
                 yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: systemNotAwareOfThisMerchant, amount: new Money("USD", 42), card: validCard), $"Merchant {systemNotAwareOfThisMerchant} has not been onboarded");
             }
         }

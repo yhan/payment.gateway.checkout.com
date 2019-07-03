@@ -1,4 +1,7 @@
 ﻿
+using System.Collections.Generic;
+using System.Linq;
+
 namespace PaymentGateway.Infrastructure
 {
     using System;
@@ -20,6 +23,11 @@ namespace PaymentGateway.Infrastructure
         public static PaymentDetailsDto AsDto(this PaymentDetails paymentDetails)
         {
             return new PaymentDetailsDto(paymentDetails.BankPaymentId?.Value, new Infrastructure.Card(paymentDetails.Card.Number, paymentDetails.Card.Expiry, paymentDetails.Card.Cvv),  paymentDetails.Status);
+        }
+
+        public static IEnumerable<MerchantDto> AsDto(this IEnumerable<Merchant> merchants)
+        {
+            return merchants.Select(x => new MerchantDto(x.Id, x.Name));
         }
     }
 }

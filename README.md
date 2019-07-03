@@ -111,14 +111,19 @@ For sake of simplicity of the exercise, I used InMemory for:
 
    > For read models: choose suitable SQL or NoSql storage.
 
-   
-# Public API
+
+# API
+> *If you use [Restlet Client](https://chrome.google.com/webstore/detail/restlet-client-rest-api-t/aejoelaoggembcahagimdiliamlcdmfm?hl=en), you can import payment-gateway-apis.json (in the root folder), to view all APIs with examples. Otherwise, please use provided swagger.*
+
+## Public API
 
 1. **Request a payment**:  
   - **POST api/Payments**
      Endpoint to send payment request.  
      
      Request example:  
+     > How to get a onboarded Merchant id? Cf. [Private API](#private-api)
+
      ```json
      {
         "requestId": "ccd8af8e-5a27-40dc-93c5-f19e78984391",
@@ -130,11 +135,12 @@ For sake of simplicity of the exercise, I used InMemory for:
         },
         "amount": {
             "currency": "EUR",
-            "amount": 42.66
+            "value": 42.66
         }
     }
     ```
    
+
     Response example:  
     1. 202 Accepted
     ```json
@@ -172,6 +178,7 @@ For sake of simplicity of the exercise, I used InMemory for:
        "approved": false
      } 
      ```
+     > `acquiringBankPaymentId` should be used for further querying payment details. See below.
 
    -  **GET api/PaymentsDetails/{acquiringBankPaymentId}**  
       Endpoint to retrieving payment details
@@ -197,6 +204,45 @@ For sake of simplicity of the exercise, I used InMemory for:
    - **Gateway payment id**: Unique identifier of payment in Gateway internal system, Cf. C# struct `Domain.GatewayPaymentId`. 
 
    - **Acquiring bank payment id**: Unique identifier returned from acquiring banks, Cf C# struct `Domain.AcquiringBankPaymentId`. In real world, each `Acquiring bank` will send their own unique identifer.  We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
+
+## Private API 
+For you code reviewer's convenience, some private endpoints are exposed. They are
+
+1. **GET api/Merchants**
+   Return all merchants. The **merchant id** will be useful when you construct you `PaymentRequest`.
+
+   Response example:
+   ```json
+   [
+      {
+         "id": "2d0ae468-7ac9-48f4-be3f-73628de3600e",
+         "name": "Amazon"
+      },
+      {
+         "id": "06c6116f-1d4e-44d3-ae9f-8df90f991a52",
+         "name": "Apple"
+      }
+   ]
+   ```
+1. **GET api/AcquiringBankPaymentsIds**  
+   Returns all Acquiring banks' payment ids
+     Response example:
+   ```json
+   [
+     "593b4d51-8e5c-4ecc-a2b8-1946c9048275",
+     "027f704c-531d-4bd7-bfda-09817926db49"
+   ]
+   ```
+1. **GET api/GatewayPaymentsIds**
+
+   Returns all Acquiring banks' payment ids
+   Response example:
+   ```json
+   [
+     "b541bda3-a0da-46f4-b51a-5d3673c0fd93",
+     "63bcff37-364a-4f83-904a-2b9a339d2e4f"
+   ]
+   ```
 
 
 # SLA
@@ -315,4 +361,19 @@ Hereunder some improvements should be definitely done:
    
 # Open source used:
 The event sourcing infrastructure is borrowed from [Greg Young's git repository](https://github.com/gregoryyoung/m-r)
+
+
+# TODO
+
+
+
+Test 
+- ~~invalid request~~
+- ~~bank if not found~~
+- ~~when bank id not found request id not cached~~
+- change expiry to {year, month}
+
+Add
+- cacellation and timeout 
+- new endpoint Merchants
 

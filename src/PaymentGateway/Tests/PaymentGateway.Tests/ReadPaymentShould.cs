@@ -31,7 +31,7 @@ namespace PaymentGateway.Tests
         )
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest =  new PaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon,  new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card("4524 4587 5698 1200", "05/19", "321"));
+            var paymentRequest =  new PaymentRequest(requestId, MerchantsRepository.Amazon,  new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card("4524 4587 5698 1200", "05/19", "321"));
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);

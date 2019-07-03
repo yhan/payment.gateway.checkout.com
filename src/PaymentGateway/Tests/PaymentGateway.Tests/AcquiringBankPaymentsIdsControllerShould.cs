@@ -15,7 +15,7 @@ namespace PaymentGateway.Tests
         public async Task Return_all_payments_s_AcquiringBankId()
         {
             var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantToBankAdapterMapper.Amazon);
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid gatewayPaymentIdGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
