@@ -257,6 +257,8 @@ To run performance tests:
 Further: If I have more time, I will also test:
 - Endurance / Soak testing
 - Test individual components: currently my Read Projector is not performance tested
+- Test components hosted in cluster
+
 
 # Unit and Acceptance tests
 The coding is entirely test driven.  
