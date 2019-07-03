@@ -224,10 +224,16 @@ I have done in solution:
   1. large number clients launched in parallel requesting payments
   1. large number of clients, plus large number of payment details, do parallel query on combination of the two.
 
+> In real world, above testing need fit realistic production scenario.
 
 when IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.  
 
-For read payments, 93100 parallel requests seem to be the limit of the system. We can configure proper max limit parallel calls to kestrel.  
+For read payments, 93100 parallel requests seem to be the limit of the system. We can configure proper max limit parallel calls to kestrel. 
+
+Nevertheless, under burst situation
+- API does not crash
+- When clients disconnected by rejection of connection, other read/write operation continue to work well
+
 ```csharp
  .ConfigureKestrel((context, options) =>
    {
@@ -238,6 +244,8 @@ For read payments, 93100 parallel requests seem to be the limit of the system. W
 For performance consideration, all coming requests thread is offloaded to thread pool threads.  
 To resist burst, we can add `requestTimeout` to kestrel configuration. We can also scale the server instances using Kubernetes cluster or Swarm cluster. This can help for achieving high availability. 
 
+> Memory consumption is due to in memory cache in my system. In real world, specific caching might be considered, when unacceptable latency is caused by no-caching. 
+
 To run performance tests:
    1. Goto API csproj folder  
    1. Run: 
@@ -247,7 +255,8 @@ To run performance tests:
    1. Run the tests in `PaymentGateway.Write.PerformanceTests` and `PaymentGateway.Read.PerformanceTests`
 
 Further: If I have more time, I will also test:
-- 
+- Endurance / Soak testing
+- Test individual components: currently my Read Projector is not performance tested
 
 # Unit and Acceptance tests
 The coding is entirely test driven.  
@@ -287,12 +296,12 @@ Hereunder some improvements should be definitely done:
 
    In real world, we may consider adding:
    1. Query for a time window
-   1. Query pagination
+   1. Query pagination (consider if unbounded queries are allowed, deal with manageable chunks)
    1. Other filters
 
    For achieving query for a time window, I should add payment timestamp to both my `Events` and `Read models`.
 
-1. Require `PaymentRequest` Smart Batching ([here by Martin Thompson](https://github.com/real-logic/aeron/wiki/Design-Principles) or [here](https://blog.scooletz.com/2018/01/22/the-batch-is-dead-long-live-the-smart-batch/))
+1. Require `PaymentRequest` Smart Batching [here](https://blog.scooletz.com/2018/01/22/the-batch-is-dead-long-live-the-smart-batch/))
 
    The motivations are:
    - Maybe for a merchant, say Amazon, the receives 50,000 payment requests per second from shopper. Batching 5000 requests is an option, because shopper doesn't care about 1s of delay.
