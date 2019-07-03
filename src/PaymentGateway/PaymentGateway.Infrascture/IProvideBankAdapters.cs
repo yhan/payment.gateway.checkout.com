@@ -4,14 +4,6 @@ using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
 {
-    /// <summary>
-    /// Deduce bank adapter from merchant's id
-    /// </summary>
-    public interface IMapMerchantToBankAdapter
-    {
-        IAdaptToBank FindBankAdapter(Guid merchantId);
-    }
-
     /// <inheritdoc cref="IMapAcquiringBankToPaymentGateway"/>
     public class MerchantToBankAdapterMapper : IMapMerchantToBankAdapter
     {
@@ -51,13 +43,5 @@ namespace PaymentGateway.Infrastructure
     {
         SocieteGenerale,
         BNP
-    }
-
-    public class BankOnboardMissingException : Exception
-    {
-        public BankOnboardMissingException(Guid merchantId): base($"Merchant {merchantId} has not been onboarded")
-        {
-            
-        }
     }
 }

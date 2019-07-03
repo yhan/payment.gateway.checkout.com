@@ -49,19 +49,20 @@ namespace PaymentGateway.Tests
             var appSettingsAccessor = Substitute.For<IOptionsMonitor<AppSettings>>();
             appSettingsAccessor.CurrentValue.Returns(new AppSettings {Executor = ExecutorType.Tests});
 
-            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor, NullLogger<PaymentRequestsController>.Instance);
+            var random = Substitute.For<IGenerateAcquiringBankPaymentStatus>();
+            random.GeneratePaymentStatus().Returns(paymentStatus);
+
+            var paymentsIdsMemory = new PaymentIdsMemory();
+            var bankAdapterSelector = new BankAdapterSelector(random, bankPaymentIdGenerator, new DelayProviderForTesting(), bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance);
+            var merchantToBankAdapterMapper = new MerchantToBankAdapterMapper(bankAdapterSelector);
+            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor, merchantToBankAdapterMapper, NullLogger<PaymentRequestsController>.Instance);
 
             var readController = new PaymentReadController(eventSourcedRepository);
 
             var paymentIdsMapping = new PaymentRequestsMemory();
 
-            var random = Substitute.For<IGenerateAcquiringBankPaymentStatus>();
-            random.GeneratePaymentStatus().Returns(paymentStatus);
 
-            var paymentsIdsMemory = new PaymentIdsMemory();
-
-
-            var mediator = new PaymentProcessor(new MerchantToBankAdapterMapper(new BankAdapterSelector(random, bankPaymentIdGenerator, new DelayProviderForTesting(), bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance)), eventSourcedRepository, gatewayExceptionSimulator);
+            var mediator = new PaymentProcessor(merchantToBankAdapterMapper, eventSourcedRepository, gatewayExceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();
             var paymentDetailsReadController = new PaymentsDetailsController(paymentsIdsMemory, paymentDetailsRepository);

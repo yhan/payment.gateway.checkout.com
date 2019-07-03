@@ -15,12 +15,17 @@ namespace PaymentGateway.WriteAPI
     public class PaymentRequestsController : ControllerBase
     {
         private readonly IEventSourcedRepository<Payment> _repository;
+        private readonly IMapMerchantToBankAdapter _merchantToBankAdapterMapper;
         internal PaymentRequestCommandHandler Handler;
         private readonly ExecutorType _executorType;
 
-        public PaymentRequestsController(IEventSourcedRepository<Payment> repository, IOptionsMonitor<AppSettings> appSettingsAccessor, ILogger<PaymentRequestsController> logger)
+        public PaymentRequestsController(IEventSourcedRepository<Payment> repository,
+            IOptionsMonitor<AppSettings> appSettingsAccessor,
+            IMapMerchantToBankAdapter merchantToBankAdapterMapper,
+            ILogger<PaymentRequestsController> logger)
         {
             _repository = repository;
+            _merchantToBankAdapterMapper = merchantToBankAdapterMapper;
             _executorType = appSettingsAccessor.CurrentValue.Executor;
         }
 
@@ -28,7 +33,7 @@ namespace PaymentGateway.WriteAPI
         public async Task<IActionResult> ProceedPaymentRequest([FromBody]PaymentRequest paymentRequest, 
             [FromServices]IGenerateGuid gatewayPaymentIdGenerator,
             [FromServices]IKnowAllPaymentRequests paymentRequests,
-            [FromServices]IProcessPayment acquiringBank)
+            [FromServices]IProcessPayment paymentProcessor)
         {
             if (ReturnBadRequestWhenReceivedInvalidPaymentRequest(paymentRequest, out var actionResult))
             {
@@ -37,7 +42,7 @@ namespace PaymentGateway.WriteAPI
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
 
-            Handler = new PaymentRequestCommandHandler(_repository, paymentRequests, acquiringBank, _executorType == ExecutorType.API ? true : false);
+            Handler = new PaymentRequestCommandHandler(_repository, paymentRequests, paymentProcessor, _merchantToBankAdapterMapper, _executorType == ExecutorType.API ? true : false);
             var commandResult = await Handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
             switch (commandResult)
             {

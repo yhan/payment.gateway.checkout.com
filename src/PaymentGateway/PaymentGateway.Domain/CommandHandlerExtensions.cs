@@ -16,5 +16,11 @@ namespace PaymentGateway.Domain
         {
             return new InvalidCommandResult(commandId, reason);
         }
+
+        public static ICommandResult Failure<TCommand>(this ICommandHandler<TCommand> handler, string reason)
+            where TCommand : Command
+        {
+            return new FailureCommandResult(reason);
+        }
     }
 }

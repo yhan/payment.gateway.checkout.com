@@ -21,9 +21,8 @@ namespace PaymentGateway.Infrastructure
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
-        public async Task AttemptPaying(PayingAttempt payingAttempt)
+        public async Task AttemptPaying(IAdaptToBank bankAdapter, PayingAttempt payingAttempt)
         {
-            var bankAdapter = _bankAdapterMapper.FindBankAdapter(payingAttempt.MerchantId);
             var bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt);
 
             IHandleBankResponseStrategy strategy = Build(bankResponse, _paymentsRepository);
