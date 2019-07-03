@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
@@ -14,6 +15,41 @@ using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Tests
 {
+    public class PaymentRequestValidationShould
+    {
+
+        [Test, Combinatorial]
+        public void Detect_malformatted_PaymentRequest(
+            [Values("456A 4589 1052 4568", "4560 ???9 1052 4568", "45601199 1052 4568", "45601199 1052 4568 ")]string cardNumber,
+            [Values("05/19", "13/12", "112", "aaa", "aa/ba")]string expiry, 
+            [Values( "a45", "789456123")]string cvv, 
+            [Values( "EU", "USDUSD")]string currency, 
+            [Values( -42, 0)]double value)
+        {
+            var card = new Infrastructure.Card(cardNumber, expiry, cvv);
+            var paymentRequest = new PaymentGateway.Infrastructure.PaymentRequest(Guid.Empty, Guid.Empty, amount: new Money(currency, value), card: card);
+            var validationResults = paymentRequest.Validate(null);
+
+            Check.That(validationResults.Select(x =>x.ErrorMessage))
+                .IsOnlyMadeOf("Request id missing", 
+                    "Merchant id missing", 
+                    "Invalid card number", 
+                    "Invalid card CVV", 
+                    "Invalid card expiry",
+                    "Amount should be greater than 0", 
+                    "Currency is absent or not correctly formatted");
+        }
+
+        [Test]
+        public void Consider_as_valid_paymentRequest()
+        {
+            var card = new Infrastructure.Card("4564 4589 1052 4568", "05/22", "123");
+            var paymentRequest = new PaymentGateway.Infrastructure.PaymentRequest(Guid.NewGuid(), Guid.NewGuid(), amount: new Money("EUR", 42), card: card);
+            var validationResults = paymentRequest.Validate(null);
+            Check.That(validationResults).IsEmpty();
+        }
+    }
+
     [TestFixture]
     public class RequestPaymentShould
     {
@@ -142,47 +178,15 @@ namespace PaymentGateway.Tests
         }
 
 
-        [TestCase("456A 4589 1052 4568")]
-        [TestCase("4560 ???9 1052 4568")]
-        [TestCase("45601199 1052 4568")]
-        [TestCase("45601199 1052 4568 ")]
-        public async Task Return_BadRequest_When_invalid_card_number_is_received(string invalidCardNumber)
+        [Test]
+        public async Task Return_BadRequest_When_PaymenRequest_Contains_a_merchant_not_onboarded_yet()
         {
-            var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildInvalidCardNumberPaymentRequest(requestId, invalidCardNumber);
-            var gatewayPaymentId = Guid.NewGuid();
-            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+            var validCard = new Infrastructure.Card("1234 5623 5489 1004", "05/19", "123");
+            var systemNotAwareOfThisMerchant = Guid.NewGuid();
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
-            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
+            var invalidRequest = new PaymentRequest(Guid.NewGuid(), merchantId: systemNotAwareOfThisMerchant,
+                amount: new Money("USD", 42), card: validCard);
 
-            Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
-            var badRequest = (BadRequestObjectResult)actionResult;
-            var failDetail = (ProblemDetails)badRequest.Value;
-            Check.That(failDetail.Detail).IsEqualTo("Invalid card number");
-        }
-
-        [TestCase("a45")]
-        public async Task Return_BadRequest_When_invalid_card_cvv_is_received(string invalidCvv)
-        {
-            var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildInvalidCardCvvPaymentRequest(requestId, invalidCvv);
-            var gatewayPaymentId = Guid.NewGuid();
-            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
-
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
-            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-
-            Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
-            var badRequest = (BadRequestObjectResult)actionResult;
-            var failDetail = (ProblemDetails)badRequest.Value;
-            Check.That(failDetail.Detail).IsEqualTo("Invalid card CVV");
-        }
-
-
-        [TestCaseSource("InvalidPaymentRequests")]//
-        public async Task Return_BadRequest_When_PaymenRequest_is_not_well_formed(PaymentRequest invalidRequest, string expectedErrorMessage)
-        {
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
@@ -192,48 +196,10 @@ namespace PaymentGateway.Tests
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
             var badRequest = (BadRequestObjectResult)actionResult;
             var failDetail = (ProblemDetails)badRequest.Value;
-            Check.That(failDetail.Detail).IsEqualTo(expectedErrorMessage);
+            Check.That(failDetail.Detail).IsEqualTo($"Merchant {systemNotAwareOfThisMerchant} has not been onboarded");
 
             Check.That(await cqrs.PaymentRequestsMemory.AlreadyHandled(new PaymentRequestId(invalidRequest.RequestId)))
                 .IsFalse();
-        }
-
-        public static IEnumerable InvalidPaymentRequests
-        {
-            get
-            {
-                var validMoney = new Money("CNY", 42);
-                var validCard = new Infrastructure.Card("1234 5623 5489 1004", "05/19", "123");
-                var systemNotAwareOfThisMerchant = Guid.NewGuid();
-
-                yield return new TestCaseData(new PaymentRequest(requestId: Guid.Empty, merchantId: Guid.NewGuid(), amount: validMoney, card: validCard), "Invalid Request id missing");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: Guid.Empty, amount: validMoney, card: validCard), "Merchant id missing");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon, amount: null, card: validCard), "Amount missing");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon, amount: validMoney, card: null), "Card info missing");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantsRepository.Amazon, amount: new Money("helloworld", 42), card: validCard), "Currency is absent or not correctly formatted");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: MerchantsRepository.Amazon, amount: new Money("USD", -42), card: validCard), "Amount should be greater than 0");
-                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: systemNotAwareOfThisMerchant, amount: new Money("USD", 42), card: validCard), $"Merchant {systemNotAwareOfThisMerchant} has not been onboarded");
-            }
-        }
-        
-        [TestCase("13/12")]
-        [TestCase("112")]
-        [TestCase("aaa")]
-        [TestCase("aa/ba")]
-        public async Task Return_BadRequest_When_invalid_card_expiry_is_received(string invalidExpiry)
-        {
-            var requestId = Guid.NewGuid();
-            var paymentRequest = TestsUtils.BuildInvalidCardExpiryPaymentRequest(requestId, invalidExpiry);
-            var gatewayPaymentId = Guid.NewGuid();
-            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
-
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
-            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-
-            Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
-            var badRequest = (BadRequestObjectResult)actionResult;
-            var failDetail = (ProblemDetails)badRequest.Value;
-            Check.That(failDetail.Detail).IsEqualTo("Invalid card expiry");
         }
 
         private static void CheckThatPaymentResourceIsCorrectlyCreated(IActionResult response, Guid paymentId,

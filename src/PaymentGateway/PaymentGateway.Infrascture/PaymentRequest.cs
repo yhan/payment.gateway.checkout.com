@@ -1,14 +1,25 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.RegularExpressions;
 using PaymentGateway.Domain;
+using Polly;
 
 namespace PaymentGateway.Infrastructure
 {
-    public class PaymentRequest
+    public class PaymentRequest:  IValidatableObject
     {
+        [Required]
         public Guid RequestId { get; }
+
+        [Required]
         public Money Amount { get; }
+
+        [Required]
         public Card Card { get; }
+
+        [Required]
         public Guid MerchantId { get; }
 
         public PaymentRequest(Guid requestId, Guid merchantId, Money amount, Card card)
@@ -17,6 +28,37 @@ namespace PaymentGateway.Infrastructure
             MerchantId = merchantId;
             Amount = amount;
             Card = card;
+        }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var results = new List<ValidationResult>();
+            if (IsEmpty(RequestId))
+            {
+                results.Add(new ValidationResult("Request id missing"));
+            }
+
+            if (IsEmpty(MerchantId))
+            {
+                results.Add(new ValidationResult("Merchant id missing"));
+            }
+
+            if (!Card.IsValid(out var invalids))
+            {
+                results.AddRange(invalids.Select(x => new ValidationResult(x)));
+            }
+
+            if (!Amount.IsValid(out List<string> amountInvalids))
+            {
+                results.AddRange(amountInvalids.Select(x => new ValidationResult(x)));
+            }
+
+            return results;
+        }
+
+        private static bool IsEmpty(Guid id)
+        {
+            return id == Guid.Empty;
         }
     }
 
@@ -33,45 +75,43 @@ namespace PaymentGateway.Infrastructure
             Cvv = cvv;
         }
 
-        public bool IsValid(out string invalidReason)
+        public bool IsValid(out List<string> invalids)
         {
-            invalidReason = null;
+            invalids = new List<string>();
+
             if (!CardNumberValid())
             {
-                invalidReason = "Invalid card number";
-                return false;
+                invalids.Add("Invalid card number");
             }
 
 
             if (!CardCvvValid())
             {
-                invalidReason = "Invalid card CVV";
-                return false;
+                invalids.Add("Invalid card CVV");
             }
 
 
             if (!CardExpiryValid())
             {
-                invalidReason = "Invalid card expiry";
-                return false;
+                invalids.Add("Invalid card expiry");
             }
 
-            return true;
+            return !invalids.Any();
         }
 
-        public bool CardCvvValid()
+        private bool CardCvvValid()
         {
             var reg = "^[0-9]{3}$";
             return !string.IsNullOrWhiteSpace(Cvv) && Regex.IsMatch(Cvv, reg);
         }
 
-        public  bool CardNumberValid()
+        private bool CardNumberValid()
         {
             var reg = "^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}$";
             return !string.IsNullOrWhiteSpace(Number) && Regex.IsMatch(Number, reg);
         }
 
-        public bool CardExpiryValid()
+        private bool CardExpiryValid()
         {
             var reg = "^(0?[1-9]|1[012])/[0-9]{2}$";
             return !string.IsNullOrWhiteSpace(Expiry) &&  Regex.IsMatch(Expiry, reg);

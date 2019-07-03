@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PaymentGateway.Domain
@@ -13,21 +15,19 @@ namespace PaymentGateway.Domain
             Value = value;
         }
         
-        public bool IsValid(out string invalidReason)
+        public bool IsValid(out List<string> invalidReason)
         {
-            invalidReason = null;
+            invalidReason = new List<string>();
             if (Value <= 0)
             {
-                invalidReason = "Amount should be greater than 0";
-                return false;
+                invalidReason.Add("Amount should be greater than 0");
             }
             if(Currency == null || !Regex.IsMatch(Currency, "[A-Z]{3}"))
             {
-                invalidReason = "Currency is absent or not correctly formatted";
-                return false;
+                invalidReason.Add("Currency is absent or not correctly formatted");
             }
 
-            return true;
+            return !invalidReason.Any();
         }
     }
 }   

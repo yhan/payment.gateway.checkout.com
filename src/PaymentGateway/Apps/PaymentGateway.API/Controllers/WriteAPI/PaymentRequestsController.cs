@@ -26,11 +26,6 @@ namespace PaymentGateway.WriteAPI
             [FromServices]IKnowAllPaymentRequests paymentRequestsRepository,
             [FromServices]IProcessPayment paymentProcessor )
         {
-            if (ReturnBadRequestWhenReceivedInvalidPaymentRequest(paymentRequest, out var actionResult))
-            {
-                return actionResult;
-            }
-
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
 
             var commandResult = await _commandHandler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
@@ -49,50 +44,6 @@ namespace PaymentGateway.WriteAPI
                 default:
                     throw new NotSupportedException();
             }
-        }
-
-        private static bool ReturnBadRequestWhenReceivedInvalidPaymentRequest(PaymentRequest paymentRequest,
-            out IActionResult actionResult)
-        {
-            actionResult = null;
-
-            if (paymentRequest.Card == null)
-            {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Card info missing"));
-                return true;
-            }
-
-            if (paymentRequest.RequestId == Guid.Empty)
-            {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid Request id missing"));
-                return true;
-            }
-
-            if (paymentRequest.Amount == null)
-            {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Amount missing"));
-                return true;
-            }
-
-            if (paymentRequest.MerchantId == Guid.Empty)
-            {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Merchant id missing"));
-                return true;
-            }
-
-            if (!paymentRequest.Amount.IsValid(out var amountInvalidReason))
-            {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, amountInvalidReason));
-                return true;
-            }
-
-            if (!paymentRequest.Card.IsValid(out var cardInvalidReason))
-            {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, cardInvalidReason));
-                return true;
-            }
-
-            return false;
         }
     }
 }
