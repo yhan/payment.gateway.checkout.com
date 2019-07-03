@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 using PaymentGateway.ReadAPI;
@@ -14,26 +12,19 @@ namespace PaymentGateway.WriteAPI
     [ApiController]
     public class PaymentRequestsController : ControllerBase
     {
-        private readonly IEventSourcedRepository<Payment> _repository;
-        private readonly IMapMerchantToBankAdapter _merchantToBankAdapterMapper;
-        internal PaymentRequestCommandHandler Handler;
-        private readonly ExecutorType _executorType;
+        private readonly ICommandHandler<RequestPaymentCommand> _commandHandler;
+ 
 
-        public PaymentRequestsController(IEventSourcedRepository<Payment> repository,
-            IOptionsMonitor<AppSettings> appSettingsAccessor,
-            IMapMerchantToBankAdapter merchantToBankAdapterMapper,
-            ILogger<PaymentRequestsController> logger)
+        public PaymentRequestsController(ICommandHandler<RequestPaymentCommand> commandHandler, ILogger<PaymentRequestsController> logger)
         {
-            _repository = repository;
-            _merchantToBankAdapterMapper = merchantToBankAdapterMapper;
-            _executorType = appSettingsAccessor.CurrentValue.Executor;
+            _commandHandler = commandHandler;
         }
 
         [HttpPost]
         public async Task<IActionResult> ProceedPaymentRequest([FromBody]PaymentRequest paymentRequest, 
             [FromServices]IGenerateGuid gatewayPaymentIdGenerator,
-            [FromServices]IKnowAllPaymentRequests paymentRequests,
-            [FromServices]IProcessPayment paymentProcessor)
+            [FromServices]IKnowAllPaymentRequests paymentRequestsRepository,
+            [FromServices]IProcessPayment paymentProcessor )
         {
             if (ReturnBadRequestWhenReceivedInvalidPaymentRequest(paymentRequest, out var actionResult))
             {
@@ -42,8 +33,7 @@ namespace PaymentGateway.WriteAPI
 
             var gatewayPaymentId = gatewayPaymentIdGenerator.Generate();
 
-            Handler = new PaymentRequestCommandHandler(_repository, paymentRequests, paymentProcessor, _merchantToBankAdapterMapper, _executorType == ExecutorType.API ? true : false);
-            var commandResult = await Handler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
+            var commandResult = await _commandHandler.Handle(paymentRequest.AsCommand(gatewayPaymentId));
             switch (commandResult)
             {
                 case SuccessCommandResult<Payment> success:

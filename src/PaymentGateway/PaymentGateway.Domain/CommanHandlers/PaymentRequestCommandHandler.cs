@@ -11,23 +11,25 @@ namespace PaymentGateway.Domain
         private readonly IKnowAllPaymentRequests _paymentRequests;
         private readonly IProcessPayment _paymentProcessor;
         private readonly IMapMerchantToBankAdapter _bankAdapterMapper;
-        private readonly bool _asynchronous;
+        private readonly IKnowSendRequestToBankSynchrony _synchronyMaster;
         private readonly IEventSourcedRepository<Payment> _repository;
         
         public PaymentRequestCommandHandler(IEventSourcedRepository<Payment> repository,
             IKnowAllPaymentRequests paymentRequests,
-            IProcessPayment paymentProcessor, IMapMerchantToBankAdapter bankAdapterMapper, bool asynchronous)
+            IProcessPayment paymentProcessor,
+            IMapMerchantToBankAdapter bankAdapterMapper, 
+            IKnowSendRequestToBankSynchrony synchronyMaster)
         {
             _repository = repository;
             _paymentRequests = paymentRequests;
             _paymentProcessor = paymentProcessor;
             _bankAdapterMapper = bankAdapterMapper;
-            _asynchronous = asynchronous;
+            _synchronyMaster = synchronyMaster;
         }
 
         public async Task<ICommandResult> Handle(RequestPaymentCommand command)
         {
-            Payment payment = null;
+            Payment payment;
             try
             {
                 var paymentRequestId = new PaymentRequestId(command.RequestId);
@@ -37,14 +39,15 @@ namespace PaymentGateway.Domain
                     return this.Invalid(command.RequestId, "Identical payment request will not be handled more than once");
                 }
 
+                var bankAdapter = _bankAdapterMapper.FindBankAdapter(command.MerchantId);
+
                 payment = new Payment(command.GatewayPaymentId, command.MerchantId, command.RequestId, command.Card, command.Amount);
                 await _repository.Save(payment, Stream.NotCreatedYet);
                 await _paymentRequests.Remember(paymentRequestId);
 
-                var bankAdapter = _bankAdapterMapper.FindBankAdapter(command.MerchantId);
 
                 //TODO: Add cancellation with a timeout
-                if(_asynchronous)
+                if(_synchronyMaster.SendPaymentRequestAsynchronously())
                 {
                     _paymentProcessor.AttemptPaying(bankAdapter, payment.MapToAcquiringBank()).ContinueWith((task, o) =>
                     {

@@ -35,13 +35,4 @@ namespace PaymentGateway.Infrastructure
             throw new BankOnboardMissingException(merchantId);
         }
     }
-
-    /// <summary>
-    /// All banks managed by the system
-    /// </summary>
-    public enum Bank
-    {
-        SocieteGenerale,
-        BNP
-    }
 }

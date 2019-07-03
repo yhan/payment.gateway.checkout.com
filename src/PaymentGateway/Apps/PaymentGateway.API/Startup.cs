@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 using PaymentGateway.ReadProjector;
@@ -46,6 +47,9 @@ namespace PaymentGateway
 
             services.AddScoped<IGenerateGuid, DefaultGuidGenerator>();
             
+            services.AddScoped<IKnowSendRequestToBankSynchrony>(svcProvider => new RequestBankSynchronyMaster(svcProvider.GetService<IOptionsMonitor<AppSettings>>()));
+            services.AddScoped<ICommandHandler<RequestPaymentCommand>, PaymentRequestCommandHandler>();
+
             //Event sourcing
             services.AddScoped<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
             services.AddSingleton<IEventStore, InMemoryEventStore>();
@@ -101,6 +105,21 @@ namespace PaymentGateway
 
             app.UseHttpsRedirection();
             app.UseMvc();
+        }
+    }
+
+    public class RequestBankSynchronyMaster : IKnowSendRequestToBankSynchrony
+    {
+        private readonly IOptionsMonitor<AppSettings> _optionsMonitor;
+
+        public RequestBankSynchronyMaster(IOptionsMonitor<AppSettings> optionsMonitor)
+        {
+            _optionsMonitor = optionsMonitor;
+        }
+
+        public bool SendPaymentRequestAsynchronously()
+        {
+            return _optionsMonitor.CurrentValue.Executor == ExecutorType.API;
         }
     }
 

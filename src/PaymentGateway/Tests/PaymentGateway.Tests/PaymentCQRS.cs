@@ -5,7 +5,6 @@ using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
-using PaymentGateway;
 using PaymentGateway.ReadProjector;
 using PaymentGateway.WriteAPI;
 using PaymentGateway.Domain;
@@ -55,14 +54,19 @@ namespace PaymentGateway.Tests
             var paymentsIdsMemory = new PaymentIdsMemory();
             var bankAdapterSelector = new BankAdapterSelector(random, bankPaymentIdGenerator, new DelayProviderForTesting(), bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance);
             var merchantToBankAdapterMapper = new MerchantToBankAdapterMapper(bankAdapterSelector);
-            var requestController = new PaymentRequestsController(eventSourcedRepository, appSettingsAccessor, merchantToBankAdapterMapper, NullLogger<PaymentRequestsController>.Instance);
+            var paymentRequestsMemory = new PaymentRequestsMemory();
+            var mediator = new PaymentProcessor(merchantToBankAdapterMapper, eventSourcedRepository, gatewayExceptionSimulator);
+            var optionMonitor = Substitute.For<IOptionsMonitor<AppSettings>>();
+            optionMonitor.CurrentValue.Returns(new AppSettings
+            {
+                Executor = ExecutorType.Tests
+            });
+
+            var paymentRequestCommandHandler = new PaymentRequestCommandHandler(eventSourcedRepository, paymentRequestsMemory, mediator, merchantToBankAdapterMapper, new RequestBankSynchronyMaster(optionMonitor));
+            var requestController = new PaymentRequestsController(paymentRequestCommandHandler , NullLogger<PaymentRequestsController>.Instance);
 
             var readController = new PaymentReadController(eventSourcedRepository);
 
-            var paymentIdsMapping = new PaymentRequestsMemory();
-
-
-            var mediator = new PaymentProcessor(merchantToBankAdapterMapper, eventSourcedRepository, gatewayExceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();
             var paymentDetailsReadController = new PaymentsDetailsController(paymentsIdsMemory, paymentDetailsRepository);
@@ -73,7 +77,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentsIdsController = new GatewayPaymentsIdsController(paymentsIdsMemory);
             var acquiringBankPaymentsIdsController = new AcquiringBankPaymentsIdsController(paymentsIdsMemory);
 
-            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentIdsMapping, mediator, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController);
+            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentRequestsMemory, mediator, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController);
         }
     }
 
