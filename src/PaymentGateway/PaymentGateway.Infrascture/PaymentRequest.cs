@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PaymentGateway.Domain;
-using Polly;
 
 namespace PaymentGateway.Infrastructure
 {

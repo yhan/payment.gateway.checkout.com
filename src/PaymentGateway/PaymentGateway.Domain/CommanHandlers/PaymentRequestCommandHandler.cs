@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 [assembly:InternalsVisibleTo("PaymentGateway.Tests")]
 
@@ -12,19 +13,21 @@ namespace PaymentGateway.Domain
         private readonly IProcessPayment _paymentProcessor;
         private readonly IMapMerchantToBankAdapter _bankAdapterMapper;
         private readonly IKnowSendRequestToBankSynchrony _synchronyMaster;
+        private readonly ILogger<PaymentRequestCommandHandler> _logger;
         private readonly IEventSourcedRepository<Payment> _repository;
         
         public PaymentRequestCommandHandler(IEventSourcedRepository<Payment> repository,
             IKnowAllPaymentRequests paymentRequestsMemory,
             IProcessPayment paymentProcessor,
             IMapMerchantToBankAdapter bankAdapterMapper, 
-            IKnowSendRequestToBankSynchrony synchronyMaster)
+            IKnowSendRequestToBankSynchrony synchronyMaster, ILogger<PaymentRequestCommandHandler> logger)
         {
             _repository = repository;
             _paymentRequestsMemory = paymentRequestsMemory;
             _paymentProcessor = paymentProcessor;
             _bankAdapterMapper = bankAdapterMapper;
             _synchronyMaster = synchronyMaster;
+            _logger = logger;
         }
 
         public async Task<ICommandResult> Handle(RequestPaymentCommand command)
@@ -51,11 +54,7 @@ namespace PaymentGateway.Domain
                 {
                     _paymentProcessor.AttemptPaying(bankAdapter, payment.MapToAcquiringBank()).ContinueWith((task, o) =>
                     {
-                        //return this.Invalid(command.RequestId, task.Exception?.Message);
-
-                        //log errors
-
-
+                        _logger.LogError($"Payment request '{command.RequestId}' with exception {task.Exception?.Message}");
                     }, TaskContinuationOptions.OnlyOnFaulted);
                 }
                 else

@@ -62,7 +62,7 @@ namespace PaymentGateway.Tests
                 Executor = ExecutorType.Tests
             });
 
-            var paymentRequestCommandHandler = new PaymentRequestCommandHandler(eventSourcedRepository, paymentRequestsMemory, mediator, merchantToBankAdapterMapper, new RequestBankSynchronyMaster(optionMonitor));
+            var paymentRequestCommandHandler = new PaymentRequestCommandHandler(eventSourcedRepository, paymentRequestsMemory, mediator, merchantToBankAdapterMapper, new RequestBankSynchronyMaster(optionMonitor), NullLogger<PaymentRequestCommandHandler>.Instance);
             var requestController = new PaymentRequestsController(paymentRequestCommandHandler , NullLogger<PaymentRequestsController>.Instance);
 
             var readController = new PaymentReadController(eventSourcedRepository);
