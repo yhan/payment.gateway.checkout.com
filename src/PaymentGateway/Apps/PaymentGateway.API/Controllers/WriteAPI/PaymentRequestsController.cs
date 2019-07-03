@@ -55,12 +55,28 @@ namespace PaymentGateway.WriteAPI
             out IActionResult actionResult)
         {
             actionResult = null;
-            var cardValidator = new PaymentRequestValidator(paymentRequest);
-            
-            if (paymentRequest.Card == null || paymentRequest.RequestId == Guid.Empty || paymentRequest.Amount == null
-                || paymentRequest.MerchantId == Guid.Empty )
+
+            if (paymentRequest.Card == null)
             {
-                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid payment request"));
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Card info missing"));
+                return true;
+            }
+
+            if (paymentRequest.RequestId == Guid.Empty)
+            {
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Invalid Request id missing"));
+                return true;
+            }
+
+            if (paymentRequest.Amount == null)
+            {
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Amount missing"));
+                return true;
+            }
+
+            if (paymentRequest.MerchantId == Guid.Empty)
+            {
+                actionResult = ActionResultHelper.ToActionResult(new InvalidCommandResult(paymentRequest.RequestId, "Merchant id missing"));
                 return true;
             }
 

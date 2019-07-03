@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
@@ -176,7 +178,39 @@ namespace PaymentGateway.Tests
             var failDetail = (ProblemDetails)badRequest.Value;
             Check.That(failDetail.Detail).IsEqualTo("Invalid card CVV");
         }
-        
+
+
+        [TestCaseSource("InvalidPaymentRequests")]//
+        public async Task Return_BadRequest_When_PaymenRequest_is_not_well_formed(PaymentRequest invalidRequest, string expectedErrorMessage)
+        {
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new SimulateGatewayException());
+            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(invalidRequest, guidGenerator, cqrs.PaymentRequests, cqrs.PaymentProcessor);
+
+            Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
+            var badRequest = (BadRequestObjectResult)actionResult;
+            var failDetail = (ProblemDetails)badRequest.Value;
+            Check.That(failDetail.Detail).IsEqualTo(expectedErrorMessage);
+        }
+
+        public static IEnumerable InvalidPaymentRequests
+        {
+            get
+            {
+                var validMoney = new Money("CNY", 42);
+                var validCard = new Infrastructure.Card("1234 5623 5489 1004", "05/19", "123");
+
+                yield return new TestCaseData(new PaymentRequest(requestId: Guid.Empty, merchantId: Guid.NewGuid(), amount: validMoney, card: validCard), "Invalid Request id missing");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: Guid.Empty, amount: validMoney, card: validCard), "Merchant id missing");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: null, card: validCard), "Amount missing");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: validMoney, card: null), "Card info missing");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: new Money("helloworld", 42), card: validCard), "Currency is absent or not correctly formatted");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: MerchantToBankAdapterMapper.Amazon, amount: new Money("USD", -42), card: validCard), "Amount should greater than 0");
+            }
+        }
+
         [TestCase("13/12")]
         [TestCase("112")]
         [TestCase("aaa")]

@@ -19,10 +19,12 @@ namespace PaymentGateway.Domain
             if (Value <= 0)
             {
                 invalidReason = "Amount should greater than 0";
+                return false;
             }
             if(Currency == null || !Regex.IsMatch(Currency, "[A-Z]{3}"))
             {
                 invalidReason = "Currency is absent or not correctly formatted";
+                return false;
             }
 
             return true;
