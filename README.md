@@ -244,7 +244,7 @@ Nevertheless, under burst situation
 For performance consideration, all coming requests thread is offloaded to thread pool threads.  
 To resist burst, we can add `requestTimeout` to kestrel configuration. We can also scale the server instances using Kubernetes cluster or Swarm cluster. This can help for achieving high availability. 
 
-> Memory consumption is due to in memory cache in my system. In real world, specific caching might be considered, when unacceptable latency is caused by no-caching. 
+> Memory consumption is due to in memory cache in my system. In real world, specific caching might be considered, when unacceptable latency is caused by no-caching. Consider caching only when necessary. Caching introduces two complexities / problem: 1) synchronization. 2) large memory footprint triggers GC, causing latency overhead.
 
 To run performance tests:
    1. Goto API csproj folder  
