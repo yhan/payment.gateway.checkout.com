@@ -18,20 +18,20 @@ namespace PaymentGateway.Tests
         internal PaymentsDetailsController PaymentDetailsReadController { get; }
         internal PaymentProcessor PaymentProcessor{ get; }
         public GatewayPaymentsIdsController GatewayPaymentsIdsController { get; }
-        internal PaymentRequestsMemory PaymentRequests{ get; }
+        internal PaymentRequestsMemory PaymentRequestsMemory{ get; }
         internal PaymentReadController PaymentReadController{ get; }
         internal PaymentRequestsController RequestsController{ get; }
         public AcquiringBankPaymentsIdsController AcquiringBankPaymentsIdsController { get; set; }
 
         private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController paymentReadController,
-            PaymentsDetailsController paymentDetailsReadController, PaymentRequestsMemory paymentRequests,
+            PaymentsDetailsController paymentDetailsReadController, PaymentRequestsMemory paymentRequestsMemory,
             PaymentProcessor paymentProcessor, GatewayPaymentsIdsController gatewayGatewayPaymentsIdsController,
             AcquiringBankPaymentsIdsController acquiringBankPaymentsIdsController)
         {
             PaymentDetailsReadController = paymentDetailsReadController;
             RequestsController = requestController;
             PaymentReadController = paymentReadController;
-            PaymentRequests = paymentRequests;
+            PaymentRequestsMemory = paymentRequestsMemory;
             PaymentProcessor = paymentProcessor;
             GatewayPaymentsIdsController = gatewayGatewayPaymentsIdsController;
             AcquiringBankPaymentsIdsController = acquiringBankPaymentsIdsController;

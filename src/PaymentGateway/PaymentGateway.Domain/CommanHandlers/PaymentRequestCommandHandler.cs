@@ -8,20 +8,20 @@ namespace PaymentGateway.Domain
 {
     public class PaymentRequestCommandHandler : ICommandHandler<RequestPaymentCommand>
     {
-        private readonly IKnowAllPaymentRequests _paymentRequests;
+        private readonly IKnowAllPaymentRequests _paymentRequestsMemory;
         private readonly IProcessPayment _paymentProcessor;
         private readonly IMapMerchantToBankAdapter _bankAdapterMapper;
         private readonly IKnowSendRequestToBankSynchrony _synchronyMaster;
         private readonly IEventSourcedRepository<Payment> _repository;
         
         public PaymentRequestCommandHandler(IEventSourcedRepository<Payment> repository,
-            IKnowAllPaymentRequests paymentRequests,
+            IKnowAllPaymentRequests paymentRequestsMemory,
             IProcessPayment paymentProcessor,
             IMapMerchantToBankAdapter bankAdapterMapper, 
             IKnowSendRequestToBankSynchrony synchronyMaster)
         {
             _repository = repository;
-            _paymentRequests = paymentRequests;
+            _paymentRequestsMemory = paymentRequestsMemory;
             _paymentProcessor = paymentProcessor;
             _bankAdapterMapper = bankAdapterMapper;
             _synchronyMaster = synchronyMaster;
@@ -33,7 +33,7 @@ namespace PaymentGateway.Domain
             try
             {
                 var paymentRequestId = new PaymentRequestId(command.RequestId);
-                if (await _paymentRequests.AlreadyHandled(paymentRequestId))
+                if (await _paymentRequestsMemory.AlreadyHandled(paymentRequestId))
                 {
                     //payment request already handled
                     return this.Invalid(command.RequestId, "Identical payment request will not be handled more than once");
@@ -43,7 +43,7 @@ namespace PaymentGateway.Domain
 
                 payment = new Payment(command.GatewayPaymentId, command.MerchantId, command.RequestId, command.Card, command.Amount);
                 await _repository.Save(payment, Stream.NotCreatedYet);
-                await _paymentRequests.Remember(paymentRequestId);
+                await _paymentRequestsMemory.Remember(paymentRequestId);
 
 
                 //TODO: Add cancellation with a timeout
