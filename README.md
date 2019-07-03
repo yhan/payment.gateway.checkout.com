@@ -258,6 +258,8 @@ Further: If I have more time, I will also test:
 - Endurance / Soak testing
 - Test individual components: currently my Read Projector is not performance tested
 - Test components hosted in cluster
+- Integrate performance testing to CI
+- Monitor production systems: metrics and perf indicators should be monitored
 
 
 # Unit and Acceptance tests
