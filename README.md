@@ -217,7 +217,15 @@ For a Payment Gateway, what is important is:
 - Low latency
 - Scalability
 
-I have done in solution some throughput and latency tests, when IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.  
+I have done in solution:
+- throughput tests 
+- latency tests
+- how the application cope under burst condition
+  1. large number clients launched in parallel requesting payments
+  1. large number of clients, plus large number of payment details, do parallel query on combination of the two.
+
+
+when IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.  
 
 For read payments, 93100 parallel requests seem to be the limit of the system. We can configure proper max limit parallel calls to kestrel.  
 ```csharp
@@ -238,7 +246,8 @@ To run performance tests:
       ```
    1. Run the tests in `PaymentGateway.Write.PerformanceTests` and `PaymentGateway.Read.PerformanceTests`
 
-
+Further: If I have more time, I will also test:
+- 
 
 # Unit and Acceptance tests
 The coding is entirely test driven.  
