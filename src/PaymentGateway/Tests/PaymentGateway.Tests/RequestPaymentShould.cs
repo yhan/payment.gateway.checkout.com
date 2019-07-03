@@ -201,6 +201,7 @@ namespace PaymentGateway.Tests
             {
                 var validMoney = new Money("CNY", 42);
                 var validCard = new Infrastructure.Card("1234 5623 5489 1004", "05/19", "123");
+                var systemNotAwareOfThisMerchant = Guid.NewGuid();
 
                 yield return new TestCaseData(new PaymentRequest(requestId: Guid.Empty, merchantId: Guid.NewGuid(), amount: validMoney, card: validCard), "Invalid Request id missing");
                 yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: Guid.Empty, amount: validMoney, card: validCard), "Merchant id missing");
@@ -208,6 +209,7 @@ namespace PaymentGateway.Tests
                 yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: validMoney, card: null), "Card info missing");
                 yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), MerchantToBankAdapterMapper.Amazon, amount: new Money("helloworld", 42), card: validCard), "Currency is absent or not correctly formatted");
                 yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: MerchantToBankAdapterMapper.Amazon, amount: new Money("USD", -42), card: validCard), "Amount should greater than 0");
+                yield return new TestCaseData(new PaymentRequest(Guid.NewGuid(), merchantId: systemNotAwareOfThisMerchant, amount: new Money("USD", 42), card: validCard), $"Merchant {systemNotAwareOfThisMerchant} has not been onboarded");
             }
         }
 
