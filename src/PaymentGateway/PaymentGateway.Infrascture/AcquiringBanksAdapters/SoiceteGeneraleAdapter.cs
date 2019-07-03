@@ -10,7 +10,7 @@ namespace PaymentGateway.Infrastructure
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
         private readonly SocieteGenerale _societeGenerale;
 
-        public SoiceteGeneraleAdapter(IProvideRandomBankResponseTime delayProvider,
+        public SoiceteGeneraleAdapter(IProvideBankResponseTime delayProvider,
             IConnectToAcquiringBanks connectionBehavior,
             IMapAcquiringBankToPaymentGateway paymentIdsMapper,
             SocieteGenerale societeGenerale,

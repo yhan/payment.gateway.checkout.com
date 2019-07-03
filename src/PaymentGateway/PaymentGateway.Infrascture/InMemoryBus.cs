@@ -63,17 +63,19 @@ namespace PaymentGateway.Infrastructure
             }
         }
     }
-    
-    public interface IHandles<T>
-    {
-        void Handle(T message);
-    }
 
+    /// <summary>
+    ///  Can send commands
+    /// </summary>
     public interface ISendCommands
     {
         void Send<T>(T command) where T : Command;
 
     }
+
+    /// <summary>
+    /// Can register multiple handler for handling event
+    /// </summary>
     public interface IPublishEvents
     {
         Task Publish<T>(T @event) where T : Event;

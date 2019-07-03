@@ -45,9 +45,11 @@ Three components:
 - **Read Projector**: Project `write model` to `read model` which fits read payment details requirement.
 
 - **Read API**: Feed payment retrieval queries.   
-  > Here we have only one read model which is asked for. But in real world, we probably have many of them, for performance enhancement. We can imagine that company's revenue comes from **transaction volume**, thus we can imagine a read model that give us live PnL vision as transactions go on.
+  > Here we have only one read model which is asked for. But in real world, we probably have many of them, for performance enhancement. We can imagine that company's revenue comes from **transaction volume**, thus we can imagine a read model that give us live PnL vision (all Merchants consolidated or segregated) as transactions go on.
 
-> **! Disclaimer:** **In real world, above three components should be hosted to 3 separate processes, for scaling easily**. Here for the sake of simplicities of the exercise, I have not implemented neither external storage (events and read model) nor external message bus. It will be hence difficult to separate them to different processes.
+   > Write and Read API can scale to multiple instance. If we want to scale Read Projector, we should ensure that message consumption is competing and that the processing of messages should respect order of event sequence number.
+
+   > **! Disclaimer:** **In real world, above three components should be hosted to 3 separate processes, for scaling easily**. Here for the sake of simplicities of the exercise, I have not implemented neither external storage (events and read model) nor external message bus. It will be hence difficult to separate them to different processes.
 
 Still you can see the embryonic form of the 3 processes.
 - [Write API](https://github.com/yhan/payment.gateway.checkout.com/tree/master/src/PaymentGateway/Apps/PaymentGateway.API/Controllers/WriteAPI)
@@ -84,8 +86,8 @@ For managing:
 
 1. **Anti corruption**:
 
-  - Never put HTTP dto & external library into Domain and never expose domain type to HTTP.
-  - Always do adaptation from one world to another.
+   - Never put HTTP dto & external library into Domain and never expose domain type to HTTP.
+   - Always do adaptation from one world to another.
 
 1. **Event structure: flat**   
 no embedded type, for easing event versioning.
@@ -95,6 +97,21 @@ no embedded type, for easing event versioning.
 1. Anti Corruption  
 Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate, do mapping instead
 
+1. **Storage**
+For sake of simplicity of the exercise, I used InMemory for:
+   - Write models storage: Event Store
+   - Message bus
+   - Read models storage
+
+   > In real world, we should for sure using external storage and message bus, for cluster configuration. 
+   
+   > For storing events we may use [EventStore](https://eventstore.org/) (native events) or Azure blob storage  (should code something for serving it as event store), or other things
+
+   > For message bus: RabbitMQ/Azure service bus/...
+
+   > For read models: choose suitable SQL or NoSql storage.
+
+   
 # Public API
 
 1. **Request a payment**:  
@@ -173,6 +190,7 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
       }
       ```
 
+
 1. **Ids**: three types of ids
    - **Payment request id**: Payment unique identifier from merchants. Is part of payment request payload. Cf. C# struct `PaymentRequestId`. In real world, each `Merchant` will send their own format of request unique identifier. We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
 
@@ -193,15 +211,33 @@ Never leak external libraries (acquiring bank ones) to Domain Entity / Aggregate
    I chose the 2nd.
 
 # Performance
-When IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.
+For a Payment Gateway, what is important is:
+- High availability
+- Throughput
+- Scalability
+
+I have done in solution some throughput test, when IGenerateBankPaymentId is configured as `NoDelay`, performances in Performance.xlsx.  
+
+For read payments, 93100 parallel requests seem to be the limit of the system. We can configure proper max limit parallel calls to kestrel.  
+```csharp
+ .ConfigureKestrel((context, options) =>
+   {
+      options.Limits.MaxConcurrentConnections = 10_000;
+      options.Limits.MaxConcurrentUpgradedConnections = 1000;
+   })
+```
+For performance consideration, all coming requests thread is offloaded to thread pool threads.  
+To resist burst, we can add `requestTimeout` to kestrel configuration. We can also scale the server instances using Kubernetes cluster or Swarm cluster. This can help for achieving high availability. 
 
 To run performance tests:
-1. Goto API csproj folder  
-1. Run: 
-    ```
-    Dotnet publish -c Release -r win10-x64
-    ```
-1. Run the tests in `PaymentGateway.Write.PerformanceTests` and `PaymentGateway.Read.PerformanceTests`
+   1. Goto API csproj folder  
+   1. Run: 
+      ```
+      Dotnet publish -c Release -r win10-x64
+      ```
+   1. Run the tests in `PaymentGateway.Write.PerformanceTests` and `PaymentGateway.Read.PerformanceTests`
+
+
 
 # Unit and Acceptance tests
 The coding is entirely test driven.  

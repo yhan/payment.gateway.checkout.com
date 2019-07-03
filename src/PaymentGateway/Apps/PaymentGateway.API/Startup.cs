@@ -45,26 +45,33 @@ namespace PaymentGateway
 
 
             services.AddScoped<IGenerateGuid, DefaultGuidGenerator>();
+            
+            //Event sourcing
             services.AddScoped<IEventSourcedRepository<Payment>, EventSourcedRepository<Payment>>();
             services.AddSingleton<IEventStore, InMemoryEventStore>();
             services.AddSingleton<IPublishEvents, InMemoryBus>();
+
+            // Some memories
             services.AddSingleton<IKnowAllPaymentRequests, PaymentRequestsMemory>();
+            services.AddSingleton<IKnowAllPaymentsIds>(provider => provider.GetService<IMapAcquiringBankToPaymentGateway>());
+            services.AddSingleton<IMapAcquiringBankToPaymentGateway, PaymentIdsMemory>();
+
+            // Mediator between Gateway and Acquiring banks
             services.AddScoped<IProcessPayment, PaymentProcessor>();
 
+            // Acquiring bank related
             services.AddScoped<ISelectAdapter, BankAdapterSelector>();
             services.AddScoped<IMapMerchantToBankAdapter, MerchantToBankAdapterMapper>();
             services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
-            
             services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
-            services.AddTransient<IProvideRandomBankResponseTime, RandomDelayProvider>();
+            services.AddTransient<IProvideBankResponseTime, DelayProvider>();
+            services.AddSingleton<IGenerateAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
 
-            services.AddSingleton<IRandomnizeAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
-
+            // Host Read Projectors
             services.AddSingleton<IHostedService, ReadProjections>();
+
+            // Read model
             services.AddSingleton<IPaymentDetailsRepository, PaymentDetailsRepository>();
-            
-            services.AddSingleton<IMapAcquiringBankToPaymentGateway, PaymentIdsMemory>();
-            services.AddSingleton<IKnowAllPaymentsIds>(provider => provider.GetService<IMapAcquiringBankToPaymentGateway>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -97,8 +104,11 @@ namespace PaymentGateway
         }
     }
 
-
-    internal class NoDelayProvider : IProvideRandomBankResponseTime
+    ///<inheritdoc cref="IProvideBankResponseTime"/>
+    /// <summary>
+    /// Can be used for performance testing: test Gateway internal latency.
+    /// </summary>
+    internal class NoDelayProvider : IProvideBankResponseTime
     {
         public TimeSpan Delays()
         {

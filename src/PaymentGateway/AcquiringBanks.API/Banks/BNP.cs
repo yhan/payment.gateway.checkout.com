@@ -6,11 +6,11 @@ namespace AcquiringBanks.Stub
     public class BNP : IAmAcquiringBank
     {
         private readonly IGenerateBankPaymentId _bankPaymentIdGenerator;
-        private readonly IRandomnizeAcquiringBankPaymentStatus _paymentStatusGenerator;
+        private readonly IGenerateAcquiringBankPaymentStatus _paymentStatusGenerator;
         private readonly IConnectToAcquiringBanks _connectionBehavior;
 
         public BNP(IGenerateBankPaymentId bankPaymentIdGenerator,
-            IRandomnizeAcquiringBankPaymentStatus paymentStatusGenerator, IConnectToAcquiringBanks connectionBehavior)
+            IGenerateAcquiringBankPaymentStatus paymentStatusGenerator, IConnectToAcquiringBanks connectionBehavior)
         {
             _bankPaymentIdGenerator = bankPaymentIdGenerator;
             _paymentStatusGenerator = paymentStatusGenerator;

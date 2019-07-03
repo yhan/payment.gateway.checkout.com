@@ -1,12 +1,9 @@
 ﻿using System;
 using AcquiringBanks.Stub;
+using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
 {
-    public interface IBankResponse
-    {
-    }
-
     public class BankDoesNotRespond : IBankResponse
     {
         public Guid GatewayPaymentId { get; }

@@ -9,10 +9,10 @@ namespace PaymentGateway.Infrastructure
 {
     public abstract class AdaptToBank : IAdaptToBank
     {
-        protected readonly IProvideRandomBankResponseTime DelayProvider;
+        protected readonly IProvideBankResponseTime DelayProvider;
         protected readonly ILogger<BankAdapterSelector> Logger;
 
-        protected AdaptToBank(IProvideRandomBankResponseTime delayProvider, ILogger<BankAdapterSelector> logger)
+        protected AdaptToBank(IProvideBankResponseTime delayProvider, ILogger<BankAdapterSelector> logger)
         {
             DelayProvider = delayProvider;
             Logger = logger;

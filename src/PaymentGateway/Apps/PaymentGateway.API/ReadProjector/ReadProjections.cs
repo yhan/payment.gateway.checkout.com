@@ -7,6 +7,9 @@ using PaymentGateway.Infrastructure.ReadProjector;
 
 namespace PaymentGateway.ReadProjector
 {
+    /// <summary>
+    /// Read projection service
+    /// </summary>
     public class ReadProjections : IHostedService
     {
         private readonly PaymentReadProjector _paymentReadProjector;

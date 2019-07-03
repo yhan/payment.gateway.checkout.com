@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
 {
+    /// <summary>
+    /// Deduce bank adapter from merchant's id
+    /// </summary>
     public interface IMapMerchantToBankAdapter
     {
         IAdaptToBank FindBankAdapter(Guid merchantId);
     }
 
+    /// <inheritdoc cref="IMapAcquiringBankToPaymentGateway"/>
     public class MerchantToBankAdapterMapper : IMapMerchantToBankAdapter
     {
         public MerchantToBankAdapterMapper(ISelectAdapter adapterSelector)
@@ -39,6 +44,9 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
+    /// <summary>
+    /// All banks managed by the system
+    /// </summary>
     public enum Bank
     {
         SocieteGenerale,

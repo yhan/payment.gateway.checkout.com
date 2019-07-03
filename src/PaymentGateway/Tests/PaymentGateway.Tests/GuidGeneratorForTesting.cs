@@ -1,8 +1,10 @@
 using System;
-using PaymentGateway;
 
 namespace PaymentGateway.Tests
 {
+    /// <summary>
+    /// Deterministic Unique Identifier generation for tests purpose
+    /// </summary>
     public class GuidGeneratorForTesting : IGenerateGuid
     {
         public Guid Guid { get; }

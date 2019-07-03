@@ -5,23 +5,27 @@ using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
 {
+    /// <summary>
+    /// Select the proper Bank Adapter
+    /// </summary>
     public interface ISelectAdapter
     {
         IAdaptToBank Select(Bank bank);
     }
 
+    /// <inheritdoc cref="ISelectAdapter"/>
     public class BankAdapterSelector : ISelectAdapter
     {
-        private readonly IRandomnizeAcquiringBankPaymentStatus _paymentStatusRandom;
+        private readonly IGenerateAcquiringBankPaymentStatus _paymentStatusRandom;
         private readonly IGenerateBankPaymentId _bankPaymentIdGenerator;
-        private readonly IProvideRandomBankResponseTime _delayProvider;
+        private readonly IProvideBankResponseTime _delayProvider;
         private readonly IConnectToAcquiringBanks _connectionBehavior;
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
         private readonly ILogger<BankAdapterSelector> _logger;
 
-        public BankAdapterSelector(IRandomnizeAcquiringBankPaymentStatus paymentStatusRandom, 
+        public BankAdapterSelector(IGenerateAcquiringBankPaymentStatus paymentStatusRandom, 
             IGenerateBankPaymentId bankPaymentIdGenerator, 
-            IProvideRandomBankResponseTime delayProvider,
+            IProvideBankResponseTime delayProvider,
             IConnectToAcquiringBanks connectionBehavior,
             IMapAcquiringBankToPaymentGateway paymentIdsMapper,
             ILogger<BankAdapterSelector> logger )

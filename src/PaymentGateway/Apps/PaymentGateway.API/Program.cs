@@ -21,9 +21,8 @@ namespace PaymentGateway
                 .UseStartup<Startup>()
                 .ConfigureKestrel((context, options) =>
                 {
-                    // Set properties and call methods on options
-                    //options.Limits.MaxConcurrentConnections = 1000;
-                    //options.Limits.MaxConcurrentUpgradedConnections = 1000;
+                    options.Limits.MaxConcurrentConnections = 10_000;
+                    options.Limits.MaxConcurrentUpgradedConnections = 1000;
                 })
                 
                 .Build().Run();

@@ -55,13 +55,13 @@ namespace PaymentGateway.Tests
 
             var paymentIdsMapping = new PaymentRequestsMemory();
 
-            var random = Substitute.For<IRandomnizeAcquiringBankPaymentStatus>();
+            var random = Substitute.For<IGenerateAcquiringBankPaymentStatus>();
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
             var paymentsIdsMemory = new PaymentIdsMemory();
 
 
-            var mediator = new PaymentProcessor(new MerchantToBankAdapterMapper(new BankAdapterSelector(random, bankPaymentIdGenerator, new DelayProvider(), bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance)), eventSourcedRepository, gatewayExceptionSimulator);
+            var mediator = new PaymentProcessor(new MerchantToBankAdapterMapper(new BankAdapterSelector(random, bankPaymentIdGenerator, new DelayProviderForTesting(), bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance)), eventSourcedRepository, gatewayExceptionSimulator);
 
             var paymentDetailsRepository = new PaymentDetailsRepository();
             var paymentDetailsReadController = new PaymentsDetailsController(paymentsIdsMemory, paymentDetailsRepository);
@@ -76,7 +76,7 @@ namespace PaymentGateway.Tests
         }
     }
 
-    internal class DelayProvider : IProvideRandomBankResponseTime
+    internal class DelayProviderForTesting : IProvideBankResponseTime
     {
         public TimeSpan Delays()
         {

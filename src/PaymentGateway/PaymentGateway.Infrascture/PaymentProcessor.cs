@@ -7,10 +7,7 @@ namespace PaymentGateway.Infrastructure
     using AcquiringBanks.Stub;
     using Domain;
 
-    /// <summary>
-    /// Glue component which calls bank facade <see cref="IAdaptToBank"/>.
-    /// Then do necessary changes in PaymentGateway's domain.
-    /// </summary>
+    /// <inheritdoc cref="IProcessPayment"/>>
     public class PaymentProcessor : IProcessPayment
     {
         private readonly IMapMerchantToBankAdapter _bankAdapterMapper;

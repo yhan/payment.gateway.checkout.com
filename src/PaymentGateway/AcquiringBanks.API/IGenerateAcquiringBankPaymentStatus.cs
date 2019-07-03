@@ -2,12 +2,18 @@
 
 namespace AcquiringBanks.Stub
 {
-    public interface IRandomnizeAcquiringBankPaymentStatus
+    /// <summary>
+    /// Provide random bank payment status
+    /// </summary>
+    public interface IGenerateAcquiringBankPaymentStatus
     {
         BankPaymentStatus GeneratePaymentStatus();
     }
 
-    public class AcquiringBankPaymentStatusRandomnizer : IRandomnizeAcquiringBankPaymentStatus
+    /// <summary>
+    /// Provide random bank payment status
+    /// </summary>
+    public class AcquiringBankPaymentStatusRandomnizer : IGenerateAcquiringBankPaymentStatus
     {
         private static readonly Random Random = new Random(42);
 

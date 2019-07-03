@@ -10,7 +10,7 @@ namespace PaymentGateway.Infrastructure
         private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
         private readonly BNP _bnp;
 
-        public BNPAdapter(IProvideRandomBankResponseTime delayProvider,
+        public BNPAdapter(IProvideBankResponseTime delayProvider,
             IConnectToAcquiringBanks connectionBehavior,
             IMapAcquiringBankToPaymentGateway paymentIdsMapper,
             BNP bnp,

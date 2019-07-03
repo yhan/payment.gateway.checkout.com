@@ -4,12 +4,15 @@ using Microsoft.Extensions.Logging;
 
 namespace PaymentGateway
 {
-    public class RandomDelayProvider : IProvideRandomBankResponseTime
+    /// <summary>
+    /// Provides random bank response time
+    /// </summary>
+    public class DelayProvider : IProvideBankResponseTime
     {
-        private readonly ILogger<RandomDelayProvider> _logger;
+        private readonly ILogger<DelayProvider> _logger;
         private static readonly Random Random = new Random(42);
 
-        public RandomDelayProvider(ILogger<RandomDelayProvider> logger)
+        public DelayProvider(ILogger<DelayProvider> logger)
         {
             _logger = logger;
         }
