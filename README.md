@@ -139,7 +139,6 @@ For sake of simplicity of the exercise, I used InMemory for:
         }
     }
     ```
-   
 
     Response example:  
     1. 202 Accepted
@@ -167,8 +166,13 @@ For sake of simplicity of the exercise, I used InMemory for:
 1. **Get payment and payment details**:  
 
    - **GET api/Payments/{gateWayPaymentId}**  
-     Endpoint to retrieving payment status. Write controller redirect to this controller (why? Cf. [Command handling asynchrony](#Design)).  
+     Endpoint to retrieving payment status. Write controller redirect to this controller (why? Cf. [Command handling asynchrony](#Design)). 
+
      Response example: 
+     > `approved` is the boolean indicating if payment is accepted by the bank or not.
+
+     > `status` gives the reason/description of `approved` boolean. It can be _success_, _rejected_ or _timeout_.
+
 
      a) Success
      ```json
@@ -388,18 +392,7 @@ Hereunder some improvements should be definitely done:
 The event sourcing infrastructure is borrowed from [Greg Young's git repository](https://github.com/gregoryyoung/m-r)
 
 
-# TODO
+# Open question:
+- When we can't connect to bank or request timeout, what should we do?
 
-
-
-Test 
-- ~~invalid request~~
-- ~~bank if not found~~
-- ~~when bank id not found request id not cached~~
-- change expiry to {year, month}
-- add merchant check in controller, not deep later
-
-Add
-- cacellation and timeout 
-- new endpoint Merchants
 
