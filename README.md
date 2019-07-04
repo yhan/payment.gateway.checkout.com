@@ -367,7 +367,7 @@ Further: If I have more time, I will also test:
 The coding is entirely test driven.  
 
 ## Coverage
-Excluding performance tests assembly, Code coverage: 81.28%.  
+Excluding performance tests assembly, Code coverage: 83.05%. (report on PaymentGateway.coveragexml in the root folder)
 
 Non covered codes are:  
  - API bootstrap
