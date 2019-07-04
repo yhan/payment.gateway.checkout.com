@@ -16,8 +16,10 @@
 
    1. **Acquiring bank**  
    But when it comes to Acquiring bank, I find no way in the beginning to determine it. The way that can determine the acquiring bank, could be: We associate the `Acquiring bank` to the `Merchant`.  
-   Things can be done when we **onboard** a `Merchant`
-
+   Things can be done when we **onboard** a `Merchant`. The idea is 
+      - Stored the `Merchant` to `Acquiring bank` mapping
+      - Include `Merchant` id in the `PaymentRequest`, thus the Gateway will be able to route the request to the bank of the merchant.
+   
    The statement of the exercise text, in the payment request does not mention an identifier of the `Merchant`. 
    
    > A payment request should include appropriate fields such as the card number, expiry month/date, amount, currency, and cvv.
@@ -26,8 +28,7 @@
 
    I added `Merchant`'s id to the `Payment Request`.    
 
-   > **! Disclaimer:**: In real world, it will be not safe to let 
-
+> `Acquiring bank` is stubbed in the solution.
 
 # Architecture
 
