@@ -3,4 +3,8 @@
     public interface IBankResponse
     {
     }
+
+    public class NullBankResponse : IBankResponse
+    {
+    }
 }

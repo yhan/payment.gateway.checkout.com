@@ -234,9 +234,9 @@ For sake of simplicity of the exercise, I used InMemory for:
 
    - **Acquiring bank payment id**: Unique identifier returned from acquiring banks, Cf C# struct `Domain.AcquiringBankPaymentId`. In real world, each `Acquiring bank` will send their own unique identifer.  We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
 
+
 1. **Switch out for a real bank**
    Specific `MyBankAdapter` should be implemented implementing domain port `PaymentGateway.Domain.IAdaptToBank`.
-
 
 ## Private API 
 For you code reviewer's convenience, some private endpoints are exposed. They are
@@ -277,6 +277,19 @@ For you code reviewer's convenience, some private endpoints are exposed. They ar
    ]
    ```
 
+## Configuration
+
+1. Retries and timeouts
+   When we can Bank API, `timeout` can happen. The system will try three times (with sparse incremented wait time before retrying). If still fail in the end, we consider the payment timeouts definitely.
+   For better demo effect, I configured:
+
+   ```json
+   "AppSettings": {
+        "TimeoutInMilliseconds": 2000,
+        "MaxBankLatencyInMilliseconds": 4000  
+    }
+   ```
+   The very specific behavior "during retries, if timeouts once, timeouts always" is purely for better demo feeling, i.e. to see `timeout` without submitting a lot of payment requests.
 
 # SLA
 1. A `PaymentRequestId` will be handled once and only once.

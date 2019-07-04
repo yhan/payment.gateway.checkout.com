@@ -41,6 +41,7 @@ namespace PaymentGateway.Tests
             IGenerateBankPaymentId bankPaymentIdGenerator, 
             IConnectToAcquiringBanks bankConnectionBehavior,  
             IProvideBankResponseTime delayProvider,
+            IProvideTimeout providerForBankResponseWaiting,
             SimulateGatewayException gatewayExceptionSimulator = null)
         {
             var bus = new InMemoryBus();
@@ -56,9 +57,7 @@ namespace PaymentGateway.Tests
             var bankAdapterSelector = new BankAdapterSelector(random, bankPaymentIdGenerator, delayProvider, bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance);
             var merchantToBankAdapterMapper = new MerchantToBankAdapterMapper(bankAdapterSelector);
             var paymentRequestsMemory = new PaymentRequestsMemory();
-            var timeoutProviderForBankResponseWaiting = Substitute.For<IProvideTimeout>();
-            timeoutProviderForBankResponseWaiting.GetTimeout().Returns(TimeSpan.FromMilliseconds(200));
-            var mediator = new PaymentProcessor(eventSourcedRepository, NullLogger<PaymentProcessor>.Instance, timeoutProviderForBankResponseWaiting, gatewayExceptionSimulator);
+            var mediator = new PaymentProcessor(eventSourcedRepository, NullLogger<PaymentProcessor>.Instance, providerForBankResponseWaiting, gatewayExceptionSimulator);
             var optionMonitor = Substitute.For<IOptionsMonitor<AppSettings>>();
             optionMonitor.CurrentValue.Returns(new AppSettings
             {
@@ -69,8 +68,7 @@ namespace PaymentGateway.Tests
             var requestController = new PaymentRequestsController(paymentRequestCommandHandler , NullLogger<PaymentRequestsController>.Instance);
 
             var readController = new PaymentReadController(eventSourcedRepository);
-
-
+            
             var paymentDetailsRepository = new PaymentDetailsRepository();
             var paymentDetailsReadController = new PaymentsDetailsController(paymentsIdsMemory, paymentDetailsRepository);
 
@@ -81,6 +79,13 @@ namespace PaymentGateway.Tests
             var acquiringBankPaymentsIdsController = new AcquiringBankPaymentsIdsController(paymentsIdsMemory);
 
             return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentRequestsMemory, mediator, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController);
+        }
+
+        public static IProvideTimeout TimeoutProviderForBankResponseWaiting(TimeSpan timeoutTolerance)
+        {
+            var timeoutProviderForBankResponseWaiting = Substitute.For<IProvideTimeout>();
+            timeoutProviderForBankResponseWaiting.GetTimeout().Returns(timeoutTolerance);
+            return timeoutProviderForBankResponseWaiting;
         }
     }
 

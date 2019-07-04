@@ -11,18 +11,17 @@ namespace AcquiringBanks.Stub
         Task<bool> Connect();
     }
 
+    /// <inheritdoc />
     /// <summary>
-    /// Simulate bank connection success or failure
+    /// Simulate bank connection success or failure.
+    /// For having better demo effect (i.e. To see we can have bank connection failure easily (without too many tries)),
+    /// this behaviour will do:
+    /// when connection fails the first time, fail it definitively.
     /// </summary>
     public class RandomConnectionBehavior : IConnectToAcquiringBanks
     {
         private static readonly Random Random = new Random(42);
 
-        /// <summary>
-        /// For runtime manual test purpose,
-        /// testing scenario is when connection fails the first time, fail it definitively.
-        /// To see we can have bank connection failure easily (without too many tries)
-        /// </summary>
         private bool _alreadyFailedOnce;
 
         public async Task<bool> Connect()

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Domain;
+using Polly;
 
 namespace PaymentGateway.Infrastructure
 {
@@ -27,23 +29,31 @@ namespace PaymentGateway.Infrastructure
         public async Task<PaymentResult> AttemptPaying(IAdaptToBank bankAdapter, Payment payment)
         {
             var payingAttempt = payment.MapToAcquiringBank();
-            IBankResponse bankResponse;
-            using (var cts = new CancellationTokenSource())
+            IBankResponse bankResponse = new NullBankResponse();
+
+            // Connection to bank
+            var policy = Policy.Handle<TaskCanceledException>()
+                .WaitAndRetryAsync(3, retry => TimeSpan.FromMilliseconds(Math.Pow(2, retry)));
+
+            var policyResult = await policy.ExecuteAndCaptureAsync(async () =>
             {
-                cts.CancelAfter(_timeoutProviderForBankResponseWaiting.GetTimeout());
-                try
+                using (var cts = new CancellationTokenSource())
                 {
+                    var timeout = _timeoutProviderForBankResponseWaiting.GetTimeout();
+                    cts.CancelAfter(timeout);
+
                     bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt, cts.Token);
                 }
-                catch (TaskCanceledException ex)
-                {
-                    _logger.LogError($"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
+            });
 
-                    payment.Timeout();
-                    await _paymentsRepository.Save(payment, payment.Version);
+            if (policyResult.FinalException != null)
+            {
+                _logger.LogError($"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
 
-                    return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, ex, "Timeout");
-                }
+                payment.Timeout();
+                await _paymentsRepository.Save(payment, payment.Version);
+
+                return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
             }
 
             var strategy = Build(bankResponse, _paymentsRepository);

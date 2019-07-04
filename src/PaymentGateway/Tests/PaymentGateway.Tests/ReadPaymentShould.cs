@@ -16,7 +16,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_Payment_does_not_exist()
         {
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)));
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
             var nonExistingPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.PaymentReadController.GetPaymentInfo(nonExistingPaymentId);
 
@@ -37,7 +37,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(paymentBankStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)));
+            var cqrs = await PaymentCQRS.Build(paymentBankStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -60,7 +60,7 @@ namespace PaymentGateway.Tests
         [Test]
         public async Task Return_NotFound_When_PaymentDetails_does_not_exist()
         {
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)));
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Rejected, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
             var nonExistingBankPaymentId = Guid.NewGuid();
             var actionResult = await cqrs.PaymentDetailsReadController.GetPaymentDetails(nonExistingBankPaymentId);
 

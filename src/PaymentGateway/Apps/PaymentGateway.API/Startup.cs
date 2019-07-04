@@ -61,16 +61,21 @@ namespace PaymentGateway
 
             // Mediator between Gateway and Acquiring banks
             services.AddScoped<IProcessPayment, PaymentProcessor>();
-
-            // Acquiring bank related
-            services.AddScoped<ISelectAdapter, BankAdapterSelector>();
-            services.AddScoped<IMapMerchantToBankAdapter, MerchantToBankAdapterMapper>();
-            services.AddSingleton<IKnowAllMerchants, MerchantsRepository>();
-            services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
-            services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
-            services.AddTransient<IProvideBankResponseTime, RandomDelayProvider>();
-            services.AddSingleton<IGenerateAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
-            services.AddTransient<IProvideTimeout, DefaultTimeoutProviderWaitingBankResponse>();
+            
+            {
+                // Acquiring BANK related
+                services.AddScoped<ISelectAdapter, BankAdapterSelector>();
+                services.AddScoped<IMapMerchantToBankAdapter, MerchantToBankAdapterMapper>();
+                services.AddSingleton<IKnowAllMerchants, MerchantsRepository>();
+                services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
+                services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
+                services.AddSingleton<IGenerateAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
+                {
+                    // Timeout and Delay
+                    services.AddTransient<IProvideTimeout, DefaultTimeoutProviderWaitingBankResponse>();
+                    services.AddScoped<IProvideBankResponseTime, RandomDelayProvider>();
+                }
+            }
 
             // Host Read Projectors
             services.AddSingleton<IHostedService, ReadProjections>();
