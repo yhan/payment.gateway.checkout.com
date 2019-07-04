@@ -248,11 +248,9 @@ namespace PaymentGateway.Tests
                 new AlwaysSuccessBankConnectionBehavior(), 
                 new DelayProviderForTesting(smallLatency), 
                 bigLatencyTwiceThenSmallLatencyTimeoutProvider);
-
-
+            
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-
-
+            
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);

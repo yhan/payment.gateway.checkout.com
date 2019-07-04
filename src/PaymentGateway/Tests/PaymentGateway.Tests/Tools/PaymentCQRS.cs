@@ -40,13 +40,13 @@ namespace PaymentGateway.Tests
             ReadProjectionsService = readProjectionsService;
         }
 
-        internal static async Task<PaymentCQRS> Build(BankPaymentStatus paymentStatus,
-            IGenerateBankPaymentId bankPaymentIdGenerator, 
-            IConnectToAcquiringBanks bankConnectionBehavior,  
-            IProvideBankResponseTime delayProvider,
-            IProvideTimeout providerForBankResponseWaiting,
-            IThrowsException gatewayExceptionSimulator = null, 
-            IPublishEvents eventsPublisher = null)
+        internal static async Task<PaymentCQRS> Build( BankPaymentStatus paymentStatus,
+                                                       IGenerateBankPaymentId bankPaymentIdGenerator, 
+                                                       IConnectToAcquiringBanks bankConnectionBehavior,  
+                                                       IProvideBankResponseTime delayProvider,
+                                                       IProvideTimeout providerForBankResponseWaiting,
+                                                       IThrowsException gatewayExceptionSimulator = null, 
+                                                       IPublishEvents eventsPublisher = null)
         {
             var bus = eventsPublisher ?? new InMemoryBus();
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(bus));
@@ -61,14 +61,14 @@ namespace PaymentGateway.Tests
             var bankAdapterSelector = new BankAdapterSelector(random, bankPaymentIdGenerator, delayProvider, bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance);
             var merchantToBankAdapterMapper = new MerchantToBankAdapterMapper(bankAdapterSelector);
             var paymentRequestsMemory = new PaymentRequestsMemory();
-            var mediator = new PaymentProcessor(eventSourcedRepository, NullLogger<PaymentProcessor>.Instance, providerForBankResponseWaiting, gatewayExceptionSimulator);
+            var paymentProcessor = new PaymentProcessor(eventSourcedRepository, NullLogger<PaymentProcessor>.Instance, providerForBankResponseWaiting, NullLogger<RespondedBankStrategy>.Instance, gatewayExceptionSimulator);
             var optionMonitor = Substitute.For<IOptionsMonitor<AppSettings>>();
             optionMonitor.CurrentValue.Returns(new AppSettings
             {
                 Executor = ExecutorType.Tests
             });
 
-            var paymentRequestCommandHandler = new PaymentRequestCommandHandler(eventSourcedRepository, paymentRequestsMemory, mediator, merchantToBankAdapterMapper, new RequestBankSynchronyMaster(optionMonitor), NullLogger<PaymentRequestCommandHandler>.Instance);
+            var paymentRequestCommandHandler = new PaymentRequestCommandHandler(eventSourcedRepository, paymentRequestsMemory, paymentProcessor, merchantToBankAdapterMapper, new RequestBankSynchronyMaster(optionMonitor), NullLogger<PaymentRequestCommandHandler>.Instance);
             var requestController = new PaymentRequestsController(paymentRequestCommandHandler , NullLogger<PaymentRequestsController>.Instance);
 
             var readController = new PaymentReadController(eventSourcedRepository);
@@ -82,7 +82,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentsIdsController = new GatewayPaymentsIdsController(paymentsIdsMemory);
             var acquiringBankPaymentsIdsController = new AcquiringBankPaymentsIdsController(paymentsIdsMemory);
 
-            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentRequestsMemory, mediator, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController, readProjections);
+            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentRequestsMemory, paymentProcessor, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController, readProjections);
         }
 
         public static IProvideTimeout TimeoutProviderForBankResponseWaiting(TimeSpan timeoutTolerance)

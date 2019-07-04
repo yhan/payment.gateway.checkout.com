@@ -14,14 +14,18 @@ namespace PaymentGateway.Infrastructure
         private readonly ILogger<PaymentProcessor> _logger;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
         private readonly IProvideTimeout _timeoutProviderForBankResponseWaiting;
+        private readonly ILogger<RespondedBankStrategy> _bankResponseProcessingLogger;
 
-        public PaymentProcessor(IEventSourcedRepository<Payment> paymentsRepository, ILogger<PaymentProcessor> logger,
+        public PaymentProcessor(IEventSourcedRepository<Payment> paymentsRepository, 
+            ILogger<PaymentProcessor> logger,
             IProvideTimeout timeoutProviderForBankResponseWaiting,
+            ILogger<RespondedBankStrategy> bankResponseProcessingLogger, 
             IThrowsException gatewayExceptionSimulator = null)
         {
             _paymentsRepository = paymentsRepository;
             _logger = logger;
             _timeoutProviderForBankResponseWaiting = timeoutProviderForBankResponseWaiting;
+            _bankResponseProcessingLogger = bankResponseProcessingLogger;
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
@@ -76,12 +80,12 @@ namespace PaymentGateway.Infrastructure
             return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }
 
-        private static IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
+        private IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
         {
             switch (bankResponse)
             {
                 case BankResponse response:
-                    return new RespondedBankStrategy(response, paymentsRepository);
+                    return new RespondedBankStrategy(response, paymentsRepository, _bankResponseProcessingLogger);
 
                 case BankDoesNotRespond _:
                     return new NotRespondedBankStrategy(paymentsRepository);

@@ -40,58 +40,5 @@ namespace PaymentGateway
                 ContentTypes = { "application/problem+json", "application/problem+xml" }
             };
         }
-
-
-        public static ActionResult ToActionResult(EntityConflictCommandResult entityConflictCommandResult)
-        {
-            var problemDetails = new ProblemDetails
-            {
-                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8",
-                Status = StatusCodes.Status409Conflict,
-                Title = "Conflict",
-                Detail = entityConflictCommandResult.Reason
-            };
-            return new ConflictObjectResult(problemDetails)
-            {
-                ContentTypes = { "application/problem+json", "application/problem+xml" }
-            };
-        }
-    }
-
-
-    public class ApiError
-    {
-        public int StatusCode { get; private set; }
-
-        public string StatusDescription { get; private set; }
-
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string Message { get; private set; }
-
-        public ApiError(int statusCode, string statusDescription)
-        {
-            this.StatusCode = statusCode;
-            this.StatusDescription = statusDescription;
-        }
-
-        public ApiError(int statusCode, string statusDescription, string message)
-            : this(statusCode, statusDescription)
-        {
-            this.Message = message;
-        }
-    }
-
-    public class InternalServerError : ApiError
-    {
-        public InternalServerError()
-            : base(500, HttpStatusCode.InternalServerError.ToString())
-        {
-        }
-
-
-        public InternalServerError(string message)
-            : base(500, HttpStatusCode.InternalServerError.ToString(), message)
-        {
-        }
     }
 }

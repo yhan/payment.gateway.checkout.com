@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Domain;
 
 namespace PaymentGateway.Infrastructure
@@ -36,18 +37,21 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
+    /// <inheritdoc />
     /// <summary>
-    ///     <see cref="PaymentRequest"/> handling strategy when we do have connected to bank's API
+    ///     <see cref="T:PaymentGateway.Infrastructure.PaymentRequest" /> handling strategy when we do have connected to bank's API
     /// </summary>
-    internal class RespondedBankStrategy : IHandleBankResponseStrategy
+    public class RespondedBankStrategy : IHandleBankResponseStrategy
     {
         private readonly BankResponse _bankResponse;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
+        private readonly ILogger<RespondedBankStrategy> _logger;
 
-        public RespondedBankStrategy(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository)
+        public RespondedBankStrategy(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository, ILogger<RespondedBankStrategy> logger)
         {
             _bankResponse = response;
             _paymentsRepository = paymentsRepository;
+            _logger = logger;
         }
 
         public async Task Handle(IThrowsException gatewayExceptionSimulator, Guid gatewayPaymentId)
@@ -63,7 +67,7 @@ namespace PaymentGateway.Infrastructure
                 }
                 catch (AggregateNotFoundException)
                 {
-                    //TODO : log
+                    _logger.LogError($"Bank sends back a Gateway Payment id '{gatewayPaymentId}', which is not recognized by the platform.");
                     return;
                 }
 
