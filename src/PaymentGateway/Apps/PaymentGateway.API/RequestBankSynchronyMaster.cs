@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using PaymentGateway.Domain;
+using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway
 {

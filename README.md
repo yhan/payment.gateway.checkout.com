@@ -289,7 +289,7 @@ For you code reviewer's convenience, some private endpoints are exposed. They ar
         "MaxBankLatencyInMilliseconds": 4000  
     }
    ```
-   The very specific behavior "during retries, if timeouts once, timeouts always" is purely for better demo feeling, i.e. to see `timeout` without submitting a lot of payment requests.
+   The very specific behavior "during retries, if timeouts once, timeouts always" is purely for better demo feeling, i.e. to see `timeout` without submitting a lot of payment requests. Cf. `RandomDelayProvider.cs`
 
 # SLA
 1. A `PaymentRequestId` will be handled once and only once.

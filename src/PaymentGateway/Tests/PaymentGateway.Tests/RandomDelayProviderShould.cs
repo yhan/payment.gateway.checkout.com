@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using NFluent;
 using NSubstitute;
 using NUnit.Framework;
+using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Tests
 {

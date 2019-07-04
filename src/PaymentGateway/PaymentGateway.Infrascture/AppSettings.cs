@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway
+﻿namespace PaymentGateway.Infrastructure
 {
     public class AppSettings
     {
@@ -7,11 +7,4 @@
         public int TimeoutInMilliseconds { get; set; }
         public int MaxBankLatencyInMilliseconds { get; set; }
     }
-
-    public enum ExecutorType
-    {
-        API,
-        Tests
-    }
-
 }
