@@ -1,5 +1,4 @@
-﻿using System;
-using AcquiringBanks.Stub;
+﻿using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -109,40 +108,4 @@ namespace PaymentGateway
             app.UseMvc();
         }
     }
-
-    public class DefaultTimeoutProviderWaitingBankResponse : IProvideTimeout
-    {
-        public TimeSpan GetTimeout()
-        {
-            return TimeSpan.FromSeconds(2);
-        }
-    }
-
-    public class RequestBankSynchronyMaster : IKnowSendRequestToBankSynchrony
-    {
-        private readonly IOptionsMonitor<AppSettings> _optionsMonitor;
-
-        public RequestBankSynchronyMaster(IOptionsMonitor<AppSettings> optionsMonitor)
-        {
-            _optionsMonitor = optionsMonitor;
-        }
-
-        public bool SendPaymentRequestAsynchronously()
-        {
-            return _optionsMonitor.CurrentValue.Executor == ExecutorType.API;
-        }
-    }
-
-    ///<inheritdoc cref="IProvideBankResponseTime"/>
-    /// <summary>
-    /// Can be used for performance testing: test Gateway internal latency.
-    /// </summary>
-    internal class NoDelayProvider : IProvideBankResponseTime
-    {
-        public TimeSpan Delays()
-        {
-            return TimeSpan.Zero;
-        }
-    }
-
 }
