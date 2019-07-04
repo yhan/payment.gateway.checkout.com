@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Mvc;
@@ -119,6 +120,35 @@ namespace PaymentGateway.Tests
             Check.That(payment.AcquiringBankPaymentId).IsEqualTo(bankPaymentId);
         }
 
+        [TestCase(BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.ReceivedDuplicatedBankPaymentIdFailure)]
+        [TestCase(BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.ReceivedDuplicatedBankPaymentIdFailure)]
+        public async Task Return_InternalServerEror_When_AcquiringBank_sent_duplicated_PaymentId(BankPaymentStatus bankPaymentStatus, PaymentStatus expectedPaymentStatusReturnedByGateway)
+        {
+            var requestId = Guid.Parse("9cb25b95-45ba-4100-a180-deb13259d0e1");
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
+            var secondRequestId = Guid.Parse("9c940897-b1c4-4598-96a7-82502ca51845");
+            var secondPaymentRequest = TestsUtils.BuildPaymentRequest(secondRequestId, MerchantsRepository.Apple);
+
+            var gatewayPaymentId = Guid.Parse("002ee45f-fdfb-4666-b504-70aa26ecf646");
+            var secondGatewayPaymentId = Guid.Parse("4cc3dd04-b3d8-4be4-8c68-e744c387fb6c");
+            IGenerateGuid guidGenerator = Substitute.For<IGenerateGuid>();
+            guidGenerator.Generate().Returns(gatewayPaymentId, secondGatewayPaymentId);
+
+            var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
+            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
+            
+            await cqrs.RequestsController.ProceedPaymentRequest(secondPaymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
+            
+            var secondFailedPayment = (await cqrs.PaymentReadController.GetPaymentInfo(secondGatewayPaymentId)).Value;
+            Check.That(secondFailedPayment.RequestId).IsEqualTo(secondRequestId);
+            Check.That(secondFailedPayment.GatewayPaymentId).IsEqualTo(secondGatewayPaymentId);
+
+            Check.That(secondFailedPayment.Status).IsEqualTo(expectedPaymentStatusReturnedByGateway);
+            Check.That(secondFailedPayment.Approved).IsEqualTo(secondFailedPayment.Status == PaymentGateway.Domain.PaymentStatus.Success);
+            Check.That(secondFailedPayment.AcquiringBankPaymentId).IsNull();
+        }
+        
         [Test]
         public async Task Return_BankUnavailable_When_connection_to_bank_is_broken_or_bank_API_is_down()
         {

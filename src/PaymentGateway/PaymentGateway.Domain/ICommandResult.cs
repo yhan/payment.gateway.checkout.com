@@ -22,4 +22,11 @@ namespace PaymentGateway.Domain
         {
         }
     }
+
+    public class EntityConflictCommandResult : FailureCommandResult
+    {
+        public EntityConflictCommandResult(object id) : base($"Conflict on entity {id}.")
+        {
+        }
+    }
 }

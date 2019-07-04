@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
@@ -41,24 +42,37 @@ namespace PaymentGateway.Infrastructure
                 {
                     var timeout = _timeoutProviderForBankResponseWaiting.GetTimeout();
                     cts.CancelAfter(timeout);
-
+                    
                     bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt, cts.Token);
+                    
                 }
             });
 
             if (policyResult.FinalException != null)
             {
-                _logger.LogError($"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
+                if(policyResult.FinalException is TaskCanceledException)
+                {
+                    _logger.LogError($"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
 
-                payment.Timeout();
-                await _paymentsRepository.Save(payment, payment.Version);
+                    payment.Timeout();
+                    await _paymentsRepository.Save(payment, payment.Version);
 
-                return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
+                    return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
+                }
+
+                if (policyResult.FinalException is BankPaymentDuplicatedException paymentDuplicatedException)
+                {
+                    _logger.LogError(paymentDuplicatedException.Message);
+                    payment.HandleBankPaymentIdDuplication();
+                    await _paymentsRepository.Save(payment, payment.Version);
+
+                    return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
+                }
             }
 
             var strategy = Build(bankResponse, _paymentsRepository);
 
-            await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
+            await strategy.Handle(_gatewayExceptionSimulator, bankResponse.GatewayPaymentId);
 
             return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }

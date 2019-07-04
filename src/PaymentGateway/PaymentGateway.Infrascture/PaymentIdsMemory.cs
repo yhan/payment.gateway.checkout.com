@@ -19,8 +19,8 @@ namespace PaymentGateway.Infrastructure
         {
             if (!_map.TryAdd(acquiringBankPaymentId, gatewayPaymentId))
             {
-                throw new ConstraintException(
-                    $"Bank paymentId {acquiringBankPaymentId} already maps to Gateway Payment Id {_map[acquiringBankPaymentId]}");
+                //Can happen only when Acquiring bank sent duplicated unique identifier for a payment
+                throw new BankPaymentDuplicatedException( $"Bank paymentId {acquiringBankPaymentId} already maps to Gateway Payment Id {_map[acquiringBankPaymentId]}");
             }
         }
 
@@ -32,6 +32,13 @@ namespace PaymentGateway.Infrastructure
         public Task<ICollection<AcquiringBankPaymentId>> AllAcquiringBankPaymentsIds()
         {
             return Task.FromResult(_map.Keys);
+        }
+    }
+
+    public class BankPaymentDuplicatedException : ConstraintException
+    {
+        public BankPaymentDuplicatedException(string message) : base(message)
+        {
         }
     }
 }

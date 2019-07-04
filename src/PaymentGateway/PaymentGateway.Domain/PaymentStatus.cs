@@ -30,6 +30,7 @@
         /// <summary>
         ///     Payment processing timeout, may caused by gateway internal or a bank timeout
         /// </summary>
-        Timeout
+        Timeout,
+        ReceivedDuplicatedBankPaymentIdFailure
     }
 }

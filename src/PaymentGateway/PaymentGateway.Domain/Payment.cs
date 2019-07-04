@@ -71,6 +71,11 @@ namespace PaymentGateway.Domain
             ApplyChange(new PaymentTimeoutOccurred(GatewayPaymentId));
         }
 
+        public void HandleBankPaymentIdDuplication()
+        {
+            ApplyChange(new BankPaymentIdDuplicated(GatewayPaymentId));
+        }
+
         #endregion
 
         #region evolution functions, dynamically invoked
@@ -119,20 +124,14 @@ namespace PaymentGateway.Domain
             Version = evt.Version;
         }
 
-        #endregion
-
-
-    }
-
-    public class PaymentFailedBecauseBankUnavailable : Event
-    {
-        public Guid GatewayPaymentId { get; }
-
-        public PaymentStatus Status = PaymentStatus.BankUnavailable;
-
-        public PaymentFailedBecauseBankUnavailable(Guid gatewayPaymentId)
+        private void Apply(BankPaymentIdDuplicated evt)
         {
-            GatewayPaymentId = gatewayPaymentId;
+            Status = evt.Status;
+            Version = evt.Version;
         }
+
+        #endregion
     }
+
+   
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
+using NSubstitute;
 using NUnit.Framework;
 using PaymentGateway;
 using PaymentGateway.Domain;

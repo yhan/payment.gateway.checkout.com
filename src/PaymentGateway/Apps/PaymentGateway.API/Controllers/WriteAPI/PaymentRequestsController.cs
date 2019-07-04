@@ -44,6 +44,7 @@ namespace PaymentGateway.WriteAPI
                 case FailureCommandResult failure:
                     return ActionResultHelper.ToActionResult(failure);
 
+
                 default:
                     throw new NotSupportedException();
             }
