@@ -72,10 +72,13 @@ namespace PaymentGateway
                 services.AddSingleton<IGenerateAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
                 {
                     // Timeout and Delay
-                    services.AddTransient<IProvideTimeout, DefaultTimeoutProviderWaitingBankResponse>();
+                    services.AddTransient<IProvideTimeout, DefaultWaitingBankResponseTimeoutProvider>();
                     services.AddScoped<IProvideBankResponseTime, RandomDelayProvider>();
                 }
             }
+
+            // Disable gateway exception simulator
+            services.AddScoped<IThrowsException, NullThrows>();
 
             // Host Read Projectors
             services.AddSingleton<IHostedService, ReadProjections>();

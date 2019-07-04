@@ -30,6 +30,18 @@ namespace PaymentGateway.Domain
         public Guid? AcquiringBankPaymentId { get; private set; }
         
         public Guid MerchantId { get; private set; }
+        
+        public bool? Approved
+        {
+            get
+            {
+                if (Status == PaymentStatus.Pending)
+                {
+                    return null;
+                }
+                return Status == PaymentStatus.Success;
+            }
+        }
 
         #region decision functions
 

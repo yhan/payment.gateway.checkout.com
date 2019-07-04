@@ -17,7 +17,7 @@ namespace PaymentGateway.Infrastructure
 
         public static PaymentDto AsDto(this Payment payment)
         {
-            return new PaymentDto(payment.RequestId, payment.GatewayPaymentId, payment.AcquiringBankPaymentId, payment.Status);
+            return new PaymentDto(payment.RequestId, payment.GatewayPaymentId, payment.AcquiringBankPaymentId, payment.Status, payment.Approved);
         }
 
         public static PaymentDetailsDto AsDto(this PaymentDetails paymentDetails)

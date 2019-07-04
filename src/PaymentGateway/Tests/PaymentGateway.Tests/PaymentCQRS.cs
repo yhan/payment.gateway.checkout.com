@@ -22,11 +22,13 @@ namespace PaymentGateway.Tests
         internal PaymentReadController PaymentReadController{ get; }
         internal PaymentRequestsController RequestsController{ get; }
         public AcquiringBankPaymentsIdsController AcquiringBankPaymentsIdsController { get; set; }
+        public ReadProjections ReadProjectionsService { get; }
+        
 
         private PaymentCQRS(PaymentRequestsController requestController, PaymentReadController paymentReadController,
             PaymentsDetailsController paymentDetailsReadController, PaymentRequestsMemory paymentRequestsMemory,
             PaymentProcessor paymentProcessor, GatewayPaymentsIdsController gatewayGatewayPaymentsIdsController,
-            AcquiringBankPaymentsIdsController acquiringBankPaymentsIdsController)
+            AcquiringBankPaymentsIdsController acquiringBankPaymentsIdsController, ReadProjections readProjectionsService)
         {
             PaymentDetailsReadController = paymentDetailsReadController;
             RequestsController = requestController;
@@ -35,6 +37,7 @@ namespace PaymentGateway.Tests
             PaymentProcessor = paymentProcessor;
             GatewayPaymentsIdsController = gatewayGatewayPaymentsIdsController;
             AcquiringBankPaymentsIdsController = acquiringBankPaymentsIdsController;
+            ReadProjectionsService = readProjectionsService;
         }
 
         internal static async Task<PaymentCQRS> Build(BankPaymentStatus paymentStatus,
@@ -42,9 +45,10 @@ namespace PaymentGateway.Tests
             IConnectToAcquiringBanks bankConnectionBehavior,  
             IProvideBankResponseTime delayProvider,
             IProvideTimeout providerForBankResponseWaiting,
-            SimulateGatewayException gatewayExceptionSimulator = null)
+            IThrowsException gatewayExceptionSimulator = null, 
+            IPublishEvents eventsPublisher = null)
         {
-            var bus = new InMemoryBus();
+            var bus = eventsPublisher ?? new InMemoryBus();
             var eventSourcedRepository = new EventSourcedRepository<Payment>(new InMemoryEventStore(bus));
             
             var appSettingsAccessor = Substitute.For<IOptionsMonitor<AppSettings>>();
@@ -69,7 +73,7 @@ namespace PaymentGateway.Tests
 
             var readController = new PaymentReadController(eventSourcedRepository);
             
-            var paymentDetailsRepository = new PaymentDetailsRepository();
+            var paymentDetailsRepository = new PaymentDetailsRepository(NullLogger<PaymentDetailsRepository>.Instance);
             var paymentDetailsReadController = new PaymentsDetailsController(paymentsIdsMemory, paymentDetailsRepository);
 
             var readProjections = new ReadProjections(bus, paymentDetailsRepository);
@@ -78,7 +82,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentsIdsController = new GatewayPaymentsIdsController(paymentsIdsMemory);
             var acquiringBankPaymentsIdsController = new AcquiringBankPaymentsIdsController(paymentsIdsMemory);
 
-            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentRequestsMemory, mediator, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController);
+            return new PaymentCQRS(requestController, readController, paymentDetailsReadController, paymentRequestsMemory, mediator, gatewayPaymentsIdsController, acquiringBankPaymentsIdsController, readProjections);
         }
 
         public static IProvideTimeout TimeoutProviderForBankResponseWaiting(TimeSpan timeoutTolerance)

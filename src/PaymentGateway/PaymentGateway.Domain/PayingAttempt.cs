@@ -14,13 +14,11 @@ namespace PaymentGateway.Domain
         public double Amount { get;  }
         public string Currency { get;  }
 
-        public Guid MerchantId { get; }
 
-        public PayingAttempt(Guid gatewayPaymentId, Guid paymentRequestId, Guid merchantId,  string cardNumber, string cardCvv, string cardExpiry, double amount, string currency)
+        public PayingAttempt(Guid gatewayPaymentId, Guid paymentRequestId, string cardNumber, string cardCvv, string cardExpiry, double amount, string currency)
         {
             GatewayPaymentId = gatewayPaymentId;
             PaymentRequestId = paymentRequestId;
-            MerchantId = merchantId;
             CardNumber = cardNumber;
             CardCvv = cardCvv;
             CardExpiry = cardExpiry;

@@ -11,14 +11,14 @@ namespace PaymentGateway.Infrastructure
     /// <inheritdoc cref="IProcessPayment" />
     public class PaymentProcessor : IProcessPayment
     {
-        private readonly SimulateGatewayException _gatewayExceptionSimulator;
+        private readonly IThrowsException _gatewayExceptionSimulator;
         private readonly ILogger<PaymentProcessor> _logger;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
         private readonly IProvideTimeout _timeoutProviderForBankResponseWaiting;
 
         public PaymentProcessor(IEventSourcedRepository<Payment> paymentsRepository, ILogger<PaymentProcessor> logger,
             IProvideTimeout timeoutProviderForBankResponseWaiting,
-            SimulateGatewayException gatewayExceptionSimulator = null)
+            IThrowsException gatewayExceptionSimulator = null)
         {
             _paymentsRepository = paymentsRepository;
             _logger = logger;

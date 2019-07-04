@@ -3,19 +3,18 @@
 namespace PaymentGateway.Domain.Events
 {
     /// <summary>
-    /// Raised when acquiring bank accepts payment
+    ///     Raised when acquiring bank accepts payment
     /// </summary>
-    public class PaymentSucceeded : Event
+    public class PaymentSucceeded : AggregateEvent
     {
         public PaymentStatus Status = PaymentStatus.Success;
 
-        public PaymentSucceeded(Guid gatewayPaymentId, Guid bankPaymentId)
+        public PaymentSucceeded(Guid gatewayPaymentId, Guid bankPaymentId) : base(gatewayPaymentId)
         {
-            GatewayPaymentId = gatewayPaymentId;
             BankPaymentId = bankPaymentId;
         }
 
-        public Guid GatewayPaymentId { get; }
+        public Guid GatewayPaymentId => AggregateId;
         public Guid BankPaymentId { get; }
     }
 }

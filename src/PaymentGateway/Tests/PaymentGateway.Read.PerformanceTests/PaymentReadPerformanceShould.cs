@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ using PaymentGateway.Write.PerformanceTests;
 
 namespace PaymentGateway.Read.PerformanceTests
 {
-
+    [ExcludeFromCodeCoverage]
     [Ignore("Performance tests, may be time consuming. I want fast feedback using NCrunch. Launch this on demand")]
     public class ReadPerformanceShould
     {
@@ -93,6 +94,7 @@ namespace PaymentGateway.Read.PerformanceTests
         }
     }
 
+    [ExcludeFromCodeCoverage]
     public class Unit
     {
         public ISafeHttpClient Client { get; }

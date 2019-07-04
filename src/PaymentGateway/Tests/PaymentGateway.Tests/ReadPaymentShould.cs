@@ -27,8 +27,7 @@ namespace PaymentGateway.Tests
         [Repeat(10)]
         [TestCase(BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
         [TestCase(BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
-        public async Task Can_retrieve_payment_details_using_BankPaymentId(BankPaymentStatus paymentBankStatus, PaymentGateway.Domain.PaymentStatus expectedStatusInPaymentDetails
-        )
+        public async Task Can_retrieve_payment_details_using_BankPaymentId(BankPaymentStatus paymentBankStatus, PaymentGateway.Domain.PaymentStatus expectedStatusInPaymentDetails)
         {
             var requestId = Guid.NewGuid();
             var paymentRequest =  new PaymentRequest(requestId, MerchantsRepository.Amazon,  new Money("EUR", 42.66), new PaymentGateway.Infrastructure.Card("4524 4587 5698 1200", "05/19", "321"));

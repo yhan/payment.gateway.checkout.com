@@ -14,7 +14,8 @@ namespace PaymentGateway
                 Type= "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Invalid request",
-                Detail = invalidCommandResult.Reason
+                Detail = invalidCommandResult.Reason,
+
             };
             return new BadRequestObjectResult(problemDetails)
             {

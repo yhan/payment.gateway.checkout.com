@@ -4,11 +4,11 @@ using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway
 {
-    public class DefaultTimeoutProviderWaitingBankResponse : IProvideTimeout
+    public class DefaultWaitingBankResponseTimeoutProvider : IProvideTimeout
     {
         private readonly IOptionsMonitor<AppSettings> _optionsMonitor;
 
-        public DefaultTimeoutProviderWaitingBankResponse(IOptionsMonitor<AppSettings> optionsMonitor)
+        public DefaultWaitingBankResponseTimeoutProvider(IOptionsMonitor<AppSettings> optionsMonitor)
         {
             _optionsMonitor = optionsMonitor;
         }

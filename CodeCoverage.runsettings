@@ -14,51 +14,12 @@
                 <ModulePath>.*\.exe$</ModulePath>
               </Include>
               <Exclude>
-                  <ModulePath>.*\\src\PaymentGateway\Tests\PaymentGateway.PerformanceTests\\.dll$</ModulePath>
-                  <ModulePath>.*\\src\PaymentGateway\Tests\PaymentGateway.Read.PerformanceTests\\.dll$</ModulePath>
-                  <ModulePath>.*\\src\PaymentGateway\Tests\PaymentGateway.PerformanceTests.Console\\.dll$</ModulePath>
+                  <ModulePath>PaymentGateway.Write.PerformanceTests.dll</ModulePath>
+                  <ModulePath>PaymentGateway.Read.PerformanceTests.dll</ModulePath>
+                  <ModulePath>PaymentGateway.PerformanceTests.Console.dll</ModulePath>
 				<ModulePath> </ModulePath>
               </Exclude>
             </ModulePaths>
-
-
-            <!-- Match attributes on any code element: -->
-            <Attributes>
-              <Exclude>
-                <!-- Don't forget "Attribute" at the end of the name -->
-                <Attribute>^System\.Diagnostics\.DebuggerHiddenAttribute$</Attribute>
-                <Attribute>^System\.Diagnostics\.DebuggerNonUserCodeAttribute$</Attribute>
-                <Attribute>^System\.Runtime\.CompilerServices.CompilerGeneratedAttribute$</Attribute>
-                <Attribute>^System\.CodeDom\.Compiler.GeneratedCodeAttribute$</Attribute>
-                <Attribute>^System\.Diagnostics\.CodeAnalysis.ExcludeFromCodeCoverageAttribute$</Attribute>
-              </Exclude>
-            </Attributes>
-
-            <!-- Match the path of the source files in which each method is defined: -->
-            <Sources>
-              <Exclude>
-                <Source>.*\\atlmfc\\.*</Source>
-                <Source>.*\\vctools\\.*</Source>
-                <Source>.*\\public\\sdk\\.*</Source>
-                <Source>.*\\microsoft sdks\\.*</Source>
-                <Source>.*\\vc\\include\\.*</Source>
-              </Exclude>
-            </Sources>
-
-            <!-- Match the company name property in the assembly: -->
-            <CompanyNames>
-              <Exclude>
-                <CompanyName>.*microsoft.*</CompanyName>
-              </Exclude>
-            </CompanyNames>
-
-           
-
-            <!-- We recommend you do not change the following values: -->
-            <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
-            <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
-            <CollectFromChildProcesses>True</CollectFromChildProcesses>
-            <CollectAspDotNet>False</CollectAspDotNet>
 
           </CodeCoverage>
         </Configuration>

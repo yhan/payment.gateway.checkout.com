@@ -18,11 +18,8 @@ namespace PaymentGateway.Domain
 
     public class InvalidCommandResult : FailureCommandResult
     {
-        public Guid PaymentRequestId { get; }
-
-        public InvalidCommandResult(Guid paymentRequestId, string reason) : base(reason)
+        public InvalidCommandResult(string reason) : base(reason)
         {
-            PaymentRequestId = paymentRequestId;
         }
     }
 }

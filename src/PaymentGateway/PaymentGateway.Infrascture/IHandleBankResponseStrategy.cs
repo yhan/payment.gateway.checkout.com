@@ -11,7 +11,7 @@ namespace PaymentGateway.Infrastructure
     /// </summary>
     public interface IHandleBankResponseStrategy
     {
-        Task Handle(SimulateGatewayException gatewayExceptionSimulator, Guid payingAttemptGatewayPaymentId);
+        Task Handle(IThrowsException gatewayExceptionSimulator, Guid payingAttemptGatewayPaymentId);
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ namespace PaymentGateway.Infrastructure
             _paymentsRepository = paymentsRepository;
         }
 
-        public async Task Handle(SimulateGatewayException gatewayExceptionSimulator, Guid gatewayPaymentId)
+        public async Task Handle(IThrowsException gatewayExceptionSimulator, Guid gatewayPaymentId)
         {
             var knownPayment = await _paymentsRepository.GetById(gatewayPaymentId);
 
@@ -50,7 +50,7 @@ namespace PaymentGateway.Infrastructure
             _paymentsRepository = paymentsRepository;
         }
 
-        public async Task Handle(SimulateGatewayException gatewayExceptionSimulator, Guid gatewayPaymentId)
+        public async Task Handle(IThrowsException gatewayExceptionSimulator, Guid gatewayPaymentId)
         {
             Payment knownPayment = null;
             var bankPaymentId = _bankResponse.BankPaymentId;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -15,6 +16,7 @@ using PaymentGateway.Write.PerformanceTests;
 
 namespace PaymentGateway.PerformanceTests.Console
 {
+    [ExcludeFromCodeCoverage]
     class Program
     {
         public static async Task ConcurrentClientsRequestsPaymentThenReadPaymentDetails()

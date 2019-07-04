@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Infrastructure
 {
-    public class SimulateGatewayException
+    public class SimulateGatewayException : IThrowsException
     {
         public void Throws()
         {
@@ -10,5 +10,18 @@ namespace PaymentGateway.Infrastructure
         }
 
         private class FakeException : Exception { }
+    }
+
+    public interface IThrowsException
+    {
+        void Throws();
+    }
+
+    public class NullThrows: IThrowsException
+    {
+        public void Throws()
+        {
+            
+        }
     }
 }

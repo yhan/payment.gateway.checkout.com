@@ -2,18 +2,16 @@
 {
     public class PaymentDetails
     {
-        public PaymentDetails(GatewayPaymentId gatewayPaymentId, Card card)
+        public PaymentDetails(Card card)
         {
-            GatewayPaymentId = gatewayPaymentId;
             Card = card;
         }
 
-        public GatewayPaymentId GatewayPaymentId { get; }
         public Card Card { get; }
 
         public AcquiringBankPaymentId? BankPaymentId { get; private set; }
+        
         public PaymentStatus Status { get; set; }
-
 
         public void Update(AcquiringBankPaymentId bankPaymentId, PaymentStatus paymentStatus)
         {

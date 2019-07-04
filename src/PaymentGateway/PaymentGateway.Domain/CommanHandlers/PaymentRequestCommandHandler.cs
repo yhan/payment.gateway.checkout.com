@@ -83,8 +83,7 @@ namespace PaymentGateway.Domain
         public static PayingAttempt MapToAcquiringBank(this Payment payment)
         {
             return new PayingAttempt(gatewayPaymentId: payment.GatewayPaymentId, 
-                                     paymentRequestId: payment.RequestId,
-                                     merchantId: payment.MerchantId, 
+                                     paymentRequestId: payment.RequestId, 
                                      cardNumber: payment.Card.Number, 
                                      cardCvv: payment.Card.Cvv,
                                      cardExpiry: payment.Card.Expiry,

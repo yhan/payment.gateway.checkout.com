@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace PaymentGateway.Write.PerformanceTests
 {
+    [ExcludeFromCodeCoverage]
     public class HttpClientsContainer : IHttpClientsContainer
     {
         private readonly ConcurrentDictionary<string, SafeHttpClient> _cache = new ConcurrentDictionary<string, SafeHttpClient>();
@@ -56,12 +58,10 @@ namespace PaymentGateway.Write.PerformanceTests
 		
     }
 
-
     public interface IHttpClientsContainer : IDisposable
     {
         ISafeHttpClient GetSafeHttpClient(string baseUri, params DelegatingHandler[] delegatingHandlers);
     }
-
 
     public interface ISafeHttpClient
     {
@@ -70,7 +70,7 @@ namespace PaymentGateway.Write.PerformanceTests
         Task<HttpResponseMessage> GetAsync(string requestUri);
     }
 
-
+    [ExcludeFromCodeCoverage]
     public class SafeHttpClient : ISafeHttpClient, IDisposable
 	{
 		private readonly HttpClient _httpClient;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -13,6 +14,8 @@ using PaymentGateway.Tests;
 
 namespace PaymentGateway.Write.PerformanceTests
 {
+
+    [ExcludeFromCodeCoverage]
     [Ignore("Performance tests, may be time consuming. I want fast feedback using NCrunch. Launch this on demand")]
     public class WritePerformanceShould
     {

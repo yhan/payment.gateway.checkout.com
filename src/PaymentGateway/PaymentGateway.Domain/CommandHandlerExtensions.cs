@@ -14,7 +14,7 @@ namespace PaymentGateway.Domain
         public static ICommandResult Invalid<TCommand>(this ICommandHandler<TCommand> handler, Guid commandId, string reason)
             where TCommand : Command
         {
-            return new InvalidCommandResult(commandId, reason);
+            return new InvalidCommandResult(reason);
         }
 
         public static ICommandResult Failure<TCommand>(this ICommandHandler<TCommand> handler, string reason)

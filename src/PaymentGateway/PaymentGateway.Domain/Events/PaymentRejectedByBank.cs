@@ -3,19 +3,18 @@
 namespace PaymentGateway.Domain.Events
 {
     /// <summary>
-    /// Raised when acquiring bank rejects payment
+    ///     Raised when acquiring bank rejects payment
     /// </summary>
-    public class PaymentRejectedByBank : Event
+    public class PaymentRejectedByBank : AggregateEvent
     {
         public PaymentStatus Status = PaymentStatus.RejectedByBank;
 
-        public PaymentRejectedByBank(Guid gatewayPaymentId, Guid bankPaymentId)
+        public PaymentRejectedByBank(Guid gatewayPaymentId, Guid bankPaymentId) : base(gatewayPaymentId)
         {
-            GatewayPaymentId = gatewayPaymentId;
             BankPaymentId = bankPaymentId;
         }
 
-        public Guid GatewayPaymentId { get; }
+        public Guid GatewayPaymentId => AggregateId;
         public Guid BankPaymentId { get; }
     }
 }
