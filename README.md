@@ -427,9 +427,3 @@ Hereunder some improvements should be definitely done:
    
 # Open source used:
 The event sourcing infrastructure is borrowed from [Greg Young's git repository](https://github.com/gregoryyoung/m-r)
-
-
-# Open question:
-- When we can't connect to bank or request timeout, what should we do?
-
-
