@@ -85,11 +85,11 @@ For managing:
    For reporting requirement, Gateway API client will query Payment details using bank's payment id.
 
    If we do request handling synchronously, we don't need any additional id beside `BankPaymentId`.  
-   ![Synchronous payment request handling]()
+   ![sync](https://github.com/yhan/payment.gateway.checkout.com/blob/master/images/sync-cmd-handling.png)
 
    
    Handling payment request asynchronously introduces complexity of storing _a link id_ to liaise initial `PaymentRequest` and `AcquiringBankResponse`.
-   ![Asynchronous payment request handling]()  
+   ![async](https://github.com/yhan/payment.gateway.checkout.com/blob/master/images/async-cmd-handling.png)  
 
    Once bank response comes back to Gateway, Gateway should find the corresponding payment which is the origin of the response and store the link somewhere.
 
