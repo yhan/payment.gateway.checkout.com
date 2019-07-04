@@ -40,6 +40,7 @@ namespace PaymentGateway.Tests
         internal static async Task<PaymentCQRS> Build(BankPaymentStatus paymentStatus,
             IGenerateBankPaymentId bankPaymentIdGenerator, 
             IConnectToAcquiringBanks bankConnectionBehavior,  
+            IProvideBankResponseTime delayProvider,
             SimulateGatewayException gatewayExceptionSimulator = null)
         {
             var bus = new InMemoryBus();
@@ -52,10 +53,12 @@ namespace PaymentGateway.Tests
             random.GeneratePaymentStatus().Returns(paymentStatus);
 
             var paymentsIdsMemory = new PaymentIdsMemory();
-            var bankAdapterSelector = new BankAdapterSelector(random, bankPaymentIdGenerator, new DelayProviderForTesting(), bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance);
+            var bankAdapterSelector = new BankAdapterSelector(random, bankPaymentIdGenerator, delayProvider, bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance);
             var merchantToBankAdapterMapper = new MerchantToBankAdapterMapper(bankAdapterSelector);
             var paymentRequestsMemory = new PaymentRequestsMemory();
-            var mediator = new PaymentProcessor(merchantToBankAdapterMapper, eventSourcedRepository, gatewayExceptionSimulator);
+            var timeoutProviderForBankResponseWaiting = Substitute.For<IProvideTimeout>();
+            timeoutProviderForBankResponseWaiting.GetTimeout().Returns(TimeSpan.FromMilliseconds(200));
+            var mediator = new PaymentProcessor(eventSourcedRepository, NullLogger<PaymentProcessor>.Instance, timeoutProviderForBankResponseWaiting, gatewayExceptionSimulator);
             var optionMonitor = Substitute.For<IOptionsMonitor<AppSettings>>();
             optionMonitor.CurrentValue.Returns(new AppSettings
             {
@@ -83,9 +86,16 @@ namespace PaymentGateway.Tests
 
     internal class DelayProviderForTesting : IProvideBankResponseTime
     {
+        private readonly TimeSpan _delay;
+
+        public DelayProviderForTesting(TimeSpan delay)
+        {
+            _delay = delay;
+        }
+
         public TimeSpan Delays()
         {
-            return TimeSpan.FromMilliseconds(1);
+            return _delay;
         }
     }
 }

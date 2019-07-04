@@ -54,6 +54,11 @@ namespace PaymentGateway.Domain
             ApplyChange(new PaymentFailedBecauseBankUnavailable(GatewayPaymentId));
         }
 
+        public void Timeout()
+        {
+            ApplyChange(new PaymentTimeoutOccurred(GatewayPaymentId));
+        }
+
         #endregion
 
         #region evolution functions, dynamically invoked
@@ -96,7 +101,15 @@ namespace PaymentGateway.Domain
             Version = evt.Version;
         }
 
+        private void Apply(PaymentTimeoutOccurred evt)
+        {
+            Status = evt.Status;
+            Version = evt.Version;
+        }
+
         #endregion
+
+
     }
 
     public class PaymentFailedBecauseBankUnavailable : Event

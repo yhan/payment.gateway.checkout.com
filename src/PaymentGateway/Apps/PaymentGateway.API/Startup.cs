@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Domain;
@@ -70,8 +69,9 @@ namespace PaymentGateway
             services.AddSingleton<IKnowAllMerchants, MerchantsRepository>();
             services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
             services.AddTransient<IGenerateBankPaymentId, DefaultBankPaymentIdGenerator>();
-            services.AddTransient<IProvideBankResponseTime, DelayProvider>();
+            services.AddTransient<IProvideBankResponseTime, RandomDelayProvider>();
             services.AddSingleton<IGenerateAcquiringBankPaymentStatus, AcquiringBankPaymentStatusRandomnizer>();
+            services.AddTransient<IProvideTimeout, DefaultTimeoutProviderWaitingBankResponse>();
 
             // Host Read Projectors
             services.AddSingleton<IHostedService, ReadProjections>();
@@ -107,6 +107,14 @@ namespace PaymentGateway
 
             app.UseHttpsRedirection();
             app.UseMvc();
+        }
+    }
+
+    public class DefaultTimeoutProviderWaitingBankResponse : IProvideTimeout
+    {
+        public TimeSpan GetTimeout()
+        {
+            return TimeSpan.FromSeconds(2);
         }
     }
 

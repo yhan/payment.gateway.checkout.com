@@ -52,14 +52,18 @@ namespace PaymentGateway.Domain
                 //TODO: Add cancellation with a timeout
                 if(_synchronyMaster.SendPaymentRequestAsynchronously())
                 {
-                    _paymentProcessor.AttemptPaying(bankAdapter, payment.MapToAcquiringBank()).ContinueWith((task, o) =>
+                    _paymentProcessor.AttemptPaying(bankAdapter, payment).ContinueWith((task, o) =>
                     {
                         _logger.LogError($"Payment request '{command.RequestId}' with exception {task.Exception?.Message}");
                     }, TaskContinuationOptions.OnlyOnFaulted);
                 }
                 else
                 {
-                    await _paymentProcessor.AttemptPaying(bankAdapter, payment.MapToAcquiringBank());
+                    var paymentResult =  await _paymentProcessor.AttemptPaying(bankAdapter, payment);
+                    if (paymentResult.Status == PaymentStatus.Timeout)
+                    {
+                        return this.Failure($"{paymentResult.Identifier} Timeout ");
+                    }
                 }
             }
             catch (BankOnboardMissingException e)
@@ -79,6 +83,7 @@ namespace PaymentGateway.Domain
         public static PayingAttempt MapToAcquiringBank(this Payment payment)
         {
             return new PayingAttempt(gatewayPaymentId: payment.GatewayPaymentId, 
+                                     paymentRequestId: payment.RequestId,
                                      merchantId: payment.MerchantId, 
                                      cardNumber: payment.Card.Number, 
                                      cardCvv: payment.Card.Cvv,

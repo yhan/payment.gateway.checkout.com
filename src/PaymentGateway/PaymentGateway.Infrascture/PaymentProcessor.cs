@@ -1,5 +1,8 @@
 ﻿
 
+using System.Threading;
+using Microsoft.Extensions.Logging;
+
 namespace PaymentGateway.Infrastructure
 {
     using System;
@@ -10,24 +13,56 @@ namespace PaymentGateway.Infrastructure
     /// <inheritdoc cref="IProcessPayment"/>>
     public class PaymentProcessor : IProcessPayment
     {
-        private readonly IMapMerchantToBankAdapter _bankAdapterMapper;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
+        private readonly ILogger<PaymentProcessor> _logger;
+        private readonly IProvideTimeout _timeoutProviderForBankResponseWaiting;
         private readonly SimulateGatewayException _gatewayExceptionSimulator;
 
-        public PaymentProcessor(IMapMerchantToBankAdapter bankAdapterMapper, IEventSourcedRepository<Payment> paymentsRepository, SimulateGatewayException gatewayExceptionSimulator = null)
+        public PaymentProcessor(IEventSourcedRepository<Payment> paymentsRepository, ILogger<PaymentProcessor> logger,
+            IProvideTimeout timeoutProviderForBankResponseWaiting,
+            SimulateGatewayException gatewayExceptionSimulator = null )
         {
-            _bankAdapterMapper = bankAdapterMapper;
             _paymentsRepository = paymentsRepository;
+            _logger = logger;
+            _timeoutProviderForBankResponseWaiting = timeoutProviderForBankResponseWaiting;
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
-        public async Task AttemptPaying(IAdaptToBank bankAdapter, PayingAttempt payingAttempt)
+        public async Task<PaymentResult> AttemptPaying(IAdaptToBank bankAdapter, Payment payment )
         {
-            var bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt);
 
-            IHandleBankResponseStrategy strategy = Build(bankResponse, _paymentsRepository);
+            var payingAttempt = payment.MapToAcquiringBank();
+            using (var timeoutCancellationTokenSource = new CancellationTokenSource(_timeoutProviderForBankResponseWaiting.GetTimeout()))
+            {
+                try
+                {
+                    var bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt);
+                    if (timeoutCancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        throw new TaskCanceledException();
+                    }
 
-            await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
+                    IHandleBankResponseStrategy strategy = Build(bankResponse, _paymentsRepository);
+
+                    await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
+                }
+                catch (Exception ex)
+                {
+                    if (timeoutCancellationTokenSource.IsCancellationRequested && ex is TaskCanceledException)
+                    {
+                        _logger.LogError(
+                            $"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
+
+                        payment.Timeout();
+                        await _paymentsRepository.Save(payment, payment.Version);
+
+                        return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, ex,
+                            "Timeout");
+                    }
+                }
+            }
+
+            return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }
 
         private static IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
@@ -43,5 +78,10 @@ namespace PaymentGateway.Infrastructure
 
             throw new ArgumentException();
         }
+    }
+
+    public interface IProvideTimeout
+    {
+        TimeSpan GetTimeout();
     }
 }

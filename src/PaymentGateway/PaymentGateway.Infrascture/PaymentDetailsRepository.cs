@@ -44,6 +44,14 @@ namespace PaymentGateway.Infrastructure
 
         }
 
+        public async Task Update(GatewayPaymentId gatewayPaymentId, PaymentStatus paymentStatus)
+        {
+            //Simulate IO
+            await Task.Delay(1);
+            var paymentDetails = _storage[gatewayPaymentId];
+            paymentDetails.Update(paymentStatus);
+        }
+
         public async Task<PaymentDetails> GetPaymentDetails(GatewayPaymentId paymentGatewayId)
         {
             //Simulate IO

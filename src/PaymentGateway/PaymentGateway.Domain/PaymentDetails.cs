@@ -20,5 +20,10 @@
             BankPaymentId = bankPaymentId;
             Status = paymentStatus;
         }
+
+        public void Update(PaymentStatus paymentStatus)
+        {
+            Status = paymentStatus;
+        }
     }
 }

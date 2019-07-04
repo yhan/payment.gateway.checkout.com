@@ -25,6 +25,12 @@ namespace PaymentGateway.Infrastructure.ReadProjector
             _bus.RegisterHandler<PaymentSucceeded>(Handle);
             _bus.RegisterHandler<PaymentRejectedByBank>(Handle);
             _bus.RegisterHandler<PaymentFaulted>(Handle);
+            _bus.RegisterHandler<PaymentTimeoutOccurred>(Handle);
+        }
+
+        private async Task Handle(PaymentTimeoutOccurred timeoutOccurred)
+        {
+            await _paymentDetailsRepository.Update(new GatewayPaymentId(timeoutOccurred.GatewayPaymentId),  PaymentStatus.Timeout);
         }
 
         public void UnsubscribeFromEventsForUpdatingReadModel()

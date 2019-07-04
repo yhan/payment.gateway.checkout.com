@@ -7,12 +7,12 @@ namespace PaymentGateway
     /// <summary>
     /// Provides random bank response time
     /// </summary>
-    public class DelayProvider : IProvideBankResponseTime
+    public class RandomDelayProvider : IProvideBankResponseTime
     {
-        private readonly ILogger<DelayProvider> _logger;
+        private readonly ILogger<RandomDelayProvider> _logger;
         private static readonly Random Random = new Random(42);
 
-        public DelayProvider(ILogger<DelayProvider> logger)
+        public RandomDelayProvider(ILogger<RandomDelayProvider> logger)
         {
             _logger = logger;
         }

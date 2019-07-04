@@ -25,6 +25,11 @@
         /// <summary>
         ///     Can't reach `Acquiring bank`'s API
         /// </summary>
-        BankUnavailable
+        BankUnavailable,
+
+        /// <summary>
+        ///     Payment processing timeout, may caused by gateway internal or a bank timeout
+        /// </summary>
+        Timeout
     }
 }

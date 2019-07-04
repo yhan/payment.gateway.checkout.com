@@ -12,5 +12,7 @@ namespace PaymentGateway.Domain
         Task Create(GatewayPaymentId gatewayPaymentId, Card card);
 
         Task Update(GatewayPaymentId gatewayPaymentId, AcquiringBankPaymentId bankPaymentId, PaymentStatus paymentStatus);
+
+        Task Update(GatewayPaymentId gatewayPaymentId, PaymentStatus paymentStatus);
     }
 }

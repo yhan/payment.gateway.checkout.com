@@ -41,6 +41,9 @@ namespace PaymentGateway.WriteAPI
                 case InvalidCommandResult invalid:
                     return ActionResultHelper.ToActionResult(invalid);
 
+                case FailureCommandResult failure:
+                    return ActionResultHelper.ToActionResult(failure);
+
                 default:
                     throw new NotSupportedException();
             }

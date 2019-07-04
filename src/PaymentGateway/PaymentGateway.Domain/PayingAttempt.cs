@@ -5,6 +5,7 @@ namespace PaymentGateway.Domain
     public class PayingAttempt
     {
         public Guid GatewayPaymentId { get;  }
+        public Guid PaymentRequestId { get; }
 
         public string CardNumber { get; }
         public string CardCvv { get; }
@@ -15,9 +16,10 @@ namespace PaymentGateway.Domain
 
         public Guid MerchantId { get; }
 
-        public PayingAttempt(Guid gatewayPaymentId, Guid merchantId,  string cardNumber, string cardCvv, string cardExpiry, double amount, string currency)
+        public PayingAttempt(Guid gatewayPaymentId, Guid paymentRequestId, Guid merchantId,  string cardNumber, string cardCvv, string cardExpiry, double amount, string currency)
         {
             GatewayPaymentId = gatewayPaymentId;
+            PaymentRequestId = paymentRequestId;
             MerchantId = merchantId;
             CardNumber = cardNumber;
             CardCvv = cardCvv;

@@ -8,6 +8,6 @@ namespace PaymentGateway.Domain
     /// </summary>
     public interface IProcessPayment
     {
-        Task AttemptPaying(IAdaptToBank bankAdapter, PayingAttempt payingAttempt);
+        Task<PaymentResult> AttemptPaying(IAdaptToBank bankAdapter, Payment payment);
     }
 }

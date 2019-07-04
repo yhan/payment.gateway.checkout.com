@@ -18,6 +18,8 @@ namespace PaymentGateway.Infrastructure
         {
             var uncommittedChanges = aggregate.GetUncommittedChanges();
             await _storage.SaveEvents(aggregate.Id, uncommittedChanges, expectedVersion);
+
+            aggregate.MarkChangesAsCommitted();
         }
 
         public async Task<T> GetById(Guid id)

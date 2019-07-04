@@ -168,7 +168,21 @@ For sake of simplicity of the exercise, I used InMemory for:
 
    - **GET api/Payments/{gateWayPaymentId}**  
      Endpoint to retrieving payment status. Write controller redirect to this controller (why? Cf. [Command handling asynchrony](#Design)).  
-     Response example:
+     Response example: 
+
+     a) Success
+     ```json
+      {
+        "gatewayPaymentId": "f72d3230-d08c-409f-a03b-c2872b7f762f",
+        "acquiringBankPaymentId": "b49739f0-c193-49de-967f-fdbb1d8f7218",
+        "status": "Success",
+        "requestId": "bab81817-8f09-4c32-b1e0-e76b40039ec1",
+        "approved": true
+      }     
+     ```
+     > `acquiringBankPaymentId` should be used for further querying payment details. See below.
+
+     b) Rejected:
      ```json
      {
        "gatewayPaymentId": "41b49021-98a2-41cf-80dc-6f87382322f8",
@@ -178,7 +192,18 @@ For sake of simplicity of the exercise, I used InMemory for:
        "approved": false
      } 
      ```
-     > `acquiringBankPaymentId` should be used for further querying payment details. See below.
+
+     c) Timeout
+      ```json
+      {
+         "gatewayPaymentId": "68e56457-d7b9-4c88-9f42-1075a8d18d13",
+         "acquiringBankPaymentId": null,
+         "status": "Timeout",
+         "requestId": "8e8bcc4a-3fe7-4834-8257-eb8aaa948af3",
+         "approved": false
+      }
+     ```
+     > Production code, use random bank latency from 0 to 5 sec; and timeout is set to 2 sec
 
    -  **GET api/PaymentsDetails/{acquiringBankPaymentId}**  
       Endpoint to retrieving payment details
@@ -372,6 +397,7 @@ Test
 - ~~bank if not found~~
 - ~~when bank id not found request id not cached~~
 - change expiry to {year, month}
+- add merchant check in controller, not deep later
 
 Add
 - cacellation and timeout 
