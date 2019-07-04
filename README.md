@@ -354,7 +354,7 @@ For a Payment Gateway, what is important:
 - Scalability
 
 ## Resist Burst
-
+The async command handling will better resist burst situation.
 
 ## Tests
 I have done in solution:
