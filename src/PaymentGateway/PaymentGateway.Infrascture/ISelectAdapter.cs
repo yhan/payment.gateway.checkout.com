@@ -47,8 +47,14 @@ namespace PaymentGateway.Infrastructure
                     return new SoiceteGeneraleAdapter(_delayProvider, 
                         _paymentIdsMapper, new SocieteGenerale(_bankPaymentIdGenerator, _paymentStatusRandom, _connectionBehavior), 
                         _logger);
+
                 case Bank.BNP:
                     return new BNPAdapter(_delayProvider, _paymentIdsMapper, new BNP(_bankPaymentIdGenerator, _paymentStatusRandom, _connectionBehavior), _logger);
+
+
+                case Bank.StupidBankForDemo:
+                    return new StupidBankAlwaysSendTheSamePaymentId(_delayProvider, _paymentIdsMapper, _logger);
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(bank), bank, null);
             }

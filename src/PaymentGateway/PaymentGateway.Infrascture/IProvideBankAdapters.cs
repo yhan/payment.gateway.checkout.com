@@ -12,6 +12,7 @@ namespace PaymentGateway.Infrastructure
         {
             _store.Add(MerchantsRepository.Amazon, adapterSelector.Select(Bank.SocieteGenerale));
             _store.Add(MerchantsRepository.Apple, adapterSelector.Select(Bank.BNP));
+            _store.Add(MerchantsRepository.FailFromThe2ndPaymentMerchant, adapterSelector.Select(Bank.StupidBankForDemo));
         }
 
         private readonly IDictionary<Guid, IAdaptToBank> _store = new Dictionary<Guid, IAdaptToBank>();

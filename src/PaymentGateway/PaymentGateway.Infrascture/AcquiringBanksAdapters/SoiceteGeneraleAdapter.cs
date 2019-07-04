@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,31 @@ namespace PaymentGateway.Infrastructure
             _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(response.BankPaymentId), new GatewayPaymentId(response.GatewayPaymentId) );
 
             return AdaptToBankResponse(response);
+        }
+    }
+    
+    public class StupidBankAlwaysSendTheSamePaymentId : AdaptToBank
+    {
+        private readonly IMapAcquiringBankToPaymentGateway _paymentIdsMapper;
+
+        public StupidBankAlwaysSendTheSamePaymentId(IProvideBankResponseTime delayProvider, IMapAcquiringBankToPaymentGateway paymentIdsMapper, ILogger<BankAdapterSelector> logger) : base(delayProvider, logger)
+        {
+            _paymentIdsMapper = paymentIdsMapper;
+        }
+
+        public override async Task<bool> Connect()
+        {
+            return await Task.FromResult(true);
+        }
+
+        protected override async Task<IBankResponse> CallBank(PayingAttempt payingAttempt, CancellationToken cancellationToken)
+        {
+            var neverChangingBankPaymentId = Guid.Parse("d6589823-2bfa-4e1a-9f3f-699cb9a0a0a2");
+            var response = new BankResponse(bankPaymentId: neverChangingBankPaymentId, gatewayPaymentId: payingAttempt.GatewayPaymentId, paymentStatus: BankPaymentStatus.Accepted);
+            
+            _paymentIdsMapper.RememberMapping(new AcquiringBankPaymentId(neverChangingBankPaymentId), new GatewayPaymentId(response.GatewayPaymentId));
+            
+            return await Task.FromResult(response);
         }
     }
 }

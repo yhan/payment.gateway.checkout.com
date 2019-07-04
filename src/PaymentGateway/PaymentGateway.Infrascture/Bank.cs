@@ -6,6 +6,7 @@
     public enum Bank
     {
         SocieteGenerale,
-        BNP
+        BNP,
+        StupidBankForDemo
     }
 }

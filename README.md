@@ -27,7 +27,6 @@
    I added `Merchant`'s id to the `Payment Request`.    
 
    > **! Disclaimer:**: In real world, it will be not safe to let 
-     
 
 
 # Architecture
@@ -70,19 +69,43 @@ The motivation of Hexagonal is very general, can be found for example [here](htt
 
 
 # Design
-1. Entity:  
-**Payment** represent a financial transaction achieved with the help of a bank payment card. A `Payment` can fail or succeed.
-
 1. **Command handling asynchrony**  
 For managing: 
    - unreliable network, unknown bank API availability and latency
-   - burst/back pressure: i.e. if we handle `PaymentRequest` synchronously, because of network and long latency, our Gateway may suffer from high I/O waiting, the system will congested. 
+   - burst/back pressure: i.e. if we handle `PaymentRequest` synchronously, because of network and potential long bank response time, our Gateway may suffer from high I/O waiting, the system will congested, potentially have I/O threads starvation and kestrel will eventually reject new connections.
 
-   I decided to handle `PaymentRequest` asynchronously. i.e. When `PaymentRequest` arrives, Gateway create immediately a `Payment` resource. The request forwarding and bank response handling are done asynchronously. HTTP status 202 Accepted along with a resource identifier in location header will be returned. Merchant can follow up (polling) the payment with the given address.
+   I decided to handle `PaymentRequest` asynchronously. i.e. When `PaymentRequest` arrives, Gateway create immediately a `Payment` resource. The request forwarding and bank response handling are done asynchronously. HTTP status 202 Accepted along with a resource identifier in `location` header will be returned. Merchant can follow up (polling) the payment with the given address.
 
    > In real world, we can consider long polling, Server Sent Event or Webhooks.
 
-   In real world, for the sake pragmatism, we can do more *smart* handling. i.e. We can say: if the Gateway get a response from the bank within 50 ms, it returns 201 Created with the `Payment` final status: Accepted or Rejected (by the bank); otherwise returns 202 Accepted.
+   In real world, to be pragmatic, we can do more *smart* handling. i.e. We can say: if the Gateway get a response from the bank within 50 ms, it returns 201 Created with the `Payment` final status: Accepted or Rejected (by the bank); otherwise returns 202 Accepted. This needs a bit more thread synchronizations.
+
+
+1. **Link bank response to Gateway space**
+   For reporting requirement, Gateway API client will query Payment details using bank's payment id.
+
+   If we do request handling synchronously, we don't need any additional id beside `BankPaymentId`.  
+   ![Synchronous payment request handling]()
+
+   
+   Handling payment request asynchronously introduces complexity of storing _a link id_ to liaise initial `PaymentRequest` and `AcquiringBankResponse`.
+   ![Asynchronous payment request handling]()  
+
+   Once bank response comes back to Gateway, Gateway should find the corresponding payment which is the origin of the response and store the link somewhere.
+
+   This _link id_, I called it `GatewayPaymentId`, beside the function of linking, it is also the internal unique identifier of the `Payment`. To sum up, the stored link is the tuple { `AcquiringBankPaymentId`, `GatewayPaymentId` }
+
+
+1. **Ids**: three types of ids
+   - **Payment request id**: Payment unique identifier from merchants. Is part of payment request payload. Cf. C# struct `PaymentRequestId`. In real world, each `Merchant` will send their own format of request unique identifier. We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
+
+   - **Gateway payment id**: Unique identifier of payment in Gateway internal system, Cf. C# struct `Domain.GatewayPaymentId`. 
+
+   - **Acquiring bank payment id**: Unique identifier returned from acquiring banks, Cf C# struct `Domain.AcquiringBankPaymentId`. In real world, each `Acquiring bank` will send their own unique identifer.  We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
+
+1. Entity:  
+**Payment** represent a financial transaction achieved with the help of a bank payment card. A `Payment` can fail or succeed.
+
 
 1. **Anti corruption**:
 
@@ -112,13 +135,14 @@ For sake of simplicity of the exercise, I used InMemory for:
    > For read models: choose suitable SQL or NoSql storage.
 
 
+
 # API
 > *If you use [Restlet Client](https://chrome.google.com/webstore/detail/restlet-client-rest-api-t/aejoelaoggembcahagimdiliamlcdmfm?hl=en), you can import payment-gateway-apis.json (in the root folder), to view all APIs with examples. Otherwise, please use provided swagger.*
 
 ## Public API
 
 1. **Request a payment**:  
-  - **POST api/Payments**
+   - **POST api/Payments**
      Endpoint to send payment request.  
      
      Request example:  
@@ -137,31 +161,30 @@ For sake of simplicity of the exercise, I used InMemory for:
             "currency": "EUR",
             "value": 42.66
         }
-    }
-    ```
-
+     }
+     ```
     Response example:  
     1. 202 Accepted
-    ```json
-    {
-       "gatewayPaymentId": "41b49021-98a2-41cf-80dc-6f87382322f8",
-       "acquiringBankPaymentId": null,
-       "status": "Pending",
-       "requestId": "ccd8af8e-5a27-40dc-93c5-f19e78984391",
-       "approved": null
-    }
-    ```
-       and with the header location.
+       ```json
+       {
+         "gatewayPaymentId": "41b49021-98a2-41cf-80dc-6f87382322f8",
+         "acquiringBankPaymentId": null,
+         "status": "Pending",
+         "requestId": "ccd8af8e-5a27-40dc-93c5-f19e78984391",
+         "approved": null
+       }
+       ```
+       with the header location.
 
-    2. 404 Bad request with the invalidity details, if the request is invalid
-    ```json
-    {
-       "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-       "title": "Invalid request",
-       "status": 400,
-       "detail": "Invalid card CVV"
-    }
-    ```
+      2. 404 Bad request with the invalidity details, if the request is invalid
+         ```json
+         {
+           "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+           "title": "Invalid request",
+           "status": 400,
+           "detail": "Invalid card CVV"
+         }
+         ```
 
 1. **Get payment and payment details**:  
 
@@ -173,20 +196,21 @@ For sake of simplicity of the exercise, I used InMemory for:
 
      > `status` gives the reason/description of `approved` boolean. It can be _success_, _rejected_ or _timeout_.
 
+    4 possible status   
 
-     a) Success
-     ```json
-      {
-        "gatewayPaymentId": "f72d3230-d08c-409f-a03b-c2872b7f762f",
-        "acquiringBankPaymentId": "b49739f0-c193-49de-967f-fdbb1d8f7218",
-        "status": "Success",
-        "requestId": "bab81817-8f09-4c32-b1e0-e76b40039ec1",
-        "approved": true
-      }     
-     ```
-     > `acquiringBankPaymentId` should be used for further querying payment details. See below.
+     a) _Success_:   
+        ```json
+        {
+           "gatewayPaymentId": "f72d3230-d08c-409f-a03b-c2872b7f762f",
+           "acquiringBankPaymentId": "b49739f0-c193-49de-967f-fdbb1d8f7218",
+           "status": "Success",
+           "requestId": "bab81817-8f09-4c32-b1e0-e76b40039ec1",
+           "approved": true
+        }     
+        ```
+        > `acquiringBankPaymentId` should be used for further querying payment details. See below.
 
-     b) Rejected:
+     b) _Rejected_:
      ```json
      {
        "gatewayPaymentId": "41b49021-98a2-41cf-80dc-6f87382322f8",
@@ -197,7 +221,7 @@ For sake of simplicity of the exercise, I used InMemory for:
      } 
      ```
 
-     c) Timeout
+     c) _Timeout_:
       ```json
       {
          "gatewayPaymentId": "68e56457-d7b9-4c88-9f42-1075a8d18d13",
@@ -207,6 +231,17 @@ For sake of simplicity of the exercise, I used InMemory for:
          "approved": false
       }
      ```
+
+     d) _ReceivedDuplicatedBankPaymentIdFailure_
+      ```json
+         {
+            "gatewayPaymentId": "67fda8d9-008e-4751-9f14-7e41a464a3e8",
+            "acquiringBankPaymentId": null,
+            "status": "ReceivedDuplicatedBankPaymentIdFailure",
+            "requestId": "79ed0d59-1833-4c6f-80f0-840d91dc9734",
+            "approved": false
+         }
+      ```
      > Production code, use random bank latency from 0 to 5 sec; and timeout is set to 2 sec
 
    -  **GET api/PaymentsDetails/{acquiringBankPaymentId}**  
@@ -227,12 +262,6 @@ For sake of simplicity of the exercise, I used InMemory for:
       ```
 
 
-1. **Ids**: three types of ids
-   - **Payment request id**: Payment unique identifier from merchants. Is part of payment request payload. Cf. C# struct `PaymentRequestId`. In real world, each `Merchant` will send their own format of request unique identifier. We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
-
-   - **Gateway payment id**: Unique identifier of payment in Gateway internal system, Cf. C# struct `Domain.GatewayPaymentId`. 
-
-   - **Acquiring bank payment id**: Unique identifier returned from acquiring banks, Cf C# struct `Domain.AcquiringBankPaymentId`. In real world, each `Acquiring bank` will send their own unique identifer.  We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
 
 
 1. **Switch out for a real bank**
@@ -312,12 +341,16 @@ For you code reviewer's convenience, some private endpoints are exposed. They ar
    I chose the 2nd.
 
 # Performance
-For a Payment Gateway, what is important is:
+For a Payment Gateway, what is important:
 - High availability
 - Throughput
 - Low latency
 - Scalability
 
+## Resist Burst
+
+
+## Tests
 I have done in solution:
 - throughput tests 
 - latency tests

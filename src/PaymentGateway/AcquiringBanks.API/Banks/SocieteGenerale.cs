@@ -22,7 +22,7 @@ namespace AcquiringBanks.Stub
         /// </summary>
         public async Task<SocieteGeneraleResponse> RespondToPayment(SocieteGeneralePaymentRequest request)
         {
-            var bankPaymentId = _bankPaymentIdGenerator.Generate();
+            var bankPaymentId =  _bankPaymentIdGenerator.Generate();
 
             var response = new SocieteGeneraleResponse(bankPaymentId, request.GatewayPaymentId, _paymentStatusGenerator.GeneratePaymentStatus());
 
