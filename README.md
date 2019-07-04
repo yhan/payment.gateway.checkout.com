@@ -262,8 +262,6 @@ For sake of simplicity of the exercise, I used InMemory for:
       ```
 
 
-
-
 1. **Switch out for a real bank**
    Specific `MyBankAdapter` should be implemented implementing domain port `PaymentGateway.Domain.IAdaptToBank`.
 
@@ -277,15 +275,23 @@ For you code reviewer's convenience, some private endpoints are exposed. They ar
    ```json
    [
       {
-         "id": "2d0ae468-7ac9-48f4-be3f-73628de3600e",
-         "name": "Amazon"
+      "id": "2d0ae468-7ac9-48f4-be3f-73628de3600e",
+      "name": "Amazon"
       },
       {
-         "id": "06c6116f-1d4e-44d3-ae9f-8df90f991a52",
-         "name": "Apple"
+      "id": "06c6116f-1d4e-44d3-ae9f-8df90f991a52",
+      "name": "Apple"
+      },
+      {
+      "id": "8d443f3b-55a3-4931-ba4a-3fa771bb1066",
+      "name": "FailFromThe2ndPaymentMerchant"
       }
    ]
    ```
+
+   > `FailFromThe2ndPaymentMerchant`'s id can be used to test _a stupid bank who sends back always **the same bank payment id**_
+
+
 1. **GET api/AcquiringBankPaymentsIds**  
    Returns all Acquiring banks' payment ids
      Response example:

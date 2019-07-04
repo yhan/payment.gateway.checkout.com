@@ -17,10 +17,12 @@ namespace PaymentGateway.Tests
             var controller = new MerchantsController(new MerchantsRepository());
             IEnumerable<MerchantDto> merchants = (await controller.GetAllMerchants()).ToArray();
 
-            Check.That(merchants).HasSize(2);
+            Check.That(merchants).HasSize(3);
             Check.That(merchants).IsOnlyMadeOf(
                 new MerchantDto(MerchantsRepository.Amazon, nameof(MerchantsRepository.Amazon)),
-                new MerchantDto(MerchantsRepository.Apple, nameof(MerchantsRepository.Apple)));
+                new MerchantDto(MerchantsRepository.Apple, nameof(MerchantsRepository.Apple)),
+                new MerchantDto(MerchantsRepository.FailFromThe2ndPaymentMerchant, nameof(MerchantsRepository.FailFromThe2ndPaymentMerchant))
+                );
         }
     }
 }

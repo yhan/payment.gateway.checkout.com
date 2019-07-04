@@ -13,6 +13,7 @@ namespace PaymentGateway.Infrastructure
             {
                 new Merchant(Amazon, nameof(Amazon)),
                 new Merchant(Apple, nameof(Apple)),
+                new Merchant(FailFromThe2ndPaymentMerchant, nameof(FailFromThe2ndPaymentMerchant)),
             });
         }
 
