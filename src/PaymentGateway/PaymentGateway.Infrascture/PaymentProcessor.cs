@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Domain;
 using Polly;
@@ -63,6 +61,7 @@ namespace PaymentGateway.Infrastructure
                 if (policyResult.FinalException is BankPaymentDuplicatedException paymentDuplicatedException)
                 {
                     _logger.LogError(paymentDuplicatedException.Message);
+
                     payment.HandleBankPaymentIdDuplication();
                     await _paymentsRepository.Save(payment, payment.Version);
 

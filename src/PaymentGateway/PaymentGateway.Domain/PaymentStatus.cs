@@ -31,6 +31,10 @@
         ///     Payment processing timeout, may caused by gateway internal or a bank timeout
         /// </summary>
         Timeout,
+
+        /// <summary>
+        ///     Payment in a unknown state, because bank sent a duplicated payment id
+        /// </summary>
         ReceivedDuplicatedBankPaymentIdFailure
     }
 }

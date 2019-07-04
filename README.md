@@ -291,6 +291,15 @@ For you code reviewer's convenience, some private endpoints are exposed. They ar
    ```
    The very specific behavior "during retries, if timeouts once, timeouts always" is purely for better demo feeling, i.e. to see `timeout` without submitting a lot of payment requests. Cf. `RandomDelayProvider.cs`
 
+1. Call bank API synchronously or asynchronously
+   For production code, use `API`; for testing use `Tests`
+   ```json
+   "AppSettings": {
+        "Executor": "API"
+    }
+   ```
+
+
 # SLA
 1. A `PaymentRequestId` will be handled once and only once.
 
@@ -357,15 +366,26 @@ Further: If I have more time, I will also test:
 # Unit and Acceptance tests
 The coding is entirely test driven.  
 
-Code coverage: 67.17%.  
+## Coverage
+Excluding performance tests assembly, Code coverage: 81.28%.  
 
 Non covered codes are:  
  - API bootstrap
- - Performance tests them self
  - Some infrastructure code borrowed from [Greg Young's git repository](https://github.com/gregoryyoung/m-r)
  - Some randomness generation only for production. (Acceptance tests use output deterministic behavior)
  - Properties in acquiring bank stubs, they are there just to show the design.
+ - Guid ids generator
 
+## Edge cases
+1. Bank sends payment id which conflicts with a previously received one.
+   Not asked to do as per: 
+   > We should assume that a bank response returns a unique identifier
+   
+   But I still implemented and tested. In this situation, we should consider that the payment is on a unknown state. Two possibilities at least:
+   - Bank accepted the second conflicting one, but sent a `PaymentId` already used.
+   - Bank never proceeded the second payment request, it instead just resent a payment status for the very first one.
+
+   This will be a production incident, hence should be investigated.
 
 # Prerequisite for building the solution in Visual Studio
    Ensure that you have .NET Core 2.2 SDK installed. 
