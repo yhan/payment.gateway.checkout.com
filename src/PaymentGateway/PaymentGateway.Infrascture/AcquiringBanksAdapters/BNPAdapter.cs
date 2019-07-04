@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Domain;
@@ -31,11 +32,11 @@ namespace PaymentGateway.Infrastructure
             return  await _bnp.Connect();
         }
 
-        protected override async Task<IBankResponse> CallBank(PayingAttempt payingAttempt)
+        protected override async Task<IBankResponse> CallBank(PayingAttempt payingAttempt, CancellationToken cancellationToken)
         {
             // Simulate bank response delay
             var delay = DelayProvider.Delays();
-            await Task.Delay(delay);
+            await Task.Delay(delay, cancellationToken);
             Logger.LogInformation($"Bank delayed {delay}");
 
             // Call bank's service

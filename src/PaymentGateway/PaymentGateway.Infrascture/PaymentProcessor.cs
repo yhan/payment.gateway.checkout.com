@@ -27,42 +27,33 @@ namespace PaymentGateway.Infrastructure
         public async Task<PaymentResult> AttemptPaying(IAdaptToBank bankAdapter, Payment payment)
         {
             var payingAttempt = payment.MapToAcquiringBank();
-            using (var timeoutCancellationTokenSource =
-                new CancellationTokenSource(_timeoutProviderForBankResponseWaiting.GetTimeout()))
+            IBankResponse bankResponse;
+            using (var cts = new CancellationTokenSource())
             {
+                cts.CancelAfter(_timeoutProviderForBankResponseWaiting.GetTimeout());
                 try
                 {
-                    var bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt);
-                    if (timeoutCancellationTokenSource.Token.IsCancellationRequested)
-                    {
-                        throw new TaskCanceledException();
-                    }
-
-                    var strategy = Build(bankResponse, _paymentsRepository);
-
-                    await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
+                    bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt, cts.Token);
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException ex)
                 {
-                    if (timeoutCancellationTokenSource.IsCancellationRequested && ex is TaskCanceledException)
-                    {
-                        _logger.LogError(
-                            $"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
+                    _logger.LogError($"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
 
-                        payment.Timeout();
-                        await _paymentsRepository.Save(payment, payment.Version);
+                    payment.Timeout();
+                    await _paymentsRepository.Save(payment, payment.Version);
 
-                        return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, ex,
-                            "Timeout");
-                    }
+                    return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, ex, "Timeout");
                 }
             }
+
+            var strategy = Build(bankResponse, _paymentsRepository);
+
+            await strategy.Handle(_gatewayExceptionSimulator, payingAttempt.GatewayPaymentId);
 
             return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }
 
-        private static IHandleBankResponseStrategy Build(IBankResponse bankResponse,
-            IEventSourcedRepository<Payment> paymentsRepository)
+        private static IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
         {
             switch (bankResponse)
             {

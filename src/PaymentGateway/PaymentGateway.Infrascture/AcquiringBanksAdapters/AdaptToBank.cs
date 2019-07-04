@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ namespace PaymentGateway.Infrastructure
             Logger = logger;
         }
 
-        public async Task<IBankResponse> RespondToPaymentAttempt(PayingAttempt paymentAttempt)
+        public async Task<IBankResponse> RespondToPaymentAttempt(PayingAttempt paymentAttempt, CancellationToken cancellationToken)
         {
             // Connection to bank
             var policy = Policy.Handle<FailedConnectionToBankException>()
@@ -30,11 +31,11 @@ namespace PaymentGateway.Infrastructure
                 return new BankDoesNotRespond(paymentAttempt.GatewayPaymentId);
             }
             
-            return await CallBank( paymentAttempt);
+            return await CallBank(paymentAttempt, cancellationToken);
         }
 
         public abstract Task<bool> Connect();
 
-        protected abstract Task<IBankResponse> CallBank(PayingAttempt payingAttempt);
+        protected abstract Task<IBankResponse> CallBank(PayingAttempt payingAttempt, CancellationToken cancellationToken);
     }
 }

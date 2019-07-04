@@ -1,4 +1,5 @@
 ﻿
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PaymentGateway.Domain
@@ -8,6 +9,6 @@ namespace PaymentGateway.Domain
     /// </summary>
     public interface IAdaptToBank
     {
-        Task<IBankResponse> RespondToPaymentAttempt(PayingAttempt paymentAttempt);
+        Task<IBankResponse> RespondToPaymentAttempt(PayingAttempt paymentAttempt, CancellationToken cancellationToken);
     }
 }

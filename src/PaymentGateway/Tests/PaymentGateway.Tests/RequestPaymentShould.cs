@@ -1,14 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
 using Microsoft.AspNetCore.Mvc;
 using NFluent;
 using NUnit.Framework;
-using PaymentGateway;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 
