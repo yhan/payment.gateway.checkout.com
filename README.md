@@ -15,18 +15,17 @@
    After have done some research, now I am aware of the fact that we can determine the `Issuing bank` via `card number`.
 
    1. **Acquiring bank**  
-   But when it comes to Acquiring bank, I find no way in the beginning to determine it. The way that can determine the acquiring bank, could be: We associate the `Acquiring bank` to the `Merchant`.  
+   
+      The statement of the exercise text, in the payment request does not mention an identifier of the `Merchant`. 
+      > A payment request should include appropriate fields such as the card number, expiry month/date, amount, currency, and cvv.
+   
+      The question is how the system can forward a `Payment Request` to the `Merchant`'s Acquiring bank? I find no way in the beginning to determine it. The way that can determine the acquiring bank, could be: We associate the `Acquiring bank` to the `Merchant`.  
+   
    Things can be done when we **onboard** a `Merchant`. The idea is 
       - Stored the `Merchant` to `Acquiring bank` mapping
       - Include `Merchant` id in the `PaymentRequest`, thus the Gateway will be able to route the request to the bank of the merchant.
    
-   The statement of the exercise text, in the payment request does not mention an identifier of the `Merchant`. 
-   
-   > A payment request should include appropriate fields such as the card number, expiry month/date, amount, currency, and cvv.
-   
-   The question is how the system can forward a `Payment Request` to the `Merchant`'s Acquiring bank? 
-
-   I added `Merchant`'s id to the `Payment Request`.    
+      I added `Merchant`'s id to the `Payment Request`.    
 
 > `Acquiring bank` is stubbed in the solution.
 
