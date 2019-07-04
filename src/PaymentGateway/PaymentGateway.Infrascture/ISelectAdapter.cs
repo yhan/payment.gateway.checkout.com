@@ -44,11 +44,11 @@ namespace PaymentGateway.Infrastructure
             switch (bank)
             {
                 case Bank.SocieteGenerale:
-                    return new SoiceteGeneraleAdapter(_delayProvider, _connectionBehavior, 
+                    return new SoiceteGeneraleAdapter(_delayProvider, 
                         _paymentIdsMapper, new SocieteGenerale(_bankPaymentIdGenerator, _paymentStatusRandom, _connectionBehavior), 
                         _logger);
                 case Bank.BNP:
-                    return new BNPAdapter(_delayProvider, _connectionBehavior, _paymentIdsMapper, new BNP(_bankPaymentIdGenerator, _paymentStatusRandom, _connectionBehavior), _logger);
+                    return new BNPAdapter(_delayProvider, _paymentIdsMapper, new BNP(_bankPaymentIdGenerator, _paymentStatusRandom, _connectionBehavior), _logger);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(bank), bank, null);
             }

@@ -234,6 +234,10 @@ For sake of simplicity of the exercise, I used InMemory for:
 
    - **Acquiring bank payment id**: Unique identifier returned from acquiring banks, Cf C# struct `Domain.AcquiringBankPaymentId`. In real world, each `Acquiring bank` will send their own unique identifer.  We should adapt it to the one of Gateway . For simplicity of exercise, I used `System.Guid`.
 
+1. **Switch out for a real bank**
+   Specific `MyBankAdapter` should be implemented implementing domain port `PaymentGateway.Domain.IAdaptToBank`.
+
+
 ## Private API 
 For you code reviewer's convenience, some private endpoints are exposed. They are
 
