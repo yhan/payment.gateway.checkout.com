@@ -84,7 +84,7 @@ For managing:
 1. **Link bank response to Gateway space**
    For reporting requirement, Gateway API client will query Payment details using bank's payment id.
 
-   If we do request handling synchronously, we don't need any additional id beside `BankPaymentId`.  
+   If we do request handling synchronously, we don't need any additional id.  `BankPaymentId` coming back from acquiring bank suffice.  
    ![sync](https://github.com/yhan/payment.gateway.checkout.com/blob/master/images/sync-cmd-handling.png)
 
    
@@ -93,7 +93,7 @@ For managing:
 
    Once bank response comes back to Gateway, Gateway should find the corresponding payment which is the origin of the response and store the link somewhere.
 
-   This _link id_, I called it `GatewayPaymentId`, beside the function of linking, it is also the internal unique identifier of the `Payment`. To sum up, the stored link is the tuple { `AcquiringBankPaymentId`, `GatewayPaymentId` }
+   This _link id_, I called it `GatewayPaymentId`, beside the function of linking, it is also the internal unique identifier of the `Payment`. Thus, the stored link is the tuple { `AcquiringBankPaymentId`, `GatewayPaymentId` }
 
 
 1. **Ids**: three types of ids
