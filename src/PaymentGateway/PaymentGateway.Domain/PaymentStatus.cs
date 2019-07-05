@@ -35,6 +35,7 @@
         /// <summary>
         ///     Payment in a unknown state, because bank sent a duplicated payment id
         /// </summary>
-        ReceivedDuplicatedBankPaymentIdFailure
+        ReceivedDuplicatedBankPaymentIdFailure,
+        WillHandleLater
     }
 }

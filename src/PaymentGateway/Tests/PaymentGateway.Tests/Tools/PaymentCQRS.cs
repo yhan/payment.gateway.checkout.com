@@ -61,7 +61,7 @@ namespace PaymentGateway.Tests
             var bankAdapterSelector = new BankAdapterSelector(random, bankPaymentIdGenerator, delayProvider, bankConnectionBehavior, paymentsIdsMemory, NullLogger<BankAdapterSelector>.Instance);
             var merchantToBankAdapterMapper = new MerchantToBankAdapterMapper(bankAdapterSelector);
             var paymentRequestsMemory = new PaymentRequestsMemory();
-            var paymentProcessor = new PaymentProcessor(eventSourcedRepository, NullLogger<PaymentProcessor>.Instance, providerForBankResponseWaiting, NullLogger<RespondedBankStrategy>.Instance, gatewayExceptionSimulator);
+            var paymentProcessor = new PaymentProcessor(eventSourcedRepository, NullLogger<PaymentProcessor>.Instance, providerForBankResponseWaiting, Substitute.For<IKnowBufferAndReprocessPaymentRequest>() , NullLogger<RespondedBankStrategy>.Instance, gatewayExceptionSimulator);
             var optionMonitor = Substitute.For<IOptionsMonitor<AppSettings>>();
             optionMonitor.CurrentValue.Returns(new AppSettings
             {

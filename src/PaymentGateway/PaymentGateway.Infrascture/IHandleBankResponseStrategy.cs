@@ -45,9 +45,9 @@ namespace PaymentGateway.Infrastructure
     {
         private readonly BankResponse _bankResponse;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
-        private readonly ILogger<RespondedBankStrategy> _logger;
+        private readonly ILogger _logger;
 
-        public RespondedBankStrategy(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository, ILogger<RespondedBankStrategy> logger)
+        public RespondedBankStrategy(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository, ILogger logger)
         {
             _bankResponse = response;
             _paymentsRepository = paymentsRepository;
