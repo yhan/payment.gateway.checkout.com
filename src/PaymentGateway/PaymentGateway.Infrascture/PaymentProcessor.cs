@@ -5,6 +5,7 @@ using AcquiringBanks.Stub;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Domain;
 using Polly;
+using Polly.Wrap;
 
 namespace PaymentGateway.Infrastructure
 {
@@ -56,23 +57,19 @@ namespace PaymentGateway.Infrastructure
             var breaker = Policy
                 .Handle<TaskCanceledException>()
                 .Or<FailedConnectionToBankException>()
-                .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 1,
+                .Or<TaskCanceledException>()
+                .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 3,
                     durationOfBreak: TimeSpan.FromMilliseconds(20),
                     onBreak: OnBreak,
                     onReset: OnReset);
 
-            var policy = Policy
-                .Handle<TaskCanceledException>()
-                .Or<FailedConnectionToBankException>()
-                .FallbackAsync(cancel => ReturnWillHandleLater(payment.GatewayPaymentId, payment.RequestId))
-                .WrapAsync(breaker);
-            
+            AsyncPolicyWrap policy = Policy .Handle<TaskCanceledException>()
+                .Or<FailedConnectionToBankException>().RetryAsync(3) .WrapAsync(breaker);
+
             IBankResponse bankResponse = new NullBankResponse();
 
             var policyResult = await policy.ExecuteAndCaptureAsync(async () =>
             {
-                //return await RetriedGettingPaymentResult(bankAdapter, payment, payingAttempt);
-
                 using (var cts = new CancellationTokenSource())
                 {
                     var timeout = _timeoutProviderForBankResponseWaiting.GetTimeout();
@@ -112,11 +109,6 @@ namespace PaymentGateway.Infrastructure
             return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }
 
-
-        private static async Task<IPaymentResult> ReturnWillHandleLater(Guid gatewayPaymentId, Guid requestPaymentId)
-        {
-            return await Task.FromResult(new WillHandleLaterPaymentResult(PaymentStatus.WillHandleLater, gatewayPaymentId, requestPaymentId));
-        }
 
         private IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
         {

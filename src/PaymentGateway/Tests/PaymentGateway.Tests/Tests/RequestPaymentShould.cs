@@ -25,7 +25,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
 
             var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new PaymentRequestsMemory(), cqrs.PaymentProcessor);
 
@@ -38,7 +38,7 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -62,7 +62,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -83,7 +83,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), new SimulateGatewayException());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -107,7 +107,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new FailTwiceBankThenSuccessConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new FailTwiceBankThenSuccessConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -135,11 +135,11 @@ namespace PaymentGateway.Tests
             gatewayPaymentIdGenerator.Generate().Returns(gatewayPaymentId, secondGatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-            
+
             await cqrs.RequestsController.ProceedPaymentRequest(secondPaymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-            
+
             var secondFailedPayment = (await cqrs.PaymentReadController.GetPaymentInfo(secondGatewayPaymentId)).Value;
             Check.That(secondFailedPayment.RequestId).IsEqualTo(secondRequestId);
             Check.That(secondFailedPayment.GatewayPaymentId).IsEqualTo(secondGatewayPaymentId);
@@ -148,7 +148,7 @@ namespace PaymentGateway.Tests
             Check.That(secondFailedPayment.Approved).IsEqualTo(secondFailedPayment.Status == PaymentGateway.Domain.PaymentStatus.Success);
             Check.That(secondFailedPayment.AcquiringBankPaymentId).IsNull();
         }
-        
+
         //
         [TestCase(BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.ReceivedDuplicatedBankPaymentIdFailure)]
         [TestCase(BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.ReceivedDuplicatedBankPaymentIdFailure)]
@@ -164,11 +164,11 @@ namespace PaymentGateway.Tests
             IGenerateGuid gatewayPaymentIdGenerator = Substitute.For<IGenerateGuid>();
             gatewayPaymentIdGenerator.Generate().Returns(gatewayPaymentId, secondGatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new DefaultBankPaymentIdGenerator(), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)));
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new DefaultBankPaymentIdGenerator(), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-            
+
             await cqrs.RequestsController.ProceedPaymentRequest(secondPaymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-            
+
             var secondFailedPayment = (await cqrs.PaymentReadController.GetPaymentInfo(secondGatewayPaymentId)).Value;
             Check.That(secondFailedPayment.RequestId).IsEqualTo(secondRequestId);
             Check.That(secondFailedPayment.GatewayPaymentId).IsEqualTo(secondGatewayPaymentId);
@@ -186,7 +186,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var delayProviderForTesting = new DelayProviderForTesting(TimeSpan.FromMilliseconds(1));
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), delayProviderForTesting, PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), new NullThrows());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), delayProviderForTesting, PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), new NullThrows());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -211,7 +211,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), new NullThrows());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), new NullThrows());
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(invalidRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
@@ -232,14 +232,20 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            
+
             var timeoutTolerance = TimeSpan.FromMilliseconds(20);
             var delayBiggerThanTolerance = timeoutTolerance * 5;
-            var cqrs = await PaymentCQRS.Build( BankPaymentStatus.Accepted, 
-                                                new BankPaymentIdGeneratorForTests(bankPaymentId), 
-                                                new AlwaysSuccessBankConnectionBehavior(), 
-                                                new DelayProviderForTesting(delayBiggerThanTolerance), 
-                                                PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance));
+
+            var delayProvider = Substitute.For<IProvideBankResponseTime>();
+            delayProvider.Delays().Returns(delayBiggerThanTolerance, delayBiggerThanTolerance, delayBiggerThanTolerance, timeoutTolerance.Divide(2));
+
+            var knowBufferAndReprocessPaymentRequest = Substitute.For<IKnowBufferAndReprocessPaymentRequest>();
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted,
+                                                new BankPaymentIdGeneratorForTests(bankPaymentId),
+                                                new AlwaysSuccessBankConnectionBehavior(),
+                                                delayProvider,
+                                                PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance),
+                knowBufferAndReprocessPaymentRequest);
 
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
@@ -251,6 +257,8 @@ namespace PaymentGateway.Tests
             Check.That(payment.Status).IsEqualTo(PaymentStatus.Pending);
             Check.That(payment.Approved).IsNull();
             Check.That(payment.AcquiringBankPaymentId).IsNull();
+
+            knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).Buffer(default, default, default);
         }
 
 
@@ -270,15 +278,15 @@ namespace PaymentGateway.Tests
 
             var bigLatencyTwiceThenSmallLatencyTimeoutProvider = NSubstitute.Substitute.For<IProvideTimeout>();
             bigLatencyTwiceThenSmallLatencyTimeoutProvider.GetTimeout().Returns(x => bigLatency, x => bigLatency, x => smallLatency);
-            
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, 
-                new BankPaymentIdGeneratorForTests(bankPaymentId), 
-                new AlwaysSuccessBankConnectionBehavior(), 
-                new DelayProviderForTesting(smallLatency), 
-                bigLatencyTwiceThenSmallLatencyTimeoutProvider);
-            
+
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus,
+                new BankPaymentIdGeneratorForTests(bankPaymentId),
+                new AlwaysSuccessBankConnectionBehavior(),
+                new DelayProviderForTesting(smallLatency),
+                bigLatencyTwiceThenSmallLatencyTimeoutProvider, Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-            
+
             var payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);

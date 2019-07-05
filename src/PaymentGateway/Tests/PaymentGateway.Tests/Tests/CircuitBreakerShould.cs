@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Polly;
 using Polly.CircuitBreaker;
+using Polly.Wrap;
 
 namespace PaymentGateway.Tests
 {
@@ -81,4 +82,54 @@ namespace PaymentGateway.Tests
             return Task.FromResult(received);
         }
     }
+
+
+    [TestFixture]
+    public class PollyRetryShould
+    {
+        [Test]
+        public void Should_retry_until_threshold_is_reached()
+        {
+            AsyncCircuitBreakerPolicy breaker = Policy
+                .Handle<Exception>()
+                .CircuitBreakerAsync(3,
+                    TimeSpan.FromMilliseconds(1000),
+                    OnBreak, OnReset);
+
+            AsyncPolicyWrap retryPolicy = Policy.Handle<Exception>().RetryAsync(3)
+                .WrapAsync(breaker);
+
+
+
+            //var policy = Policy
+            //    .Handle<TaskCanceledException>()
+            //    .Or<FailedConnectionToBankException>()
+            //    .FallbackAsync(cancel => ReturnWillHandleLater(payment.GatewayPaymentId, payment.RequestId))
+            //    .WrapAsync(breaker);
+            
+            
+            
+            int count = 0;
+
+
+
+            retryPolicy.ExecuteAsync(async () =>
+            {
+                Console.WriteLine(count++);
+                await Task.FromException(new Exception());
+
+            });
+        }
+
+        private void OnReset(Context obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OnBreak(Exception arg1, TimeSpan arg2, Context arg3)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    
 }

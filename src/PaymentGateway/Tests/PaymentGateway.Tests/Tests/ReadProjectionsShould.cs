@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AcquiringBanks.Stub;
+using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using NUnit.Framework;
 using PaymentGateway.Infrastructure;
@@ -17,7 +18,7 @@ namespace PaymentGateway.Tests
             var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new DefaultBankPaymentIdGenerator(),
                 new AlwaysSuccessBankConnectionBehavior(),
                 new NoDelayProvider(),
-                new NullTimeoutProvider(),
+                new NullTimeoutProvider(), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(),
                 new NullThrows(),
                 bus);
 
