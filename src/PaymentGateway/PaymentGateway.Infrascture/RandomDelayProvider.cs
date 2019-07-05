@@ -22,7 +22,7 @@ namespace PaymentGateway.Infrastructure
             _logger = logger;
             _optionsMonitor = optionsMonitor;
 
-            _alwaysTimeoutDelay = TimeSpan.FromSeconds(_optionsMonitor.CurrentValue.MaxBankLatencyInMilliseconds);
+            _alwaysTimeoutDelay = TimeSpan.FromMilliseconds(_optionsMonitor.CurrentValue.MaxBankLatencyInMilliseconds);
         }
 
         public TimeSpan Delays()
@@ -30,20 +30,20 @@ namespace PaymentGateway.Infrastructure
             var tolerance = TimeSpan.FromMilliseconds(_optionsMonitor.CurrentValue.TimeoutInMilliseconds);
 
             TimeSpan delay;
-            if (_alreadyFailedOnce)
-            {
-                delay = _alwaysTimeoutDelay;
-            }
-            else
+            //if (_alreadyFailedOnce)
+            //{
+            //    delay = _alwaysTimeoutDelay;
+            //}
+            //else
             {
                 delay = TimeSpan.FromMilliseconds(Random.Next(0, _optionsMonitor.CurrentValue.MaxBankLatencyInMilliseconds ))
                                 .Add(TimeSpan.FromMilliseconds(1)); // to ensure can timeout
             }
 
-            if (delay > tolerance)
-            {
-                _alreadyFailedOnce = true;
-            }
+            //if (delay > tolerance)
+            //{
+            //    _alreadyFailedOnce = true;
+            //}
             
             _logger.LogInformation($"Bank response time: {delay}");
 

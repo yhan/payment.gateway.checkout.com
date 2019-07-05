@@ -25,7 +25,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>());
 
             var response = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, new PaymentRequestsMemory(), cqrs.PaymentProcessor);
 
@@ -38,7 +38,7 @@ namespace PaymentGateway.Tests
             var requestId = Guid.NewGuid();
             var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>());
 
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
@@ -62,7 +62,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -83,7 +83,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), new SimulateGatewayException());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>(), new SimulateGatewayException());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -107,7 +107,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new FailTwiceBankThenSuccessConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new FailTwiceBankThenSuccessConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -135,7 +135,7 @@ namespace PaymentGateway.Tests
             gatewayPaymentIdGenerator.Generate().Returns(gatewayPaymentId, secondGatewayPaymentId);
 
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new BankPaymentIdGeneratorForTests(bankPaymentId), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
             await cqrs.RequestsController.ProceedPaymentRequest(secondPaymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
@@ -164,7 +164,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid gatewayPaymentIdGenerator = Substitute.For<IGenerateGuid>();
             gatewayPaymentIdGenerator.Generate().Returns(gatewayPaymentId, secondGatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new DefaultBankPaymentIdGenerator(), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+            var cqrs = await PaymentCQRS.Build(bankPaymentStatus, new DefaultBankPaymentIdGenerator(), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
             await cqrs.RequestsController.ProceedPaymentRequest(secondPaymentRequest, gatewayPaymentIdGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
@@ -186,7 +186,7 @@ namespace PaymentGateway.Tests
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
             var delayProviderForTesting = new DelayProviderForTesting(TimeSpan.FromMilliseconds(1));
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), delayProviderForTesting, PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), new NullThrows());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysFailBankConnectionBehavior(), delayProviderForTesting, PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>(), new NullThrows());
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
 
@@ -211,7 +211,7 @@ namespace PaymentGateway.Tests
             var gatewayPaymentId = Guid.NewGuid();
             IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
 
-            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), new NullThrows());
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new BankPaymentIdGeneratorForTests(Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0")), new AlwaysSuccessBankConnectionBehavior(), new DelayProviderForTesting(TimeSpan.FromMilliseconds(1)), PaymentCQRS.TimeoutProviderForBankResponseWaiting(TimeSpan.FromMilliseconds(200)), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>(), new NullThrows());
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(invalidRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 
             Check.That(actionResult).IsInstanceOf<BadRequestObjectResult>();
@@ -224,7 +224,112 @@ namespace PaymentGateway.Tests
         }
 
         [Test]
-        public async Task Return_InternalServerError_When_Processing_PaymentRequest_timeout()
+        //[Repeat(10)]
+        public async Task Return_AcceptedAtRouteResult_And_have_correct_PaymentStatus_When_Processing_PaymentRequest_timeout()
+        {
+            var requestId = Guid.NewGuid();
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+
+            var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
+
+            var timeoutTolerance = TimeSpan.FromMilliseconds(80);
+            var delayBiggerThanTolerance = timeoutTolerance * 5;
+
+            var delayProvider = Substitute.For<IProvideBankResponseTime>();
+            delayProvider.Delays().Returns(delayBiggerThanTolerance,//timeout
+                delayBiggerThanTolerance,//timeout
+                delayBiggerThanTolerance,//timeout
+                timeoutTolerance.Divide(20) // NO TIMEOUT
+                );
+
+            var knowBufferAndReprocessPaymentRequest = Substitute.For<IKnowBufferAndReprocessPaymentRequest>();
+            var circuitBreakerRepository = new CircuitBreakerRepository();
+
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted,
+                                                new BankPaymentIdGeneratorForTests(bankPaymentId),
+                                                new AlwaysSuccessBankConnectionBehavior(),
+                                                delayProvider,
+                                                PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance),
+                                                knowBufferAndReprocessPaymentRequest,
+                                                circuitBreakerRepository);
+
+            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
+            Check.That(actionResult).IsInstanceOf<AcceptedAtRouteResult>();
+
+            PaymentDto payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
+            Check.That(payment.RequestId).IsEqualTo(requestId);
+            Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
+
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.Pending); // circuit breaker should open
+            Check.That(payment.Approved).IsNull();
+            Check.That(payment.AcquiringBankPaymentId).IsNull();
+
+            knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).Buffer(default, default);
+            knowBufferAndReprocessPaymentRequest.ClearReceivedCalls();
+
+
+            // Second request not timeout
+
+            delayProvider = Substitute.For<IProvideBankResponseTime>();
+            delayProvider.Delays().Returns(
+                timeoutTolerance.Divide(20) // NO TIMEOUT
+            );
+            cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted,
+                new BankPaymentIdGeneratorForTests(bankPaymentId),
+                new AlwaysSuccessBankConnectionBehavior(),
+                delayProvider,
+                PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance),
+                knowBufferAndReprocessPaymentRequest,
+                circuitBreakerRepository);
+
+            requestId = Guid.NewGuid();
+            paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
+
+         
+            actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
+            Check.That(actionResult).IsInstanceOf<AcceptedAtRouteResult>();
+
+            // The fourth will not timeout, Circuit breaker should close
+            knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).ProcessBufferedPaymentRequest();
+        }
+
+
+        [Test]
+        public async Task Fault_task()
+        {
+
+            await Task.FromException(new Exception()).ContinueWith((task) =>
+            {
+                Console.WriteLine("Exception");
+            }, TaskContinuationOptions.OnlyOnFaulted);
+        }
+
+        
+        [Test]
+        public async Task Compeleted_task()
+        {
+            // Execute the antecedent.
+            Task<DayOfWeek> taskA = Task.Run( () => DateTime.Today.DayOfWeek );
+
+            // Execute the continuation when the antecedent finishes.
+            await taskA.ContinueWith(antecedent =>
+            {
+                Console.WriteLine("Today is {0}.", antecedent.Result);
+
+            }, TaskContinuationOptions.None);
+
+            Task<int> fromResult = Task.FromResult(1);
+            await fromResult.ContinueWith((task) =>
+            {
+                Console.WriteLine("1");
+            }, TaskContinuationOptions.NotOnFaulted);
+        }
+
+        
+        [Test]
+        public async Task Have_one_circuit_breaker_per_bank()
         {
             var requestId = Guid.NewGuid();
             var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
@@ -240,7 +345,8 @@ namespace PaymentGateway.Tests
             delayProvider.Delays().Returns(delayBiggerThanTolerance,//timeout
                 delayBiggerThanTolerance,//timeout
                 delayBiggerThanTolerance, //timeout
-                timeoutTolerance.Divide(2) // NO TIMEOUT
+                delayBiggerThanTolerance, //timeout
+                delayBiggerThanTolerance //timeout
                 );
 
             var knowBufferAndReprocessPaymentRequest = Substitute.For<IKnowBufferAndReprocessPaymentRequest>();
@@ -249,7 +355,7 @@ namespace PaymentGateway.Tests
                                                 new AlwaysSuccessBankConnectionBehavior(),
                                                 delayProvider,
                                                 PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance),
-                knowBufferAndReprocessPaymentRequest);
+                knowBufferAndReprocessPaymentRequest, Substitute.For<IAmCircuitBreakers>());
 
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
             Check.That(actionResult).IsInstanceOf<AcceptedAtRouteResult>();
@@ -262,10 +368,11 @@ namespace PaymentGateway.Tests
             Check.That(payment.Approved).IsNull();
             Check.That(payment.AcquiringBankPaymentId).IsNull();
 
-            knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).Buffer(default, default, default);
+            knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).Buffer(default, default);
 
-            // The fourth will not timeout, Circuit breaker should close
-            await knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).ProcessBufferedPaymentRequest();
+            // Always timeout, circuit never closed after open
+            knowBufferAndReprocessPaymentRequest.DidNotReceiveWithAnyArgs().ProcessBufferedPaymentRequest();
+
         }
 
 
@@ -291,7 +398,7 @@ namespace PaymentGateway.Tests
                 new AlwaysSuccessBankConnectionBehavior(),
                 delayProvider,
                 PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance),
-                knowBufferAndReprocessPaymentRequest);
+                knowBufferAndReprocessPaymentRequest, Substitute.For<IAmCircuitBreakers>());
 
             var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
             Check.That(actionResult).IsInstanceOf<AcceptedAtRouteResult>();
@@ -318,7 +425,7 @@ namespace PaymentGateway.Tests
                 new BankPaymentIdGeneratorForTests(bankPaymentId),
                 new AlwaysSuccessBankConnectionBehavior(),
                 new DelayProviderForTesting(smallLatency),
-                bigLatencyTwiceThenSmallLatencyTimeoutProvider, Substitute.For<IKnowBufferAndReprocessPaymentRequest>());
+                bigLatencyTwiceThenSmallLatencyTimeoutProvider, Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>());
 
             await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
 

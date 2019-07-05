@@ -46,6 +46,7 @@ namespace PaymentGateway.Tests
                                                        IProvideBankResponseTime delayProvider,
                                                        IProvideTimeout providerForBankResponseWaiting, 
                                                        IKnowBufferAndReprocessPaymentRequest knowBufferAndReprocessPaymentRequest,
+                                                       IAmCircuitBreakers circuitBreakers,
                                                        IThrowsException gatewayExceptionSimulator = null, 
                                                        IPublishEvents eventsPublisher = null)
         {
@@ -66,12 +67,12 @@ namespace PaymentGateway.Tests
             var paymentProcessor = new PaymentProcessor(eventSourcedRepository, 
                 NullLogger<PaymentProcessor>.Instance,
                 providerForBankResponseWaiting, 
-                knowBufferAndReprocessPaymentRequest ,
-                NullLogger<RespondedBankStrategy>.Instance, 
+                knowBufferAndReprocessPaymentRequest, 
+                circuitBreakers,
+
                 gatewayExceptionSimulator);
+
             var optionMonitor = Substitute.For<IOptionsMonitor<AppSettings>>();
-
-
             optionMonitor.CurrentValue.Returns(new AppSettings
             {
                 Executor = ExecutorType.Tests

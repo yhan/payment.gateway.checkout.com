@@ -17,22 +17,20 @@ namespace PaymentGateway.Infrastructure
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
         private readonly IProvideTimeout _timeoutProviderForBankResponseWaiting;
         private readonly IKnowBufferAndReprocessPaymentRequest _failureHandler;
-        private readonly ILogger<RespondedBankStrategy> _bankResponseProcessingLogger;
+        private readonly IAmCircuitBreakers _circuitBreakers;
 
         public PaymentProcessor(IEventSourcedRepository<Payment> paymentsRepository,
-            ILogger<PaymentProcessor> logger,
-            IProvideTimeout timeoutProviderForBankResponseWaiting,
-            IKnowBufferAndReprocessPaymentRequest failureHandler,
-
-            ILogger<RespondedBankStrategy> bankResponseProcessingLogger,
-            
-            IThrowsException gatewayExceptionSimulator = null)
+                                ILogger<PaymentProcessor> logger,
+                                IProvideTimeout timeoutProviderForBankResponseWaiting,
+                                IKnowBufferAndReprocessPaymentRequest failureHandler,
+                                IAmCircuitBreakers circuitBreakers,
+                                IThrowsException gatewayExceptionSimulator = null)
         {
             _paymentsRepository = paymentsRepository;
             _logger = logger;
             _timeoutProviderForBankResponseWaiting = timeoutProviderForBankResponseWaiting;
             _failureHandler = failureHandler;
-            _bankResponseProcessingLogger = bankResponseProcessingLogger;
+            _circuitBreakers = circuitBreakers;
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
@@ -40,36 +38,11 @@ namespace PaymentGateway.Infrastructure
         {
             var payingAttempt = payment.MapToAcquiringBank();
 
-            void OnBreak(Exception exception, TimeSpan timespan, Context context)
-            {
-                _failureHandler.Buffer(bankAdapter, payingAttempt, payment);
-            }
+            var circuitBreaker = CircuitBreaker(bankAdapter, payment);
 
-            void OnReset(Context context)
-            {
-#pragma warning disable 4014
-                // Fire and forget (Polly OnReset does not provide awaitable signature)
-                _failureHandler.ProcessBufferedPaymentRequest();
-
-#pragma warning restore 4014
-            }
-
-            var breaker = Policy
-                .Handle<TaskCanceledException>()
-                .Or<FailedConnectionToBankException>()
-                .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 3,
-                                    durationOfBreak: TimeSpan.FromMilliseconds(20),
-                                    onBreak: OnBreak,
-                                    onReset: OnReset);
-
-            AsyncPolicyWrap policy = Policy.Handle<TaskCanceledException>()
-                                           .Or<FailedConnectionToBankException>()
-                                           .RetryAsync(3)
-                                           .WrapAsync(breaker);
-    
             IBankResponse bankResponse = new NullBankResponse();
 
-            var policyResult = await policy.ExecuteAndCaptureAsync(async () =>
+            var policyResult = await circuitBreaker.Policy.ExecuteAndCaptureAsync(async () =>
             {
                 using (var cts = new CancellationTokenSource())
                 {
@@ -77,82 +50,71 @@ namespace PaymentGateway.Infrastructure
                     cts.CancelAfter(timeout);
 
                     bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt, cts.Token);
-
-                    
                 }
             });
-            
-            breaker.Reset(); 
 
-            if (policyResult.FinalException != null)
+            if (policyResult.FinalException == null)
             {
-                if (policyResult.FinalException is TaskCanceledException)
-                {
-                    _logger.LogError($"Payment gatewayId='{payingAttempt.GatewayPaymentId}' requestId='{payingAttempt.PaymentRequestId}' Timeout");
+                circuitBreaker.Reset();
+            }
+            else if (policyResult.FinalException is BankPaymentDuplicatedException paymentDuplicatedException)
+            {
+                _logger.LogError(paymentDuplicatedException.Message);
 
-                    payment.Timeout();
-                    await _paymentsRepository.Save(payment, payment.Version);
+                payment.HandleBankPaymentIdDuplication();
+                await _paymentsRepository.Save(payment, payment.Version);
 
-                    return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
-                }
-
-                if (policyResult.FinalException is BankPaymentDuplicatedException paymentDuplicatedException)
-                {
-                    _logger.LogError(paymentDuplicatedException.Message);
-
-                    payment.HandleBankPaymentIdDuplication();
-                    await _paymentsRepository.Save(payment, payment.Version);
-
-                    return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
-                }
+                return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
             }
 
-            var strategy = Build(bankResponse, _paymentsRepository);
+            var strategy = BankResponseHandleStrategyBuilder.Build(bankResponse, _paymentsRepository);
 
             await strategy.Handle(_gatewayExceptionSimulator, bankResponse.GatewayPaymentId);
 
             return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }
 
-
-        private IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
+        private CircuitBreaker CircuitBreaker(IAdaptToBank bankAdapter, Payment payment)
         {
-            switch (bankResponse)
+            var bankAdapterType = bankAdapter.GetType();
+            if (!_circuitBreakers.TryGet(bankAdapterType, out CircuitBreaker circuitBreaker))
             {
-                case BankResponse response:
-                    return new RespondedBankStrategy(response, paymentsRepository, _bankResponseProcessingLogger);
-
-                case BankDoesNotRespond _:
-                    return new NotRespondedBankStrategy(paymentsRepository);
-
-                case NullBankResponse _:
-                    return new NullBankResponseHandler();
+                circuitBreaker = MakeCircuitBreaker(bankAdapter, payment);
+                _circuitBreakers.Add(bankAdapterType, circuitBreaker);
             }
 
-            throw new ArgumentException();
+            return circuitBreaker;
         }
-    }
 
-    internal class NullBankResponseHandler : IHandleBankResponseStrategy
-    {
-        public Task Handle(IThrowsException gatewayExceptionSimulator, Guid payingAttemptGatewayPaymentId)
+        private CircuitBreaker MakeCircuitBreaker(IAdaptToBank bankAdapter, Payment payment)
         {
-            return Task.CompletedTask;
+            var breaker = Policy
+                .Handle<TaskCanceledException>()
+                .Or<FailedConnectionToBankException>()
+                .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 3,
+                    durationOfBreak: TimeSpan.FromMilliseconds(40),
+                    onBreak: (exception, timespan, context) =>
+                    {
+                        // When circuit breaker opens, buffer failed `PayingAttempt`
+
+                        _failureHandler.Buffer(bankAdapter, payment);
+                    },
+                    onReset: context =>
+                    {
+#pragma warning disable 4014
+                        // Fire and forget (Polly OnReset does not provide awaitable signature)
+                        _failureHandler.ProcessBufferedPaymentRequest();
+
+#pragma warning restore 4014
+                    });
+
+            AsyncPolicyWrap policy = Policy.Handle<TaskCanceledException>()
+                .Or<FailedConnectionToBankException>()
+                .WaitAndRetryAsync(3, retry => TimeSpan.FromMilliseconds(Math.Pow(2, retry)))
+                .WrapAsync(breaker);
+
+            return new CircuitBreaker(breaker, policy);
         }
-    }
 
-
-    internal class PaymentRequestBuffer
-    {
-        public IAdaptToBank BankAdapter { get; }
-        public PayingAttempt PayingAttempt { get; }
-        public Payment Payment { get; }
-
-        public PaymentRequestBuffer(IAdaptToBank bankAdapter, PayingAttempt payingAttempt, Payment payment)
-        {
-            BankAdapter = bankAdapter;
-            PayingAttempt = payingAttempt;
-            Payment = payment;
-        }
     }
 }

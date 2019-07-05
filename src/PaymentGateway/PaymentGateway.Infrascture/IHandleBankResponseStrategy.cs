@@ -45,13 +45,11 @@ namespace PaymentGateway.Infrastructure
     {
         private readonly BankResponse _bankResponse;
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
-        private readonly ILogger _logger;
 
-        public RespondedBankStrategy(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository, ILogger logger)
+        public RespondedBankStrategy(BankResponse response, IEventSourcedRepository<Payment> paymentsRepository)
         {
             _bankResponse = response;
             _paymentsRepository = paymentsRepository;
-            _logger = logger;
         }
 
         public async Task Handle(IThrowsException gatewayExceptionSimulator, Guid gatewayPaymentId)
@@ -67,7 +65,6 @@ namespace PaymentGateway.Infrastructure
                 }
                 catch (AggregateNotFoundException)
                 {
-                    _logger.LogError($"Bank sends back a Gateway Payment id '{gatewayPaymentId}', which is not recognized by the platform.");
                     return;
                 }
 

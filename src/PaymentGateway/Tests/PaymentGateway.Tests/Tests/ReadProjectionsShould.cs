@@ -18,7 +18,7 @@ namespace PaymentGateway.Tests
             var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted, new DefaultBankPaymentIdGenerator(),
                 new AlwaysSuccessBankConnectionBehavior(),
                 new NoDelayProvider(),
-                new NullTimeoutProvider(), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(),
+                new NullTimeoutProvider(), Substitute.For<IKnowBufferAndReprocessPaymentRequest>(), Substitute.For<IAmCircuitBreakers>(),
                 new NullThrows(),
                 bus);
 

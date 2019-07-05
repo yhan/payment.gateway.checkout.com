@@ -60,13 +60,14 @@ namespace PaymentGateway
             services.AddSingleton<IKnowAllPaymentRequests, PaymentRequestsMemory>();
             services.AddSingleton<IKnowAllPaymentsIds>(provider => provider.GetService<IMapAcquiringBankToPaymentGateway>());
             services.AddSingleton<IMapAcquiringBankToPaymentGateway, PaymentIdsMemory>();
+            services.AddSingleton<IAmCircuitBreakers, CircuitBreakerRepository>();
 
             // Mediator between Gateway and Acquiring banks
             services.AddScoped<IProcessPayment, PaymentProcessor>();
             
             {
                 // Acquiring BANK related
-                services.AddScoped<ISelectAdapter, BankAdapterSelector>();
+                services.AddTransient<ISelectAdapter, BankAdapterSelector>();
                 services.AddScoped<IMapMerchantToBankAdapter, MerchantToBankAdapterMapper>();
                 services.AddSingleton<IKnowAllMerchants, MerchantsRepository>();
                 services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();
@@ -75,7 +76,7 @@ namespace PaymentGateway
                 {
                     // Timeout and Delay
                     services.AddSingleton<IProvideTimeout, DefaultWaitingBankResponseTimeoutProvider>();
-                    services.AddScoped<IProvideBankResponseTime, RandomDelayProvider>();
+                    services.AddTransient<IProvideBankResponseTime, RandomDelayProvider>();
                 }
             }
 

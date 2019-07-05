@@ -52,10 +52,13 @@ namespace PaymentGateway.Domain
                 //TODO: Add cancellation with a timeout
                 if(_synchronyMaster.SendPaymentRequestAsynchronously())
                 {
-                    _paymentProcessor.AttemptPaying(bankAdapter, payment).ContinueWith((task, o) =>
+                    _paymentProcessor.AttemptPaying(bankAdapter, payment).ContinueWith((task) =>
                     {
-                        _logger.LogError($"Payment request '{command.RequestId}' with exception {task.Exception?.Message}");
-                    }, TaskContinuationOptions.OnlyOnFaulted);
+                        if (task.IsFaulted)
+                        {
+                            _logger.LogError($"Payment request '{command.RequestId}' with exception {task.Exception}");
+                        }
+                    });
                 }
                 else
                 {
