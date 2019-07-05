@@ -62,10 +62,10 @@ namespace PaymentGateway.Domain
                 }
                 else
                 {
-                    var paymentResult =  await _paymentProcessor.AttemptPaying(bankAdapter, payment);
-                    if (paymentResult.Status == PaymentStatus.Timeout)
+                    var requestHandlingResult =  await _paymentProcessor.AttemptPaying(bankAdapter, payment);
+                    if (requestHandlingResult.Status == RequestHandlingStatus.Fail)
                     {
-                        return this.Failure($"{paymentResult.Identifier} Timeout ");
+                        return this.Failure($"{requestHandlingResult.Identifier} {requestHandlingResult} ");
                     }
                 }
             }

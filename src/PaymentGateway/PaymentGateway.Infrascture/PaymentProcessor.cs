@@ -34,7 +34,7 @@ namespace PaymentGateway.Infrastructure
             _gatewayExceptionSimulator = gatewayExceptionSimulator;
         }
 
-        public async Task<IPaymentResult> AttemptPaying(IAdaptToBank bankAdapter, Payment payment)
+        public async Task<IPaymentRequestHandlingResult> AttemptPaying(IAdaptToBank bankAdapter, Payment payment)
         {
             var payingAttempt = payment.MapToAcquiringBank();
 
@@ -57,21 +57,21 @@ namespace PaymentGateway.Infrastructure
             {
                 circuitBreaker.Reset();
             }
-            else if (policyResult.FinalException is BankPaymentDuplicatedException paymentDuplicatedException)
+            else if (policyResult.FinalException is BankDuplicatedPaymentIdException paymentDuplicatedException)
             {
                 _logger.LogError(paymentDuplicatedException.Message);
 
                 payment.HandleBankPaymentIdDuplication();
                 await _paymentsRepository.Save(payment, payment.Version);
 
-                return PaymentResult.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Timeout");
+                return PaymentRequestHandlingStatus.Fail(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId, policyResult.FinalException, "Bank Duplicated PaymentId");
             }
 
             var strategy = BankResponseHandleStrategyBuilder.Build(bankResponse, _paymentsRepository);
 
             await strategy.Handle(_gatewayExceptionSimulator, bankResponse.GatewayPaymentId);
 
-            return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
+            return PaymentRequestHandlingStatus.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }
 
         private CircuitBreaker CircuitBreaker(IAdaptToBank bankAdapter, Payment payment)

@@ -20,7 +20,7 @@ namespace PaymentGateway.Infrastructure
             if (!_map.TryAdd(acquiringBankPaymentId, gatewayPaymentId))
             {
                 //Can happen only when Acquiring bank sent duplicated unique identifier for a payment
-                throw new BankPaymentDuplicatedException( $"Bank paymentId {acquiringBankPaymentId} already maps to Gateway Payment Id {_map[acquiringBankPaymentId]}");
+                throw new BankDuplicatedPaymentIdException( $"Bank paymentId {acquiringBankPaymentId} already maps to Gateway Payment Id {_map[acquiringBankPaymentId]}");
             }
         }
 
@@ -35,9 +35,9 @@ namespace PaymentGateway.Infrastructure
         }
     }
 
-    public class BankPaymentDuplicatedException : ConstraintException
+    public class BankDuplicatedPaymentIdException : ConstraintException
     {
-        public BankPaymentDuplicatedException(string message) : base(message)
+        public BankDuplicatedPaymentIdException(string message) : base(message)
         {
         }
     }
