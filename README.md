@@ -353,8 +353,15 @@ For a Payment Gateway, what is important:
 - Low latency
 - Scalability
 
-## Resist Burst
-The async command handling will better resist burst situation.
+## Resilience
+
+### 1. The async command handling 
+   will better resist burst situation. As explained in [Command handling asynchrony](#Design)). 
+
+### 2. Retry and Circuit breaker
+   When bank API is unavailable or unusually slow, there is no reason to continuously consume I/O resource creating internal back pressure on Gateway. After have retried several times, Gateway should open the circuit and buffer the temporarily failed `PaymentRequest`s. Should also have dedicated thread to reprocess these pending requests. (Now what is naively implemented is, when the following request succeed to contact bank API, close the circuit).
+
+   > Circuit breaking, as it is concerns a specific bank. We should have one circuit breaker per `AcquiringBank`.
 
 ## Tests
 I have done in solution:
