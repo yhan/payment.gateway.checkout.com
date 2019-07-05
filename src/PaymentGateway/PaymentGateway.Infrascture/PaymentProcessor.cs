@@ -57,15 +57,16 @@ namespace PaymentGateway.Infrastructure
             var breaker = Policy
                 .Handle<TaskCanceledException>()
                 .Or<FailedConnectionToBankException>()
-                .Or<TaskCanceledException>()
                 .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 3,
-                    durationOfBreak: TimeSpan.FromMilliseconds(20),
-                    onBreak: OnBreak,
-                    onReset: OnReset);
+                                    durationOfBreak: TimeSpan.FromMilliseconds(20),
+                                    onBreak: OnBreak,
+                                    onReset: OnReset);
 
-            AsyncPolicyWrap policy = Policy .Handle<TaskCanceledException>()
-                .Or<FailedConnectionToBankException>().RetryAsync(3) .WrapAsync(breaker);
-
+            AsyncPolicyWrap policy = Policy.Handle<TaskCanceledException>()
+                                           .Or<FailedConnectionToBankException>()
+                                           .RetryAsync(3)
+                                           .WrapAsync(breaker);
+    
             IBankResponse bankResponse = new NullBankResponse();
 
             var policyResult = await policy.ExecuteAndCaptureAsync(async () =>
@@ -76,9 +77,13 @@ namespace PaymentGateway.Infrastructure
                     cts.CancelAfter(timeout);
 
                     bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt, cts.Token);
+
+                    
                 }
             });
             
+            breaker.Reset(); 
+
             if (policyResult.FinalException != null)
             {
                 if (policyResult.FinalException is TaskCanceledException)

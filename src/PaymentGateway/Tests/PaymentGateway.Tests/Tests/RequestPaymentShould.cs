@@ -237,7 +237,11 @@ namespace PaymentGateway.Tests
             var delayBiggerThanTolerance = timeoutTolerance * 5;
 
             var delayProvider = Substitute.For<IProvideBankResponseTime>();
-            delayProvider.Delays().Returns(delayBiggerThanTolerance, delayBiggerThanTolerance, delayBiggerThanTolerance, timeoutTolerance.Divide(2));
+            delayProvider.Delays().Returns(delayBiggerThanTolerance,//timeout
+                delayBiggerThanTolerance,//timeout
+                delayBiggerThanTolerance, //timeout
+                timeoutTolerance.Divide(2) // NO TIMEOUT
+                );
 
             var knowBufferAndReprocessPaymentRequest = Substitute.For<IKnowBufferAndReprocessPaymentRequest>();
             var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted,
@@ -247,8 +251,8 @@ namespace PaymentGateway.Tests
                                                 PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance),
                 knowBufferAndReprocessPaymentRequest);
 
-            await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
-
+            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
+            Check.That(actionResult).IsInstanceOf<AcceptedAtRouteResult>();
 
             PaymentDto payment = (await cqrs.PaymentReadController.GetPaymentInfo(gatewayPaymentId)).Value;
             Check.That(payment.RequestId).IsEqualTo(requestId);
@@ -259,8 +263,39 @@ namespace PaymentGateway.Tests
             Check.That(payment.AcquiringBankPaymentId).IsNull();
 
             knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).Buffer(default, default, default);
+
+            // The fourth will not timeout, Circuit breaker should close
+            await knowBufferAndReprocessPaymentRequest.ReceivedWithAnyArgs(1).ProcessBufferedPaymentRequest();
         }
 
+
+        [Test]
+        public async Task Return_accepted_Event_when_tried_3_times_and_then_still_fail()
+        {
+            var requestId = Guid.NewGuid();
+            var paymentRequest = TestsUtils.BuildPaymentRequest(requestId, MerchantsRepository.Amazon);
+            var gatewayPaymentId = Guid.NewGuid();
+            IGenerateGuid guidGenerator = new GuidGeneratorForTesting(gatewayPaymentId);
+
+            var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
+
+            var timeoutTolerance = TimeSpan.FromMilliseconds(20);
+            var delayBiggerThanTolerance = timeoutTolerance * 5;
+
+            var delayProvider = Substitute.For<IProvideBankResponseTime>();
+            delayProvider.Delays().Returns(delayBiggerThanTolerance, delayBiggerThanTolerance, delayBiggerThanTolerance, delayBiggerThanTolerance);
+
+            var knowBufferAndReprocessPaymentRequest = Substitute.For<IKnowBufferAndReprocessPaymentRequest>();
+            var cqrs = await PaymentCQRS.Build(BankPaymentStatus.Accepted,
+                new BankPaymentIdGeneratorForTests(bankPaymentId),
+                new AlwaysSuccessBankConnectionBehavior(),
+                delayProvider,
+                PaymentCQRS.TimeoutProviderForBankResponseWaiting(timeoutTolerance),
+                knowBufferAndReprocessPaymentRequest);
+
+            var actionResult = await cqrs.RequestsController.ProceedPaymentRequest(paymentRequest, guidGenerator, cqrs.PaymentRequestsMemory, cqrs.PaymentProcessor);
+            Check.That(actionResult).IsInstanceOf<AcceptedAtRouteResult>();
+        }
 
         [TestCase(BankPaymentStatus.Accepted, PaymentGateway.Domain.PaymentStatus.Success)]
         [TestCase(BankPaymentStatus.Rejected, PaymentGateway.Domain.PaymentStatus.RejectedByBank)]
