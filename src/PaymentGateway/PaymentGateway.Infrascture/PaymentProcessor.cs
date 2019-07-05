@@ -56,43 +56,23 @@ namespace PaymentGateway.Infrastructure
             var breaker = Policy
                 .Handle<TaskCanceledException>()
                 .Or<FailedConnectionToBankException>()
-                .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 2,
+                .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 1,
                     durationOfBreak: TimeSpan.FromMilliseconds(20),
                     onBreak: OnBreak,
                     onReset: OnReset);
 
-            var fallbackAndCircuitBreakerConfiguredPolicy = Policy<IPaymentResult>
-                .Handle<Exception>()
-                .FallbackAsync<IPaymentResult>(cancel => ReturnWillHandleLater(payment.GatewayPaymentId, payment.RequestId))
+            var policy = Policy
+                .Handle<TaskCanceledException>()
+                .Or<FailedConnectionToBankException>()
+                .FallbackAsync(cancel => ReturnWillHandleLater(payment.GatewayPaymentId, payment.RequestId))
                 .WrapAsync(breaker);
-
-            await Task.Delay(5);
-
-            var attemptPaying = await fallbackAndCircuitBreakerConfiguredPolicy.ExecuteAsync(async () =>
-            {
-                return await RetriedGettingPaymentResult(bankAdapter, payment, payingAttempt);
-            });
-
-           
-
-            return attemptPaying;
-        }
-
-
-        private static async Task<IPaymentResult> ReturnWillHandleLater(Guid gatewayPaymentId, Guid requestPaymentId)
-        {
-            return await Task.FromResult(new WillHandleLaterPaymentResult(PaymentStatus.WillHandleLater, gatewayPaymentId, requestPaymentId));
-        }
-
-        private async Task<PaymentResult> RetriedGettingPaymentResult(IAdaptToBank bankAdapter, Payment payment, PayingAttempt payingAttempt)
-        {
+            
             IBankResponse bankResponse = new NullBankResponse();
-            // Connection to bank
-            var policy = Policy.Handle<TaskCanceledException>()
-                .WaitAndRetryAsync(3, retry => TimeSpan.FromMilliseconds(Math.Pow(2, retry)));
 
             var policyResult = await policy.ExecuteAndCaptureAsync(async () =>
             {
+                //return await RetriedGettingPaymentResult(bankAdapter, payment, payingAttempt);
+
                 using (var cts = new CancellationTokenSource())
                 {
                     var timeout = _timeoutProviderForBankResponseWaiting.GetTimeout();
@@ -101,7 +81,7 @@ namespace PaymentGateway.Infrastructure
                     bankResponse = await bankAdapter.RespondToPaymentAttempt(payingAttempt, cts.Token);
                 }
             });
-
+            
             if (policyResult.FinalException != null)
             {
                 if (policyResult.FinalException is TaskCanceledException)
@@ -131,7 +111,13 @@ namespace PaymentGateway.Infrastructure
 
             return PaymentResult.Finished(payingAttempt.GatewayPaymentId, payingAttempt.PaymentRequestId);
         }
-        
+
+
+        private static async Task<IPaymentResult> ReturnWillHandleLater(Guid gatewayPaymentId, Guid requestPaymentId)
+        {
+            return await Task.FromResult(new WillHandleLaterPaymentResult(PaymentStatus.WillHandleLater, gatewayPaymentId, requestPaymentId));
+        }
+
         private IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
         {
             switch (bankResponse)
@@ -141,9 +127,20 @@ namespace PaymentGateway.Infrastructure
 
                 case BankDoesNotRespond _:
                     return new NotRespondedBankStrategy(paymentsRepository);
+
+                case NullBankResponse _:
+                    return new NullBankResponseHandler();
             }
 
             throw new ArgumentException();
+        }
+    }
+
+    internal class NullBankResponseHandler : IHandleBankResponseStrategy
+    {
+        public Task Handle(IThrowsException gatewayExceptionSimulator, Guid payingAttemptGatewayPaymentId)
+        {
+            return Task.CompletedTask;
         }
     }
 

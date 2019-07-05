@@ -248,8 +248,8 @@ namespace PaymentGateway.Tests
             Check.That(payment.RequestId).IsEqualTo(requestId);
             Check.That(payment.GatewayPaymentId).IsEqualTo(gatewayPaymentId);
 
-            Check.That(payment.Status).IsEqualTo(PaymentStatus.Timeout);
-            Check.That(payment.Approved.Value).IsFalse();
+            Check.That(payment.Status).IsEqualTo(PaymentStatus.Pending);
+            Check.That(payment.Approved).IsNull();
             Check.That(payment.AcquiringBankPaymentId).IsNull();
         }
 
