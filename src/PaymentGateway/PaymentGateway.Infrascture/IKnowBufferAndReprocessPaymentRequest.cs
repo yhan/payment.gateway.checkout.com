@@ -16,26 +16,6 @@ namespace PaymentGateway.Infrastructure
         void ProcessBufferedPaymentRequest();
     }
 
-    public class BankResponseHandleStrategyBuilder
-    {
-        public static IHandleBankResponseStrategy Build(IBankResponse bankResponse, IEventSourcedRepository<Payment> paymentsRepository)
-        {
-            switch (bankResponse)
-            {
-                case BankResponse response:
-                    return new RespondedBankStrategy(response, paymentsRepository);
-
-                case BankDoesNotRespond _:
-                    return new NotRespondedBankStrategy(paymentsRepository);
-
-                case NullBankResponse _:
-                    return new NullBankResponseHandler();
-            }
-
-            throw new ArgumentException();
-        }
-    }
-
     public class PaymentRequestsLaterHandler : IKnowBufferAndReprocessPaymentRequest
     {
         private readonly IEventSourcedRepository<Payment> _paymentsRepository;
@@ -46,11 +26,10 @@ namespace PaymentGateway.Infrastructure
         private readonly ConcurrentQueue<PaymentRequestBuffer> _buffer = new ConcurrentQueue<PaymentRequestBuffer>();
 
         public PaymentRequestsLaterHandler(IEventSourcedRepository<Payment> paymentsRepository,
-            IProvideTimeout timeoutProviderForBankResponseWaiting,
-
-            ILogger<PaymentRequestsLaterHandler> bankResponseProcessingLogger,
-            IAmCircuitBreakers circuitBreakers,
-            IThrowsException gatewayExceptionSimulator = null)
+                                        IProvideTimeout timeoutProviderForBankResponseWaiting,
+                                        ILogger<PaymentRequestsLaterHandler> bankResponseProcessingLogger,
+                                        IAmCircuitBreakers circuitBreakers,
+                                        IThrowsException gatewayExceptionSimulator = null)
         {
             _paymentsRepository = paymentsRepository;
             _timeoutProviderForBankResponseWaiting = timeoutProviderForBankResponseWaiting;
@@ -163,8 +142,5 @@ namespace PaymentGateway.Infrastructure
 
             return new CircuitBreaker(breaker, policy);
         }
-
-
     }
-
 }

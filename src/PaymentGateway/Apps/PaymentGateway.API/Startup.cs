@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using PaymentGateway.API;
 using PaymentGateway.Domain;
 using PaymentGateway.Infrastructure;
 using PaymentGateway.ReadProjector;
@@ -67,7 +68,7 @@ namespace PaymentGateway
             
             {
                 // Acquiring BANK related
-                services.AddTransient<ISelectAdapter, BankAdapterSelector>();
+                services.AddScoped<ISelectAdapter, BankAdapterSelector>();
                 services.AddScoped<IMapMerchantToBankAdapter, MerchantToBankAdapterMapper>();
                 services.AddSingleton<IKnowAllMerchants, MerchantsRepository>();
                 services.AddScoped<IConnectToAcquiringBanks, RandomConnectionBehavior>();

@@ -233,6 +233,9 @@ For sake of simplicity of the exercise, I used InMemory for:
       }
      ```
 
+      > Production code, use random bank latency from 0 to 4 sec; and timeout is set to 2 sec
+
+
      d) _ReceivedDuplicatedBankPaymentIdFailure_
       ```json
          {
@@ -243,7 +246,19 @@ For sake of simplicity of the exercise, I used InMemory for:
             "approved": false
          }
       ```
-     > Production code, use random bank latency from 0 to 5 sec; and timeout is set to 2 sec
+     e) _Unable to connect to bank_
+     ```json
+      {
+         "gatewayPaymentId": "a05d1562-1d6e-4881-932f-bd73037e5e5a",
+         "acquiringBankPaymentId": null,
+         "status": "BankUnavailable",
+         "requestId": "841054ad-1bf6-4e19-886f-e4d7b10df766",
+         "approved": false
+      }
+     ```
+
+
+  
 
    -  **GET api/PaymentsDetails/{acquiringBankPaymentId}**  
       Endpoint to retrieving payment details
@@ -368,6 +383,11 @@ For a Payment Gateway, what is important:
    In edge case: after have closed the circuit breaker, the dequeued `Payment request` fails again for whatever reason, the failed request will be, again enqueued to the buffer.
 
    Circuit breaking, as it is concerns a specific bank. The implementation is one circuit breaker per `AcquiringBank`.
+
+
+   > What is decided arbitrarily is we don't buffer payment request if cannot connect to bank (after retries). 
+
+   > What we can also imagine is: we expose `/health` endpoint to merchant. The health depends on the Gateway to Bank connection status. We ask merchant stop calling us, if bank API is unavailable. Or we can buffer the payment requests which is impossible to send out. It is question of tradeoff.
 
 ## Tests
 I have done in solution:

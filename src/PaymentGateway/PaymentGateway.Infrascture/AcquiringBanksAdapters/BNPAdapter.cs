@@ -36,7 +36,6 @@ namespace PaymentGateway.Infrastructure
             // Simulate bank response delay
             var delay = DelayProvider.Delays();
             await Task.Delay(delay, cancellationToken);
-            Logger.LogInformation($"Bank delayed {delay}");
 
             // Call bank's service
             var request = new BNPPaymentRequest(payingAttempt.GatewayPaymentId, payingAttempt.Amount, payingAttempt.Currency, payingAttempt.CardCvv, payingAttempt.CardExpiry, payingAttempt.CardNumber);
