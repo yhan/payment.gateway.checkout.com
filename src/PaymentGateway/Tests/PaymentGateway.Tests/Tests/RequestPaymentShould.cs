@@ -234,7 +234,7 @@ namespace PaymentGateway.Tests
             var bankPaymentId = Guid.Parse("3ec8c76c-7dc2-4769-96f8-7e0649ecdfc0");
             
             var timeoutTolerance = TimeSpan.FromMilliseconds(20);
-            var delayBiggerThanTolerance = timeoutTolerance * 2;
+            var delayBiggerThanTolerance = timeoutTolerance * 5;
             var cqrs = await PaymentCQRS.Build( BankPaymentStatus.Accepted, 
                                                 new BankPaymentIdGeneratorForTests(bankPaymentId), 
                                                 new AlwaysSuccessBankConnectionBehavior(), 
